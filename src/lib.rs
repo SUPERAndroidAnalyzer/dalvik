@@ -9,7 +9,7 @@ pub mod bytecode;
 mod types;
 
 use error::{Result, Error};
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
+use byteorder::{BigEndian, LittleEndian, ReadBytesExt, ByteOrder};
 
 pub struct Dex {
     header: Header,
@@ -25,17 +25,65 @@ impl Dex {
     /// Loads a new Dex data structure from the file at the given path.
     pub fn new<P: AsRef<Path>>(path: P, verify: bool) -> Result<Dex> {
         let path = path.as_ref();
+        // Read header (and verify file if requested)
         let (mut reader, header) = if verify {
             let header = try!(Header::from_file(path, true));
             let f = try!(fs::File::open(path.clone()));
-            let reader = BufReader::new(f).bytes().skip(HEADER_SIZE);
+            let mut reader = BufReader::new(f);
+            let mut buf = [0u8; HEADER_SIZE];
+            try!(reader.read_exact(&mut buf));
             (reader, header)
         } else {
             let f = try!(fs::File::open(path.clone()));
             let mut reader = BufReader::new(f);
             let header = try!(Header::from_reader(&mut reader));
-            (reader.bytes().skip(0), header)
+            (reader, header)
         };
+        let mut offset = HEADER_SIZE;
+        let mut string_ids = Vec::with_capacity(header.get_string_ids_size());
+        // Read all string offsets
+        for _ in 0..string_ids.capacity() {
+            string_ids.push(try!(if header.is_little_endian() {
+                reader.read_u32::<LittleEndian>()
+            } else {
+                reader.read_u32::<BigEndian>()
+            }) as usize);
+            offset += 4;
+        }
+
+        let mut type_ids = Vec::with_capacity(header.get_type_ids_size());
+        // Read all string offsets
+        for _ in 0..type_ids.capacity() {
+            type_ids.push(try!(if header.is_little_endian() {
+                reader.read_u32::<LittleEndian>()
+            } else {
+                reader.read_u32::<BigEndian>()
+            }) as usize);
+            offset += 4;
+        }
+
+        let mut prototype_ids = Vec::with_capacity(header.get_prototype_ids_size());
+        // Read all string offsets
+        for _ in 0..prototype_ids.capacity() {
+            let shorty_id = try!(if header.is_little_endian() {
+                reader.read_u32::<LittleEndian>()
+            } else {
+                reader.read_u32::<BigEndian>()
+            }) as usize;
+            let return_type_id = try!(if header.is_little_endian() {
+                reader.read_u32::<LittleEndian>()
+            } else {
+                reader.read_u32::<BigEndian>()
+            }) as usize;
+            let parameters_offset = try!(if header.is_little_endian() {
+                reader.read_u32::<LittleEndian>()
+            } else {
+                reader.read_u32::<BigEndian>()
+            }) as usize;
+            prototype_ids.push(PrototypeId::new(shorty_id, return_type_id, parameters_offset));
+            offset += 3 * 4;
+        }
+
         unimplemented!()
     }
 

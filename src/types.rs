@@ -1,3 +1,19 @@
+pub struct PrototypeId {
+    shorty_id: usize,
+    type_id: usize,
+    parameters_offset: usize,
+}
+
+impl PrototypeId {
+    pub fn new(shorty_id: usize, type_id: usize, parameters_offset: usize) -> PrototypeId {
+        PrototypeId {
+            shorty_id: shorty_id,
+            type_id: type_id,
+            parameters_offset: parameters_offset,
+        }
+    }
+}
+
 #[allow(unused)]
 pub enum LEB128 {
     B1(u8),
