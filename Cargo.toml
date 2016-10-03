@@ -1,0 +1,14 @@
+[package]
+name = "dalvik"
+version = "0.1.0-dev"
+authors = ["Razican <razican@protonmail.ch>"]
+license = "MIT/Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/SUPERAndroidAnalyzer/dalvik"
+documentation = "http://superanalyzer.rocks/dalvik"
+description = """
+Dalvik parser in pure Rust.
+"""
+keywords = ["dalvik", "parser", "android", "dex"]
+
+[dependencies]
