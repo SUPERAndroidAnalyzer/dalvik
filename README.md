@@ -1,2 +1,3 @@
-# dalvik-rs
-Dalvik parser in pure Rust.
+# Dalvik parser
+
+Android Dalvik parser in 100% pure Rust, still in development.
