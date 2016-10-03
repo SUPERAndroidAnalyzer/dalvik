@@ -1,6 +1,6 @@
 use std::path::Path;
 use std::{fmt, io, fs, usize};
-use std::io::BufReader;
+use std::io::{Read, BufReader};
 
 extern crate byteorder;
 
@@ -22,10 +22,24 @@ pub struct Dex {
 }
 
 impl Dex {
+    /// Loads a new Dex data structure from the file at the given path.
     pub fn new<P: AsRef<Path>>(path: P, verify: bool) -> Result<Dex> {
-        // TODO
+        let path = path.as_ref();
+        let (mut reader, header) = if verify {
+            let header = try!(Header::from_file(path, true));
+            let f = try!(fs::File::open(path.clone()));
+            let reader = BufReader::new(f).bytes().skip(HEADER_SIZE);
+            (reader, header)
+        } else {
+            let f = try!(fs::File::open(path.clone()));
+            let mut reader = BufReader::new(f);
+            let header = try!(Header::from_reader(&mut reader));
+            (reader.bytes().skip(0), header)
+        };
         unimplemented!()
     }
+
+    /// Ads the file in the given path to the current Dex data structure.
     pub fn add_file<P: AsRef<Path>>(path: P) -> Result<()> {
         unimplemented!()
     }
@@ -113,8 +127,7 @@ impl Header {
         if file_size < HEADER_SIZE as u64 || file_size > usize::MAX as u64 {
             return Err(Error::invalid_dex_file_size(file_size, None));
         }
-        let reader = BufReader::new(f);
-        let header = try!(Header::from_reader(reader));
+        let header = try!(Header::from_reader(BufReader::new(f)));
         if file_size as usize != header.get_file_size() {
             Err(Error::invalid_dex_file_size(file_size, Some(header.get_file_size())))
         } else if verify {
@@ -125,7 +138,7 @@ impl Header {
     }
 
     /// Obtains the header from a Dex file reader.
-    pub fn from_reader<R: io::Read>(mut reader: R) -> Result<Header> {
+    pub fn from_reader<R: Read>(mut reader: R) -> Result<Header> {
         // Magic number
         let mut magic = [0u8; 8];
         try!(reader.read_exact(&mut magic));
