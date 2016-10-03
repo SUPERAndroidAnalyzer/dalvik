@@ -11,9 +11,11 @@ pub enum Error {
     InvalidDexMagic(String),
     InvalidDexHeaderSize(String),
     InvalidDexFileSize(String),
+    InvalidDexEndianTag(String),
     IO(io::Error),
 }
 
+#[doc(hidden)]
 impl Error {
     pub fn bytecode_parse(bytecode: [u8; 4]) -> Error {
         Error::BytecodeParse(format!("invalid bytecode: {:?}", bytecode))
@@ -26,8 +28,8 @@ impl Error {
             Some(size) => {
                 if size < HEADER_SIZE {
                     Error::InvalidDexFileSize(format!("the file size in the header file is not \
-                                                       valid: {}, the size must be bigger than \
-                                                       {} bytes",
+                                                       valid: {}, the size must be bigger or \
+                                                       equal to {} bytes",
                                                       size,
                                                       HEADER_SIZE))
                 } else {
@@ -46,6 +48,16 @@ impl Error {
                                                   file_size))
             }
         }
+    }
+    pub fn invalid_dex_endian_tag(endian_tag: u32) -> Error {
+        Error::InvalidDexEndianTag(format!("invalid dex endian tag: {:#x}, it can only be \
+                                            `ENDIAN_CONSTANT` or `REVERSE_ENDIAN_CONSTANT`",
+                                           endian_tag))
+    }
+    pub fn invalid_dex_header_size(header_size: usize) -> Error {
+        Error::InvalidDexEndianTag(format!("invalid dex header_size: {}, it can only be {}`",
+                                           header_size,
+                                           HEADER_SIZE))
     }
 }
 
@@ -67,7 +79,8 @@ impl StdError for Error {
             &Error::BytecodeParse(ref d) |
             &Error::InvalidDexMagic(ref d) |
             &Error::InvalidDexHeaderSize(ref d) |
-            &Error::InvalidDexFileSize(ref d) => d,
+            &Error::InvalidDexFileSize(ref d) |
+            &Error::InvalidDexEndianTag(ref d) => d,
             &Error::IO(ref e) => e.description(),
         }
     }
@@ -77,7 +90,8 @@ impl StdError for Error {
             &Error::BytecodeParse(_) |
             &Error::InvalidDexMagic(_) |
             &Error::InvalidDexHeaderSize(_) |
-            &Error::InvalidDexFileSize(_) => None,
+            &Error::InvalidDexFileSize(_) |
+            &Error::InvalidDexEndianTag(_) => None,
             &Error::IO(ref e) => Some(e),
         }
     }

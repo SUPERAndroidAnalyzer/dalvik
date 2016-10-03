@@ -12,3 +12,4 @@ Dalvik parser in pure Rust.
 keywords = ["dalvik", "parser", "android", "dex"]
 
 [dependencies]
+byteorder = "^0.5"

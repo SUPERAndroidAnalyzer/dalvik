@@ -2,11 +2,14 @@ use std::path::Path;
 use std::{fmt, io, fs, usize};
 use std::io::BufReader;
 
+extern crate byteorder;
+
 pub mod error;
 pub mod bytecode;
 mod types;
 
 use error::{Result, Error};
+use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 
 pub struct Dex {
     header: Header,
@@ -46,12 +49,14 @@ pub struct Header {
     map_offset: usize,
     string_ids_size: usize,
     string_ids_offset: usize,
-    types_ids_size: usize,
-    types_ids_offset: usize,
-    proto_ids_size: usize,
-    proto_ids_offset: usize,
+    type_ids_size: usize,
+    type_ids_offset: usize,
+    prototype_ids_size: usize,
+    prototype_ids_offset: usize,
     field_ids_size: usize,
     field_ids_offset: usize,
+    method_ids_size: usize,
+    method_ids_offset: usize,
     class_defs_size: usize,
     class_defs_offset: usize,
     data_size: usize,
@@ -63,10 +68,10 @@ impl fmt::Debug for Header {
         write!(f,
                "DexHeader {{ magic: {:?} (version: {}), checksum: {} signature: {}, file_size: \
                 {}, header_size: {}, endian_tag: {}, link_size: {}, link_offset: {}, map_offset: \
-                {}, string_ids_size: {}, string_ids_offset: {}, types_ids_size: {}, \
-                types_ids_offset: {}, proto_ids_size: {}, proto_ids_offset: {}, field_ids_size: \
-                {}, field_ids_offset: {}, class_defs_size: {}, class_defs_offset: {}, data_size: \
-                {}, data_offset: {} }}",
+                {}, string_ids_size: {}, string_ids_offset: {}, type_ids_size: {}, \
+                type_ids_offset: {}, proto_ids_size: {}, proto_ids_offset: {}, field_ids_size: \
+                {}, field_ids_offset: {}, method_defs_size: {}, method_defs_offset: {}, \
+                class_defs_size: {}, class_defs_offset: {}, data_size: {}, data_offset: {} }}",
                self.magic,
                self.get_dex_version(),
                self.checksum,
@@ -85,12 +90,14 @@ impl fmt::Debug for Header {
                self.map_offset,
                self.string_ids_size,
                self.string_ids_offset,
-               self.types_ids_size,
-               self.types_ids_offset,
-               self.proto_ids_size,
-               self.proto_ids_offset,
+               self.type_ids_size,
+               self.type_ids_offset,
+               self.prototype_ids_size,
+               self.prototype_ids_offset,
                self.field_ids_size,
                self.field_ids_offset,
+               self.method_ids_size,
+               self.method_ids_offset,
                self.class_defs_size,
                self.class_defs_offset,
                self.data_size,
@@ -100,7 +107,7 @@ impl fmt::Debug for Header {
 
 impl Header {
     /// Obtains the header from a Dex file.
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Header> {
+    pub fn from_file<P: AsRef<Path>>(path: P, verify: bool) -> Result<Header> {
         let f = try!(fs::File::open(path));
         let file_size = try!(f.metadata()).len();
         if file_size < HEADER_SIZE as u64 || file_size > usize::MAX as u64 {
@@ -110,6 +117,8 @@ impl Header {
         let header = try!(Header::from_reader(reader));
         if file_size as usize != header.get_file_size() {
             Err(Error::invalid_dex_file_size(file_size, Some(header.get_file_size())))
+        } else if verify {
+            unimplemented!()
         } else {
             Ok(header)
         }
@@ -117,12 +126,172 @@ impl Header {
 
     /// Obtains the header from a Dex file reader.
     pub fn from_reader<R: io::Read>(mut reader: R) -> Result<Header> {
+        // Magic number
         let mut magic = [0u8; 8];
         try!(reader.read_exact(&mut magic));
         if !Header::is_magic_valid(&magic) {
             return Err(Error::invalid_dex_magic(magic));
         }
-        unimplemented!()
+        // Checksum
+        let mut checksum = try!(reader.read_u32::<LittleEndian>());
+        // Signature
+        let mut signature = [0u8; 20];
+        try!(reader.read_exact(&mut signature));
+        // File size
+        let mut file_size = try!(reader.read_u32::<LittleEndian>());
+        // Header size
+        let mut header_size = try!(reader.read_u32::<LittleEndian>());
+        // Endian tag
+        let endian_tag = try!(reader.read_u32::<LittleEndian>());
+
+        // Check endianness
+        if endian_tag == REVERSE_ENDIAN_CONSTANT {
+            // The file is in big endian instead of little endian.
+            checksum = checksum.swap_bytes();
+            file_size = file_size.swap_bytes();
+            header_size = header_size.swap_bytes();
+        } else if endian_tag != ENDIAN_CONSTANT {
+            return Err(Error::invalid_dex_endian_tag(endian_tag));
+        }
+        let header_size = header_size as usize;
+        let file_size = file_size as usize;
+        // Check header size
+        if header_size != HEADER_SIZE {
+            return Err(Error::invalid_dex_header_size(header_size));
+        }
+        // Check file size
+        if file_size < HEADER_SIZE {
+            return Err(Error::invalid_dex_file_size(0, Some(file_size)));
+        }
+
+        // Link size
+        let link_size = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Link offset
+        let link_offset = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Map offset
+        let map_offset = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // String IDs size
+        let string_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // String IDs offset
+        let string_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Types IDs size
+        let type_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Types IDs offset
+        let type_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Prototype IDs size
+        let prototype_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Prototype IDs offset
+        let prototype_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Field IDs size
+        let field_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Field IDs offset
+        let field_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Method IDs size
+        let method_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Method IDs offset
+        let method_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Class defs size
+        let class_defs_size = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Class defs offset
+        let class_defs_offset = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Data size
+        let data_size = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+        // Data offset
+        let data_offset = try!(if endian_tag == ENDIAN_CONSTANT {
+            reader.read_u32::<LittleEndian>()
+        } else {
+            reader.read_u32::<BigEndian>()
+        });
+
+        Ok(Header {
+            magic: magic,
+            checksum: checksum,
+            signature: signature,
+            file_size: file_size,
+            header_size: header_size,
+            endian_tag: endian_tag,
+            link_size: link_size as usize,
+            link_offset: link_offset as usize,
+            map_offset: map_offset as usize,
+            string_ids_size: string_ids_size as usize,
+            string_ids_offset: string_ids_offset as usize,
+            type_ids_size: type_ids_size as usize,
+            type_ids_offset: type_ids_offset as usize,
+            prototype_ids_size: prototype_ids_size as usize,
+            prototype_ids_offset: prototype_ids_offset as usize,
+            field_ids_size: field_ids_size as usize,
+            field_ids_offset: field_ids_offset as usize,
+            method_ids_size: method_ids_size as usize,
+            method_ids_offset: method_ids_offset as usize,
+            class_defs_size: class_defs_size as usize,
+            class_defs_offset: class_defs_offset as usize,
+            data_size: data_size as usize,
+            data_offset: data_offset as usize,
+        })
     }
 
     /// Checks if the dex magic number given is valid.
@@ -206,24 +375,24 @@ impl Header {
         self.string_ids_offset
     }
 
-    /// Gets the types IDs list size.
-    pub fn get_types_ids_size(&self) -> usize {
-        self.types_ids_size
+    /// Gets the type IDs list size.
+    pub fn get_type_ids_size(&self) -> usize {
+        self.type_ids_size
     }
 
-    /// Gets the types IDs list offset.
-    pub fn get_types_ids_offset(&self) -> usize {
-        self.types_ids_offset
+    /// Gets the type IDs list offset.
+    pub fn get_type_ids_offset(&self) -> usize {
+        self.type_ids_offset
     }
 
     /// Gets the prototype IDs list size.
-    pub fn get_proto_ids_size(&self) -> usize {
-        self.proto_ids_size
+    pub fn get_prototype_ids_size(&self) -> usize {
+        self.prototype_ids_size
     }
 
     /// Gets the prototype IDs list offset.
-    pub fn get_proto_ids_offset(&self) -> usize {
-        self.proto_ids_offset
+    pub fn get_prototype_ids_offset(&self) -> usize {
+        self.prototype_ids_offset
     }
 
     /// Gets the field IDs list size.
@@ -234,6 +403,16 @@ impl Header {
     /// Gets the field IDs list offset.
     pub fn get_field_ids_offset(&self) -> usize {
         self.field_ids_offset
+    }
+
+    /// Gets the method IDs list size.
+    pub fn get_method_ids_size(&self) -> usize {
+        self.method_ids_size
+    }
+
+    /// Gets the method IDs list offset.
+    pub fn get_method_ids_offset(&self) -> usize {
+        self.method_ids_offset
     }
 
     /// Gets the class definition list size.
