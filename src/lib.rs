@@ -1,5 +1,5 @@
 use std::path::Path;
-use std::{fmt, io, fs, usize};
+use std::{fmt, fs, usize};
 use std::io::{Read, BufReader};
 
 extern crate byteorder;
@@ -8,8 +8,10 @@ pub mod error;
 pub mod bytecode;
 mod types;
 
+use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
+
 use error::{Result, Error};
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt, ByteOrder};
+use types::PrototypeId;
 
 pub struct Dex {
     header: Header,
