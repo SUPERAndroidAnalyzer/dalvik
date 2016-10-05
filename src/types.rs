@@ -1,5 +1,6 @@
 use std::fmt;
 use error::{Result, Error};
+use sizes::*;
 
 /// Data structure representing the `string_id_item` type.
 #[derive(Debug, Clone)]
@@ -266,6 +267,159 @@ impl ClassDefData {
                 None
             },
         })
+    }
+}
+
+const TYPE_HEADER_ITEM: u16 = 0x0000;
+const TYPE_STRING_ID_ITEM: u16 = 0x0001;
+const TYPE_TYPE_ID_ITEM: u16 = 0x0002;
+const TYPE_PROTO_ID_ITEM: u16 = 0x0003;
+const TYPE_FIELD_ID_ITEM: u16 = 0x0004;
+const TYPE_METHOD_ID_ITEM: u16 = 0x0005;
+const TYPE_CLASS_DEF_ITEM: u16 = 0x0006;
+const TYPE_MAP_LIST: u16 = 0x1000;
+const TYPE_TYPE_LIST: u16 = 0x1001;
+const TYPE_ANNOTATION_SET_REF_LIST: u16 = 0x1002;
+const TYPE_ANNOTATION_SET_ITEM: u16 = 0x1003;
+const TYPE_CLASS_DATA_ITEM: u16 = 0x2000;
+const TYPE_CODE_ITEM: u16 = 0x2001;
+const TYPE_STRING_DATA_ITEM: u16 = 0x2002;
+const TYPE_DEBUG_INFO_ITEM: u16 = 0x2003;
+const TYPE_ANNOTATION_ITEM: u16 = 0x2004;
+const TYPE_ENCODED_ARRAY_ITEM: u16 = 0x2005;
+const TYPE_ANNOTATIONS_DIRECTORY_ITEM: u16 = 0x2006;
+
+#[derive(Debug, Copy, Clone)]
+pub enum ItemType {
+    HeaderItem,
+    StringIdItem,
+    TypeIdItem,
+    ProtoIdItem,
+    FieldIdItem,
+    MethodIdItem,
+    ClassDefItem,
+    MapList,
+    TypeList,
+    AnnotationSetRefList,
+    AnnotationSetItem,
+    ClassDataItem,
+    CodeItem,
+    StringDataItem,
+    DebugInfoItem,
+    AnnotationItem,
+    EncodedArrayItem,
+    AnnotationsDirectoryItem,
+}
+
+impl ItemType {
+    fn from_u16(value: u16) -> Result<ItemType> {
+        match value {
+            TYPE_HEADER_ITEM => Ok(ItemType::HeaderItem),
+            TYPE_STRING_ID_ITEM => Ok(ItemType::StringIdItem),
+            TYPE_TYPE_ID_ITEM => Ok(ItemType::TypeIdItem),
+            TYPE_PROTO_ID_ITEM => Ok(ItemType::ProtoIdItem),
+            TYPE_FIELD_ID_ITEM => Ok(ItemType::FieldIdItem),
+            TYPE_METHOD_ID_ITEM => Ok(ItemType::MethodIdItem),
+            TYPE_CLASS_DEF_ITEM => Ok(ItemType::ClassDefItem),
+            TYPE_MAP_LIST => Ok(ItemType::MapList),
+            TYPE_TYPE_LIST => Ok(ItemType::TypeList),
+            TYPE_ANNOTATION_SET_REF_LIST => Ok(ItemType::AnnotationSetRefList),
+            TYPE_ANNOTATION_SET_ITEM => Ok(ItemType::AnnotationSetItem),
+            TYPE_CLASS_DATA_ITEM => Ok(ItemType::ClassDataItem),
+            TYPE_CODE_ITEM => Ok(ItemType::CodeItem),
+            TYPE_STRING_DATA_ITEM => Ok(ItemType::StringDataItem),
+            TYPE_DEBUG_INFO_ITEM => Ok(ItemType::DebugInfoItem),
+            TYPE_ANNOTATION_ITEM => Ok(ItemType::AnnotationItem),
+            TYPE_ENCODED_ARRAY_ITEM => Ok(ItemType::EncodedArrayItem),
+            TYPE_ANNOTATIONS_DIRECTORY_ITEM => Ok(ItemType::AnnotationsDirectoryItem),
+            v => Err(Error::invalid_item_type(v)),
+        }
+    }
+}
+
+impl From<ItemType> for u16 {
+    fn from(item_type: ItemType) -> u16 {
+        match item_type {
+            ItemType::HeaderItem => TYPE_HEADER_ITEM,
+            ItemType::StringIdItem => TYPE_STRING_ID_ITEM,
+            ItemType::TypeIdItem => TYPE_TYPE_ID_ITEM,
+            ItemType::ProtoIdItem => TYPE_PROTO_ID_ITEM,
+            ItemType::FieldIdItem => TYPE_FIELD_ID_ITEM,
+            ItemType::MethodIdItem => TYPE_METHOD_ID_ITEM,
+            ItemType::ClassDefItem => TYPE_CLASS_DEF_ITEM,
+            ItemType::MapList => TYPE_MAP_LIST,
+            ItemType::TypeList => TYPE_TYPE_LIST,
+            ItemType::AnnotationSetRefList => TYPE_ANNOTATION_SET_REF_LIST,
+            ItemType::AnnotationSetItem => TYPE_ANNOTATION_SET_ITEM,
+            ItemType::ClassDataItem => TYPE_CLASS_DATA_ITEM,
+            ItemType::CodeItem => TYPE_CODE_ITEM,
+            ItemType::StringDataItem => TYPE_STRING_DATA_ITEM,
+            ItemType::DebugInfoItem => TYPE_DEBUG_INFO_ITEM,
+            ItemType::AnnotationItem => TYPE_ANNOTATION_ITEM,
+            ItemType::EncodedArrayItem => TYPE_ENCODED_ARRAY_ITEM,
+            ItemType::AnnotationsDirectoryItem => TYPE_ANNOTATIONS_DIRECTORY_ITEM,
+        }
+    }
+}
+
+pub struct MapItem {
+    item_type: ItemType,
+    size: usize,
+    offset: usize,
+}
+
+impl fmt::Debug for MapItem {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "MapItem {{ item_type: {:?} ({:#06x}), num_items: {} items, size: {}, \
+                offset: {:#010x} }}",
+               self.item_type,
+               u16::from(self.item_type),
+               self.size,
+               match self.get_size() {
+                   Some(size) => format!("{} bytes", size),
+                   None => String::from("unknown"),
+               },
+               self.offset)
+    }
+}
+
+impl MapItem {
+    pub fn new(item_type: u16, size: u32, offset: u32) -> Result<MapItem> {
+        Ok(MapItem {
+            item_type: try!(ItemType::from_u16(item_type)),
+            size: size as usize,
+            offset: offset as usize,
+        })
+    }
+
+    pub fn get_item_type(&self) -> ItemType {
+        self.item_type
+    }
+
+    pub fn get_num_items(&self) -> usize {
+        self.size
+    }
+
+    pub fn get_size(&self) -> Option<usize> {
+        match self.item_type {
+            ItemType::HeaderItem => Some(HEADER_SIZE),
+            ItemType::StringIdItem => Some(STRING_ID_ITEM_SIZE),
+            ItemType::TypeIdItem => Some(TYPE_ID_ITEM_SIZE),
+            ItemType::ProtoIdItem => Some(PROTO_ID_ITEM_SIZE),
+            ItemType::FieldIdItem => Some(FIELD_ID_ITEM_SIZE),
+            ItemType::MethodIdItem => Some(METHOD_ID_ITEM_SIZE),
+            ItemType::ClassDefItem => Some(CLASS_DEF_ITEM_SIZE),
+            ItemType::MapList => Some(4 + self.size * MAP_ITEM_SIZE),
+            ItemType::TypeList => Some(4 + self.size * TYPE_ITEM_SIZE),
+            ItemType::AnnotationSetRefList => Some(4 + self.size * ANNOTATION_SET_REF_SIZE),
+            ItemType::AnnotationSetItem => Some(4 + self.size * ANNOTATION_SET_ITEM_SIZE),
+            _ => None,
+        }
+    }
+
+    pub fn get_offset(&self) -> usize {
+        self.offset
     }
 }
 

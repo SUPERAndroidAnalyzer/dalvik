@@ -6,6 +6,19 @@ fn it_header_read() {
 }
 
 #[test]
+#[should_panic]
 fn it_header_verify() {
-    // TODO
+    dalvik::Header::from_file("test.dex", true).unwrap();
+}
+
+#[test]
+#[should_panic]
+fn it_file_read() {
+    dalvik::Dex::from_file("test.dex", false).unwrap();
+}
+
+#[test]
+#[should_panic]
+fn it_file_verify() {
+    dalvik::Dex::from_file("test.dex", true).unwrap();
 }

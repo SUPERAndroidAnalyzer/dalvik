@@ -1,7 +1,7 @@
 use std::error::Error as StdError;
 use std::result::Result as StdResult;
 use std::{fmt, io, usize};
-use super::HEADER_SIZE;
+use sizes::HEADER_SIZE;
 
 /// Dalvik parser result type.
 pub type Result<T> = StdResult<T, Error>;
@@ -23,6 +23,8 @@ pub enum Error {
     MismatchedOffsets(String),
     /// Invalid access flags.
     InvalidAccessFlags(String),
+    /// Invalid item type.
+    InvalidItemType(String),
     /// Generic header error.
     Header(String),
     /// IO error.
@@ -92,6 +94,10 @@ impl Error {
     pub fn invalid_access_flags(access_flags: u32) -> Error {
         Error::InvalidAccessFlags(format!("invalid access flags: {:#010x}", access_flags))
     }
+    /// Creates an invalid item type error.
+    pub fn invalid_item_type(item_type: u16) -> Error {
+        Error::InvalidItemType(format!("invalid item type: {:#010x}", item_type))
+    }
 }
 
 impl From<io::Error> for Error {
@@ -116,6 +122,7 @@ impl StdError for Error {
             &Error::InvalidHeaderSize(ref d) |
             &Error::MismatchedOffsets(ref d) |
             &Error::InvalidAccessFlags(ref d) |
+            &Error::InvalidItemType(ref d) |
             &Error::Header(ref d) => d,
             &Error::IO(ref e) => e.description(),
         }
@@ -130,6 +137,7 @@ impl StdError for Error {
             &Error::InvalidHeaderSize(_) |
             &Error::MismatchedOffsets(_) |
             &Error::InvalidAccessFlags(_) |
+            &Error::InvalidItemType(_) |
             &Error::Header(_) => None,
             &Error::IO(ref e) => Some(e),
         }

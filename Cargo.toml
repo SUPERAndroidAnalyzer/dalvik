@@ -14,3 +14,7 @@ keywords = ["dalvik", "parser", "android", "dex"]
 [dependencies]
 byteorder = "^0.5"
 bitflags = "^0.7"
+
+[features]
+default = []
+debug = []

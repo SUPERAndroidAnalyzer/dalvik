@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::{fmt, fs, usize};
-use std::io::{Read, BufReader};
+use std::io::prelude::*;
+use std::io::{BufReader, SeekFrom};
 
 extern crate byteorder;
 #[macro_use]
@@ -8,13 +9,17 @@ extern crate bitflags;
 
 pub mod error;
 pub mod bytecode;
-mod types;
+pub mod types; // TODO: Should not be public
+pub mod sizes;
 
-use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
+use byteorder::{BigEndian, LittleEndian, ByteOrder, ReadBytesExt};
 
 use error::{Result, Error};
-use types::{StringIdData, TypeIdData, PrototypeIdData, FieldIdData, MethodIdData, ClassDefData};
+use sizes::*;
+use types::{StringIdData, TypeIdData, PrototypeIdData, FieldIdData, MethodIdData, ClassDefData,
+            MapItem, ItemType};
 
+#[derive(Debug)]
 pub struct Dex {
     header: Header,
     strings: Vec<String>,
@@ -25,17 +30,17 @@ pub struct Dex {
     classes: Vec<ClassDef>,
 }
 
+// TODO check alignments
 impl Dex {
     /// Loads a new Dex data structure from the file at the given path.
-    pub fn new<P: AsRef<Path>>(path: P, verify: bool) -> Result<Dex> {
+    pub fn from_file<P: AsRef<Path>>(path: P, verify: bool) -> Result<Dex> {
         let path = path.as_ref();
         // Read header (and verify file if requested)
         let (mut reader, header) = if verify {
             let header = try!(Header::from_file(path, true));
             let f = try!(fs::File::open(path.clone()));
             let mut reader = BufReader::new(f);
-            let mut buf = [0u8; HEADER_SIZE];
-            try!(reader.read_exact(&mut buf));
+            try!(reader.seek(SeekFrom::Start(HEADER_SIZE as u64)));
             (reader, header)
         } else {
             let f = try!(fs::File::open(path.clone()));
@@ -52,7 +57,7 @@ impl Dex {
             } else {
                 reader.read_u32::<BigEndian>()
             })));
-            offset += 4;
+            offset += STRING_ID_ITEM_SIZE;
         }
 
         let mut type_ids = Vec::with_capacity(header.get_type_ids_size());
@@ -63,7 +68,7 @@ impl Dex {
             } else {
                 reader.read_u32::<BigEndian>()
             })));
-            offset += 4;
+            offset += TYPE_ID_ITEM_SIZE;
         }
 
         let mut prototype_ids = Vec::with_capacity(header.get_prototype_ids_size());
@@ -85,7 +90,7 @@ impl Dex {
                 reader.read_u32::<BigEndian>()
             });
             prototype_ids.push(PrototypeIdData::new(shorty_id, return_type_id, parameters_offset));
-            offset += 3 * 4;
+            offset += PROTO_ID_ITEM_SIZE;
         }
 
         let mut field_ids = Vec::with_capacity(header.get_field_ids_size());
@@ -107,7 +112,7 @@ impl Dex {
                 reader.read_u32::<BigEndian>()
             });
             field_ids.push(FieldIdData::new(class_id, type_id, name_id));
-            offset += 2 * 2 + 4;
+            offset += FIELD_ID_ITEM_SIZE;
         }
 
         let mut method_ids = Vec::with_capacity(header.get_method_ids_size());
@@ -129,7 +134,7 @@ impl Dex {
                 reader.read_u32::<BigEndian>()
             });
             method_ids.push(MethodIdData::new(class_id, prototype_id, name_id));
-            offset += 2 * 2 + 4;
+            offset += METHOD_ID_ITEM_SIZE;
         }
 
         let mut class_defs = Vec::with_capacity(header.get_class_defs_size());
@@ -183,11 +188,44 @@ impl Dex {
                                                    annotations_offset,
                                                    class_data_offset,
                                                    static_values_offset)));
-            offset += 8 * 4;
+            offset += CLASS_DEF_ITEM_SIZE;
+        }
+        debug_assert!(offset <= header.get_data_offset());
+
+        if cfg!(feature = "debug") && offset < header.get_data_offset() {
+            println!("Should have reached data offset at {:#010x}, but still in {:#010x}. {} \
+                      bytes of unknown data were found.",
+                     header.get_data_offset(),
+                     offset,
+                     header.get_data_offset() - offset);
+        }
+        // Move to map section start.
+        try!(reader.seek(SeekFrom::Start(header.get_map_offset() as u64)));
+        // TODO do we actually need to store it, or an iterator would be enough?
+        let map = try!(if header.is_little_endian() {
+            Map::from_reader::<_, LittleEndian>(&mut reader)
+        } else {
+            Map::from_reader::<_, LittleEndian>(&mut reader)
+        });
+
+        for map_item in map.get_map_list() {
+            match map_item.get_item_type() {
+                ItemType::HeaderItem | ItemType::StringIdItem | ItemType::TypeIdItem |
+                ItemType::ProtoIdItem | ItemType::FieldIdItem | ItemType::MethodIdItem |
+                ItemType::ClassDefItem | ItemType::MapList | ItemType::TypeList => {}
+                ItemType::AnnotationSetRefList => unimplemented!(),
+                ItemType::AnnotationSetItem => unimplemented!(),
+                ItemType::ClassDataItem => unimplemented!(),
+                ItemType::CodeItem => unimplemented!(),
+                ItemType::StringDataItem => unimplemented!(),
+                ItemType::DebugInfoItem => unimplemented!(),
+                ItemType::AnnotationItem => unimplemented!(),
+                ItemType::EncodedArrayItem => unimplemented!(),
+                ItemType::AnnotationsDirectoryItem => unimplemented!(),
+            }
         }
 
-        // TODO search data
-        // TODO search links
+        // TODO search links?
 
         unimplemented!()
     }
@@ -200,11 +238,8 @@ impl Dex {
 
 pub const ENDIAN_CONSTANT: u32 = 0x12345678;
 pub const REVERSE_ENDIAN_CONSTANT: u32 = 0x78563412;
-pub const HEADER_SIZE: usize = 0x70;
 
-// TODO check offsets
 /// Dex header representantion structure.
-#[derive(Clone)]
 pub struct Header {
     magic: [u8; 8],
     checksum: u32,
@@ -557,30 +592,35 @@ impl Header {
         if data_offset != current_offset {
             // return Err(Error::mismatched_offsets("data_offset", data_offset, current_offset));
             // TODO seems that there is more information after the class definitions.
+            if cfg!(feature = "debug") {
+                println!("{} bytes of unknown data were found.",
+                         data_offset - current_offset);
+            }
+            current_offset = data_offset;
         }
+        current_offset += data_size;
         if map_offset < data_offset || map_offset > data_offset + data_size {
             return Err(Error::MismatchedOffsets(format!("`map_offset` section must be in the \
                                                          `data` section (between {:#010x} and \
                                                          {:#010x}) but it was at {:#010x}",
                                                         data_offset,
-                                                        data_offset + data_size,
+                                                        current_offset,
                                                         map_offset)));
         }
-        if link_size == 0 && data_offset + data_size != file_size {
-            return Err(Error::Header(String::from("`data` section must end at the EOF if there \
-                                                   are no links in the file")));
+        if link_size == 0 && current_offset != file_size {
+            return Err(Error::Header(format!("`data` section must end at the EOF if there \
+                                                   are no links in the file. Data end: \
+                                                   {:#010x}, `file_size`: {:#010x}",
+                                             current_offset,
+                                             file_size)));
+
         }
-
-        current_offset += data_size;
-
         if link_size != 0 && link_offset == 0 {
             return Err(Error::mismatched_offsets("link_offset", 0, current_offset));
         }
         if link_size != 0 && link_offset != 0 {
             if link_offset != current_offset {
-                return Err(Error::mismatched_offsets("link_offset",
-                                                     link_offset,
-                                                     data_offset + data_size));
+                return Err(Error::mismatched_offsets("link_offset", link_offset, current_offset));
             }
             if link_offset + link_size != file_size {
                 return Err(Error::Header(String::from("`link_data` section must end at the end \
@@ -789,18 +829,46 @@ impl Header {
     }
 }
 
+#[derive(Debug)]
+struct Map {
+    map_list: Vec<MapItem>,
+}
+
+impl Map {
+    fn from_reader<R: Read + Seek, B: ByteOrder>(reader: &mut R) -> Result<Map> {
+        let size = try!(reader.read_u32::<B>()) as usize;
+        let mut map_list = Vec::with_capacity(size);
+        for _ in 0..size {
+            let item_type = try!(reader.read_u16::<B>());
+            try!(reader.seek(SeekFrom::Current(2)));
+            let size = try!(reader.read_u32::<B>());
+            let offset = try!(reader.read_u32::<B>());
+            map_list.push(try!(MapItem::new(item_type, size, offset)));
+        }
+        Ok(Map { map_list: map_list })
+    }
+
+    fn get_map_list(&self) -> &[MapItem] {
+        &self.map_list
+    }
+}
+
+#[derive(Debug)]
 pub struct Prototype {
     // TODO;
 }
 
+#[derive(Debug)]
 pub struct Field {
     // TODO;
 }
 
+#[derive(Debug)]
 pub struct Method {
     // TODO;
 }
 
+#[derive(Debug)]
 pub struct ClassDef {
     // TODO;
 }
