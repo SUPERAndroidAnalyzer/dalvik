@@ -27,6 +27,8 @@ pub enum Error {
     InvalidItemType(String),
     /// Generic header error.
     Header(String),
+    /// Generic map error.
+    Map(String),
     /// IO error.
     IO(io::Error),
 }
@@ -123,7 +125,8 @@ impl StdError for Error {
             &Error::MismatchedOffsets(ref d) |
             &Error::InvalidAccessFlags(ref d) |
             &Error::InvalidItemType(ref d) |
-            &Error::Header(ref d) => d,
+            &Error::Header(ref d) |
+            &Error::Map(ref d) => d,
             &Error::IO(ref e) => e.description(),
         }
     }
@@ -138,7 +141,8 @@ impl StdError for Error {
             &Error::MismatchedOffsets(_) |
             &Error::InvalidAccessFlags(_) |
             &Error::InvalidItemType(_) |
-            &Error::Header(_) => None,
+            &Error::Header(_) |
+            &Error::Map(_) => None,
             &Error::IO(ref e) => Some(e),
         }
     }

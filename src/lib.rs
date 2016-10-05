@@ -1,18 +1,19 @@
-use std::path::Path;
-use std::{fmt, fs, usize};
-use std::io::prelude::*;
-use std::io::{BufReader, SeekFrom};
-
 extern crate byteorder;
 #[macro_use]
 extern crate bitflags;
 
-pub mod error;
-pub mod bytecode;
-pub mod types; // TODO: Should not be public
-pub mod sizes;
+use std::path::Path;
+use std::{fmt, fs, usize};
+use std::iter::SkipWhile;
+use std::io::prelude::*;
+use std::io::{BufReader, SeekFrom};
 
 use byteorder::{BigEndian, LittleEndian, ByteOrder, ReadBytesExt};
+
+pub mod error;
+pub mod bytecode; // TODO: not in use
+pub mod types; // TODO: Should not be public
+pub mod sizes; // TODO: Should not be public
 
 use error::{Result, Error};
 use sizes::*;
@@ -192,38 +193,108 @@ impl Dex {
         }
         debug_assert!(offset <= header.get_data_offset());
 
-        if cfg!(feature = "debug") && offset < header.get_data_offset() {
-            println!("Should have reached data offset at {:#010x}, but still in {:#010x}. {} \
-                      bytes of unknown data were found.",
-                     header.get_data_offset(),
-                     offset,
-                     header.get_data_offset() - offset);
+        if offset < header.get_data_offset() {
+            if cfg!(feature = "debug") {
+                println!("Should have reached data offset at {:#010x}, but still in {:#010x}. {} \
+                          bytes of unknown data were found.",
+                         header.get_data_offset(),
+                         offset,
+                         header.get_data_offset() - offset);
+            }
+            try!(reader.seek(SeekFrom::Current((header.get_data_offset() - offset) as i64)));
+            offset = header.get_data_offset();
         }
-        // Move to map section start.
-        try!(reader.seek(SeekFrom::Start(header.get_map_offset() as u64)));
-        // TODO do we actually need to store it, or an iterator would be enough?
+
         let map = try!(if header.is_little_endian() {
             Map::from_reader::<_, LittleEndian>(&mut reader)
         } else {
             Map::from_reader::<_, LittleEndian>(&mut reader)
         });
+        offset += 4 + MAP_ITEM_SIZE * map.get_item_list().len();
 
-        for map_item in map.get_map_list() {
-            match map_item.get_item_type() {
-                ItemType::HeaderItem | ItemType::StringIdItem | ItemType::TypeIdItem |
-                ItemType::ProtoIdItem | ItemType::FieldIdItem | ItemType::MethodIdItem |
-                ItemType::ClassDefItem | ItemType::MapList | ItemType::TypeList => {}
-                ItemType::AnnotationSetRefList => unimplemented!(),
-                ItemType::AnnotationSetItem => unimplemented!(),
-                ItemType::ClassDataItem => unimplemented!(),
-                ItemType::CodeItem => unimplemented!(),
-                ItemType::StringDataItem => unimplemented!(),
-                ItemType::DebugInfoItem => unimplemented!(),
-                ItemType::AnnotationItem => unimplemented!(),
-                ItemType::EncodedArrayItem => unimplemented!(),
-                ItemType::AnnotationsDirectoryItem => unimplemented!(),
+        for item in map.get_item_list().iter().skip_while(|i| i.get_offset() < offset) {
+            if item.get_offset() != offset {
+                return Err(Error::Map(format!("there should be an item at the current offset \
+                                               ({:#010x}), but next item returned offset \
+                                               {:#010x}",
+                                              offset,
+                                              item.get_offset())));
+            }
+            match item.get_item_type() {
+                ItemType::TypeList => {}
+                ItemType::AnnotationSetRefList => {}
+                _ => unimplemented!(),
             }
         }
+
+        println!("Map offset: {:#010x}", header.get_map_offset());
+        println!("Current offset: {:#010x}", offset);
+        println!("{:?}", map);
+        panic!();
+
+
+        // let mut annotation_set_refs = Vec::with_capacity(0);
+        // let mut annotation_sets = Vec::with_capacity(0);
+        // for map_item in map.get_map_list() {
+        //     match map_item.get_item_type() {
+        //         ItemType::HeaderItem | ItemType::StringIdItem | ItemType::TypeIdItem |
+        //         ItemType::ProtoIdItem | ItemType::FieldIdItem | ItemType::MethodIdItem |
+        //         ItemType::ClassDefItem | ItemType::MapList | ItemType::TypeList => {}
+        //         ItemType::AnnotationSetRefList => {
+        //             if map_item.get_num_items() > 0 {
+        //                 annotation_set_refs.reserve_exact(map_item.get_num_items());
+        //                 for _ in 0..map_item.get_num_items() {
+        //                     try!(reader.seek(SeekFrom::Start(map_item.get_offset() as u64)));
+        //                     let list_size = try!(if header.is_little_endian() {
+        //                         reader.read_u32::<LittleEndian>()
+        //                     } else {
+        //                         reader.read_u32::<BigEndian>()
+        //                     }) as usize;
+        //                     let mut annotations_offset = Vec::with_capacity(list_size);
+        //                     for _ in 0..list_size {
+        //                         let offset = try!(if header.is_little_endian() {
+        //                             reader.read_u32::<LittleEndian>()
+        //                         } else {
+        //                             reader.read_u32::<BigEndian>()
+        //                         }) as usize;
+        //                         annotations_offset.push(if offset != 0 {Some(offset)} else
+        // {None});
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         ItemType::AnnotationSetItem => {
+        //             if map_item.get_num_items() > 0 {
+        //                 annotation_set_list.reserve_exact(map_item.get_num_items());
+        //                 for _ in 0..map_item.get_num_items() {
+        //                     try!(reader.seek(SeekFrom::Start(map_item.get_offset() as u64)));
+        //                     let list_size = try!(if header.is_little_endian() {
+        //                         reader.read_u32::<LittleEndian>()
+        //                     } else {
+        //                         reader.read_u32::<BigEndian>()
+        //                     }) as usize;
+        //                     let mut annotations_offset = Vec::with_capacity(list_size);
+        //                     for _ in 0..list_size {
+        //                         let offset = try!(if header.is_little_endian() {
+        //                             reader.read_u32::<LittleEndian>()
+        //                         } else {
+        //                             reader.read_u32::<BigEndian>()
+        //                         }) as usize;
+        //                         annotations_offset.push(if offset != 0 {Some(offset)} else
+        // {None});
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         ItemType::ClassDataItem => unimplemented!(),
+        //         ItemType::CodeItem => unimplemented!(),
+        //         ItemType::StringDataItem => unimplemented!(),
+        //         ItemType::DebugInfoItem => unimplemented!(),
+        //         ItemType::AnnotationItem => unimplemented!(),
+        //         ItemType::EncodedArrayItem => unimplemented!(),
+        //         ItemType::AnnotationsDirectoryItem => unimplemented!(),
+        //     }
+        // }
 
         // TODO search links?
 
@@ -845,10 +916,11 @@ impl Map {
             let offset = try!(reader.read_u32::<B>());
             map_list.push(try!(MapItem::new(item_type, size, offset)));
         }
+        map_list.sort_by_key(|i| i.get_offset());
         Ok(Map { map_list: map_list })
     }
 
-    fn get_map_list(&self) -> &[MapItem] {
+    fn get_item_list(&self) -> &[MapItem] {
         &self.map_list
     }
 }

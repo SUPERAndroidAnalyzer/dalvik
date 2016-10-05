@@ -371,15 +371,10 @@ pub struct MapItem {
 impl fmt::Debug for MapItem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "MapItem {{ item_type: {:?} ({:#06x}), num_items: {} items, size: {}, \
-                offset: {:#010x} }}",
+               "MapItem {{ item_type: {:?} ({:#06x}), size: {} items, offset: {:#010x} }}",
                self.item_type,
                u16::from(self.item_type),
                self.size,
-               match self.get_size() {
-                   Some(size) => format!("{} bytes", size),
-                   None => String::from("unknown"),
-               },
                self.offset)
     }
 }
@@ -399,23 +394,6 @@ impl MapItem {
 
     pub fn get_num_items(&self) -> usize {
         self.size
-    }
-
-    pub fn get_size(&self) -> Option<usize> {
-        match self.item_type {
-            ItemType::HeaderItem => Some(HEADER_SIZE),
-            ItemType::StringIdItem => Some(STRING_ID_ITEM_SIZE),
-            ItemType::TypeIdItem => Some(TYPE_ID_ITEM_SIZE),
-            ItemType::ProtoIdItem => Some(PROTO_ID_ITEM_SIZE),
-            ItemType::FieldIdItem => Some(FIELD_ID_ITEM_SIZE),
-            ItemType::MethodIdItem => Some(METHOD_ID_ITEM_SIZE),
-            ItemType::ClassDefItem => Some(CLASS_DEF_ITEM_SIZE),
-            ItemType::MapList => Some(4 + self.size * MAP_ITEM_SIZE),
-            ItemType::TypeList => Some(4 + self.size * TYPE_ITEM_SIZE),
-            ItemType::AnnotationSetRefList => Some(4 + self.size * ANNOTATION_SET_REF_SIZE),
-            ItemType::AnnotationSetItem => Some(4 + self.size * ANNOTATION_SET_ITEM_SIZE),
-            _ => None,
-        }
     }
 
     pub fn get_offset(&self) -> usize {
