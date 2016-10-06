@@ -5,14 +5,14 @@ use sizes::*;
 /// Data structure representing the `string_id_item` type.
 #[derive(Debug, Clone)]
 pub struct StringIdData {
-    string_offset: usize,
+    offset: usize,
 }
 
 impl StringIdData {
     /// Creates a new `StringIdData` from the `u32` representing the `string_data_off` of the
     /// `string_id_item` type.
-    pub fn new(string_offset: u32) -> StringIdData {
-        StringIdData { string_offset: string_offset as usize }
+    pub fn new(offset: u32) -> StringIdData {
+        StringIdData { offset: offset as usize }
     }
 
     /// Gets the string offset in the `data` section.
@@ -20,8 +20,8 @@ impl StringIdData {
     /// Gets the offset from the start of the file to the string data for this item. The offset
     /// should be to a location in the `data` section, and the data should be in the format
     /// specified by `string_data_item`. There is no alignment requirement for the offset.
-    pub fn get_string_offset(&self) -> usize {
-        self.string_offset
+    pub fn get_offset(&self) -> usize {
+        self.offset
     }
 }
 
@@ -291,47 +291,47 @@ const TYPE_ANNOTATIONS_DIRECTORY_ITEM: u16 = 0x2006;
 
 #[derive(Debug, Copy, Clone)]
 pub enum ItemType {
-    HeaderItem,
-    StringIdItem,
-    TypeIdItem,
-    ProtoIdItem,
-    FieldIdItem,
-    MethodIdItem,
-    ClassDefItem,
-    MapList,
+    Header,
+    StringId,
+    TypeId,
+    ProtoId,
+    FieldId,
+    MethodId,
+    ClassDef,
+    Map,
     TypeList,
-    AnnotationSetRefList,
-    AnnotationSetItem,
-    ClassDataItem,
-    CodeItem,
-    StringDataItem,
-    DebugInfoItem,
-    AnnotationItem,
-    EncodedArrayItem,
-    AnnotationsDirectoryItem,
+    AnnotationSetList,
+    AnnotationSet,
+    ClassData,
+    Code,
+    StringData,
+    DebugInfo,
+    Annotation,
+    EncodedArray,
+    AnnotationsDirectory,
 }
 
 impl ItemType {
     fn from_u16(value: u16) -> Result<ItemType> {
         match value {
-            TYPE_HEADER_ITEM => Ok(ItemType::HeaderItem),
-            TYPE_STRING_ID_ITEM => Ok(ItemType::StringIdItem),
-            TYPE_TYPE_ID_ITEM => Ok(ItemType::TypeIdItem),
-            TYPE_PROTO_ID_ITEM => Ok(ItemType::ProtoIdItem),
-            TYPE_FIELD_ID_ITEM => Ok(ItemType::FieldIdItem),
-            TYPE_METHOD_ID_ITEM => Ok(ItemType::MethodIdItem),
-            TYPE_CLASS_DEF_ITEM => Ok(ItemType::ClassDefItem),
-            TYPE_MAP_LIST => Ok(ItemType::MapList),
+            TYPE_HEADER_ITEM => Ok(ItemType::Header),
+            TYPE_STRING_ID_ITEM => Ok(ItemType::StringId),
+            TYPE_TYPE_ID_ITEM => Ok(ItemType::TypeId),
+            TYPE_PROTO_ID_ITEM => Ok(ItemType::ProtoId),
+            TYPE_FIELD_ID_ITEM => Ok(ItemType::FieldId),
+            TYPE_METHOD_ID_ITEM => Ok(ItemType::MethodId),
+            TYPE_CLASS_DEF_ITEM => Ok(ItemType::ClassDef),
+            TYPE_MAP_LIST => Ok(ItemType::Map),
             TYPE_TYPE_LIST => Ok(ItemType::TypeList),
-            TYPE_ANNOTATION_SET_REF_LIST => Ok(ItemType::AnnotationSetRefList),
-            TYPE_ANNOTATION_SET_ITEM => Ok(ItemType::AnnotationSetItem),
-            TYPE_CLASS_DATA_ITEM => Ok(ItemType::ClassDataItem),
-            TYPE_CODE_ITEM => Ok(ItemType::CodeItem),
-            TYPE_STRING_DATA_ITEM => Ok(ItemType::StringDataItem),
-            TYPE_DEBUG_INFO_ITEM => Ok(ItemType::DebugInfoItem),
-            TYPE_ANNOTATION_ITEM => Ok(ItemType::AnnotationItem),
-            TYPE_ENCODED_ARRAY_ITEM => Ok(ItemType::EncodedArrayItem),
-            TYPE_ANNOTATIONS_DIRECTORY_ITEM => Ok(ItemType::AnnotationsDirectoryItem),
+            TYPE_ANNOTATION_SET_REF_LIST => Ok(ItemType::AnnotationSetList),
+            TYPE_ANNOTATION_SET_ITEM => Ok(ItemType::AnnotationSet),
+            TYPE_CLASS_DATA_ITEM => Ok(ItemType::ClassData),
+            TYPE_CODE_ITEM => Ok(ItemType::Code),
+            TYPE_STRING_DATA_ITEM => Ok(ItemType::StringData),
+            TYPE_DEBUG_INFO_ITEM => Ok(ItemType::DebugInfo),
+            TYPE_ANNOTATION_ITEM => Ok(ItemType::Annotation),
+            TYPE_ENCODED_ARRAY_ITEM => Ok(ItemType::EncodedArray),
+            TYPE_ANNOTATIONS_DIRECTORY_ITEM => Ok(ItemType::AnnotationsDirectory),
             v => Err(Error::invalid_item_type(v)),
         }
     }
@@ -340,24 +340,24 @@ impl ItemType {
 impl From<ItemType> for u16 {
     fn from(item_type: ItemType) -> u16 {
         match item_type {
-            ItemType::HeaderItem => TYPE_HEADER_ITEM,
-            ItemType::StringIdItem => TYPE_STRING_ID_ITEM,
-            ItemType::TypeIdItem => TYPE_TYPE_ID_ITEM,
-            ItemType::ProtoIdItem => TYPE_PROTO_ID_ITEM,
-            ItemType::FieldIdItem => TYPE_FIELD_ID_ITEM,
-            ItemType::MethodIdItem => TYPE_METHOD_ID_ITEM,
-            ItemType::ClassDefItem => TYPE_CLASS_DEF_ITEM,
-            ItemType::MapList => TYPE_MAP_LIST,
+            ItemType::Header => TYPE_HEADER_ITEM,
+            ItemType::StringId => TYPE_STRING_ID_ITEM,
+            ItemType::TypeId => TYPE_TYPE_ID_ITEM,
+            ItemType::ProtoId => TYPE_PROTO_ID_ITEM,
+            ItemType::FieldId => TYPE_FIELD_ID_ITEM,
+            ItemType::MethodId => TYPE_METHOD_ID_ITEM,
+            ItemType::ClassDef => TYPE_CLASS_DEF_ITEM,
+            ItemType::Map => TYPE_MAP_LIST,
             ItemType::TypeList => TYPE_TYPE_LIST,
-            ItemType::AnnotationSetRefList => TYPE_ANNOTATION_SET_REF_LIST,
-            ItemType::AnnotationSetItem => TYPE_ANNOTATION_SET_ITEM,
-            ItemType::ClassDataItem => TYPE_CLASS_DATA_ITEM,
-            ItemType::CodeItem => TYPE_CODE_ITEM,
-            ItemType::StringDataItem => TYPE_STRING_DATA_ITEM,
-            ItemType::DebugInfoItem => TYPE_DEBUG_INFO_ITEM,
-            ItemType::AnnotationItem => TYPE_ANNOTATION_ITEM,
-            ItemType::EncodedArrayItem => TYPE_ENCODED_ARRAY_ITEM,
-            ItemType::AnnotationsDirectoryItem => TYPE_ANNOTATIONS_DIRECTORY_ITEM,
+            ItemType::AnnotationSetList => TYPE_ANNOTATION_SET_REF_LIST,
+            ItemType::AnnotationSet => TYPE_ANNOTATION_SET_ITEM,
+            ItemType::ClassData => TYPE_CLASS_DATA_ITEM,
+            ItemType::Code => TYPE_CODE_ITEM,
+            ItemType::StringData => TYPE_STRING_DATA_ITEM,
+            ItemType::DebugInfo => TYPE_DEBUG_INFO_ITEM,
+            ItemType::Annotation => TYPE_ANNOTATION_ITEM,
+            ItemType::EncodedArray => TYPE_ENCODED_ARRAY_ITEM,
+            ItemType::AnnotationsDirectory => TYPE_ANNOTATIONS_DIRECTORY_ITEM,
         }
     }
 }

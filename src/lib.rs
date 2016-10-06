@@ -3,8 +3,9 @@ extern crate byteorder;
 extern crate bitflags;
 
 use std::path::Path;
-use std::{fmt, fs, usize};
+use std::{fmt, fs, io, usize};
 use std::iter::SkipWhile;
+use std::slice::Iter;
 use std::io::prelude::*;
 use std::io::{BufReader, SeekFrom};
 
@@ -14,11 +15,13 @@ pub mod error;
 pub mod bytecode; // TODO: not in use
 pub mod types; // TODO: Should not be public
 pub mod sizes; // TODO: Should not be public
+pub mod offset_map; // TODO: Should not be public
 
 use error::{Result, Error};
 use sizes::*;
 use types::{StringIdData, TypeIdData, PrototypeIdData, FieldIdData, MethodIdData, ClassDefData,
             MapItem, ItemType};
+use offset_map::*;
 
 #[derive(Debug)]
 pub struct Dex {
@@ -33,205 +36,255 @@ pub struct Dex {
 
 // TODO check alignments
 impl Dex {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Dex> {
+        let file = try!(fs::File::open(path));
+        let file_size = try!(file.metadata()).len();
+        if file_size < HEADER_SIZE as u64 || file_size > usize::MAX as u64 {
+            return Err(Error::invalid_file_size(file_size, None));
+        }
+        Dex::from_reader(BufReader::new(file), file_size as usize)
+    }
     /// Loads a new Dex data structure from the file at the given path.
-    pub fn from_file<P: AsRef<Path>>(path: P, verify: bool) -> Result<Dex> {
-        let path = path.as_ref();
-        // Read header (and verify file if requested)
-        let (mut reader, header) = if verify {
-            let header = try!(Header::from_file(path, true));
-            let f = try!(fs::File::open(path.clone()));
-            let mut reader = BufReader::new(f);
-            try!(reader.seek(SeekFrom::Start(HEADER_SIZE as u64)));
-            (reader, header)
-        } else {
-            let f = try!(fs::File::open(path.clone()));
-            let mut reader = BufReader::new(f);
-            let header = try!(Header::from_reader(&mut reader));
-            (reader, header)
-        };
+    pub fn from_reader<R: Read>(mut reader: R, file_size: usize) -> Result<Dex> {
+        let header = try!(Header::from_reader(&mut reader));
+        if header.get_file_size() != file_size {
+            return Err(Error::invalid_file_size(file_size as u64, Some(header.get_file_size())));
+        }
         let mut offset = HEADER_SIZE;
+        // We will store all offsets in one map. This enables us to do sequencial reading even if
+        // offsets are not in the correct order.
+        // It could in any case happen that the ofset we are currently reading is not found in the
+        // offsets, which would mean that we have unknown data, which will be saved in a byte vector
+        // for later use.
+        let mut offset_map = header.generate_offset_map();
+        // Here we will store the unknown data we find:
+        let mut unknown_data = Vec::new();
+        // Initialize lists:
+        // String data offsets
         let mut string_ids = Vec::with_capacity(header.get_string_ids_size());
-        // Read all string offsets
-        for _ in 0..string_ids.capacity() {
-            string_ids.push(StringIdData::new(try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            })));
-            offset += STRING_ID_ITEM_SIZE;
-        }
-
+        // Indexes of type names in string ids.
         let mut type_ids = Vec::with_capacity(header.get_type_ids_size());
-        // Read all type string indexes
-        for _ in 0..type_ids.capacity() {
-            type_ids.push(TypeIdData::new(try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            })));
-            offset += TYPE_ID_ITEM_SIZE;
-        }
-
         let mut prototype_ids = Vec::with_capacity(header.get_prototype_ids_size());
-        // Read all prototype IDs
-        for _ in 0..header.get_prototype_ids_size() {
-            let shorty_id = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            let return_type_id = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            let parameters_offset = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            prototype_ids.push(PrototypeIdData::new(shorty_id, return_type_id, parameters_offset));
-            offset += PROTO_ID_ITEM_SIZE;
-        }
-
         let mut field_ids = Vec::with_capacity(header.get_field_ids_size());
-        // Read all field IDs
-        for _ in 0..header.get_field_ids_size() {
-            let class_id = try!(if header.is_little_endian() {
-                reader.read_u16::<LittleEndian>()
-            } else {
-                reader.read_u16::<BigEndian>()
-            });
-            let type_id = try!(if header.is_little_endian() {
-                reader.read_u16::<LittleEndian>()
-            } else {
-                reader.read_u16::<BigEndian>()
-            });
-            let name_id = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            field_ids.push(FieldIdData::new(class_id, type_id, name_id));
-            offset += FIELD_ID_ITEM_SIZE;
-        }
-
         let mut method_ids = Vec::with_capacity(header.get_method_ids_size());
-        // Read all method IDs
-        for _ in 0..header.get_method_ids_size() {
-            let class_id = try!(if header.is_little_endian() {
-                reader.read_u16::<LittleEndian>()
-            } else {
-                reader.read_u16::<BigEndian>()
-            });
-            let prototype_id = try!(if header.is_little_endian() {
-                reader.read_u16::<LittleEndian>()
-            } else {
-                reader.read_u16::<BigEndian>()
-            });
-            let name_id = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            method_ids.push(MethodIdData::new(class_id, prototype_id, name_id));
-            offset += METHOD_ID_ITEM_SIZE;
-        }
-
         let mut class_defs = Vec::with_capacity(header.get_class_defs_size());
-        // Read all class definitions
-        for _ in 0..header.get_class_defs_size() {
-            let class_id = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            let access_flags = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            let superclass_id = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            let interfaces_offset = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            let source_file_id = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            let annotations_offset = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            let class_data_offset = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            let static_values_offset = try!(if header.is_little_endian() {
-                reader.read_u32::<LittleEndian>()
-            } else {
-                reader.read_u32::<BigEndian>()
-            });
-            class_defs.push(try!(ClassDefData::new(class_id,
-                                                   access_flags,
-                                                   superclass_id,
-                                                   interfaces_offset,
-                                                   source_file_id,
-                                                   annotations_offset,
-                                                   class_data_offset,
-                                                   static_values_offset)));
-            offset += CLASS_DEF_ITEM_SIZE;
-        }
-        debug_assert!(offset <= header.get_data_offset());
 
-        if offset < header.get_data_offset() {
-            if cfg!(feature = "debug") {
-                println!("Should have reached data offset at {:#010x}, but still in {:#010x}. {} \
-                          bytes of unknown data were found.",
-                         header.get_data_offset(),
-                         offset,
-                         header.get_data_offset() - offset);
+        let mut map = None;
+
+        // Read all the file.
+        while offset <
+              {
+            if let Some(offset) = header.get_link_offset() {
+                offset
+            } else {
+                file_size as usize
             }
-            try!(reader.seek(SeekFrom::Current((header.get_data_offset() - offset) as i64)));
-            offset = header.get_data_offset();
-        }
-
-        let map = try!(if header.is_little_endian() {
-            Map::from_reader::<_, LittleEndian>(&mut reader)
-        } else {
-            Map::from_reader::<_, LittleEndian>(&mut reader)
-        });
-        offset += 4 + MAP_ITEM_SIZE * map.get_item_list().len();
-
-        for item in map.get_item_list().iter().skip_while(|i| i.get_offset() < offset) {
-            if item.get_offset() != offset {
-                return Err(Error::Map(format!("there should be an item at the current offset \
-                                               ({:#010x}), but next item returned offset \
-                                               {:#010x}",
-                                              offset,
-                                              item.get_offset())));
-            }
-            match item.get_item_type() {
-                ItemType::TypeList => {}
-                ItemType::AnnotationSetRefList => {}
+        } {
+            let offset_type = match offset_map.get_offset(offset) {
+                Ok(offset_type) => offset_type,
+                Err(Some((next_offset, offset_type))) => {
+                    if cfg!(feature = "debug") {
+                        println!("{} unknown bytes were found in the offset {:#010x}.",
+                                 next_offset - offset,
+                                 offset)
+                    }
+                    let mut unknown_bytes = Vec::with_capacity(next_offset - offset);
+                    try!(reader.by_ref()
+                        .take((next_offset - offset) as u64)
+                        .read_to_end(&mut unknown_bytes));
+                    unknown_data.push((offset, unknown_bytes.into_boxed_slice()));
+                    offset = next_offset;
+                    offset_type
+                }
+                _ => break,
+            };
+            match offset_type {
+                OffsetType::StringIdList => {
+                    // Read all string offsets
+                    for _ in 0..header.get_string_ids_size() {
+                        let offset = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        }) as usize;
+                        offset_map.insert(offset, OffsetType::StringData);
+                        string_ids.push((offset, None::<String>));
+                    }
+                    offset += STRING_ID_ITEM_SIZE * header.get_string_ids_size();
+                }
+                OffsetType::TypeIdList => {
+                    // Read all type string indexes
+                    for _ in 0..header.get_type_ids_size() {
+                        type_ids.push(try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        }) as usize);
+                    }
+                    offset += TYPE_ID_ITEM_SIZE * header.get_type_ids_size();
+                }
+                OffsetType::PrototypeIdList => {
+                    // Read all prototype IDs
+                    for _ in 0..header.get_prototype_ids_size() {
+                        let shorty_id = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        let return_type_id = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        let parameters_offset = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        offset_map.insert(parameters_offset as usize, OffsetType::TypeList);
+                        prototype_ids.push(PrototypeIdData::new(shorty_id,
+                                                                return_type_id,
+                                                                parameters_offset));
+                    }
+                    offset += PROTO_ID_ITEM_SIZE * header.get_prototype_ids_size();
+                }
+                OffsetType::FieldIdList => {
+                    // Read all field IDs
+                    for _ in 0..header.get_field_ids_size() {
+                        let class_id = try!(if header.is_little_endian() {
+                            reader.read_u16::<LittleEndian>()
+                        } else {
+                            reader.read_u16::<BigEndian>()
+                        });
+                        let type_id = try!(if header.is_little_endian() {
+                            reader.read_u16::<LittleEndian>()
+                        } else {
+                            reader.read_u16::<BigEndian>()
+                        });
+                        let name_id = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        field_ids.push(FieldIdData::new(class_id, type_id, name_id));
+                    }
+                    offset += FIELD_ID_ITEM_SIZE * header.get_field_ids_size();
+                }
+                OffsetType::MethodIdList => {
+                    // Read all method IDs
+                    for _ in 0..header.get_method_ids_size() {
+                        let class_id = try!(if header.is_little_endian() {
+                            reader.read_u16::<LittleEndian>()
+                        } else {
+                            reader.read_u16::<BigEndian>()
+                        });
+                        let prototype_id = try!(if header.is_little_endian() {
+                            reader.read_u16::<LittleEndian>()
+                        } else {
+                            reader.read_u16::<BigEndian>()
+                        });
+                        let name_id = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        method_ids.push(MethodIdData::new(class_id, prototype_id, name_id));
+                    }
+                    offset += METHOD_ID_ITEM_SIZE * header.get_method_ids_size();
+                }
+                OffsetType::ClassDefList => {
+                    // Read all class definitions
+                    for _ in 0..header.get_class_defs_size() {
+                        let class_id = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        let access_flags = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        let superclass_id = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        let interfaces_offset = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        let source_file_id = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        let annotations_offset = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        let class_data_offset = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        let static_values_offset = try!(if header.is_little_endian() {
+                            reader.read_u32::<LittleEndian>()
+                        } else {
+                            reader.read_u32::<BigEndian>()
+                        });
+                        class_defs.push(try!(ClassDefData::new(class_id,
+                                                               access_flags,
+                                                               superclass_id,
+                                                               interfaces_offset,
+                                                               source_file_id,
+                                                               annotations_offset,
+                                                               class_data_offset,
+                                                               static_values_offset)));
+                        if interfaces_offset != 0 {
+                            offset_map.insert(interfaces_offset as usize, OffsetType::TypeList);
+                        }
+                        if annotations_offset != 0 {
+                            offset_map.insert(annotations_offset as usize,
+                                              OffsetType::AnnotationsDirectory);
+                        }
+                        if class_data_offset != 0 {
+                            offset_map.insert(class_data_offset as usize, OffsetType::ClassData);
+                        }
+                        if static_values_offset != 0 {
+                            offset_map.insert(class_data_offset as usize, OffsetType::EncodedArray);
+                        }
+                    }
+                    offset += CLASS_DEF_ITEM_SIZE * header.get_class_defs_size();
+                }
+                OffsetType::Map => {
+                    map = Some(try!(if header.is_little_endian() {
+                        Map::from_reader::<_, LittleEndian>(&mut reader, &mut offset_map)
+                    } else {
+                        Map::from_reader::<_, LittleEndian>(&mut reader, &mut offset_map)
+                    }));
+                    offset += 4 + MAP_ITEM_SIZE * map.as_ref().unwrap().get_item_list().len();
+                }
+                // OffsetType::MapItem,
+                // OffsetType::TypeList,
+                // OffsetType::Type,
+                // OffsetType::AnnotationSetList,
+                // OffsetType::AnnotationSet,
+                // OffsetType::Annotation,
+                // OffsetType::AnnotationsDirectory,
+                // OffsetType::ClassData,
+                // OffsetType::Code,
+                // OffsetType::StringData,
+                // OffsetType::DebugInfo,
+                // OffsetType::EncodedArray,
+                // OffsetType::Link,
                 _ => unimplemented!(),
             }
         }
-
-        println!("Map offset: {:#010x}", header.get_map_offset());
-        println!("Current offset: {:#010x}", offset);
-        println!("{:?}", map);
-        panic!();
-
+        // TODO search unknown data for offsets. Maybe an iterator with bounds.
+        // That would only require 2 binary searches and one slicing, and then, an iterator.
 
         // let mut annotation_set_refs = Vec::with_capacity(0);
         // let mut annotation_sets = Vec::with_capacity(0);
@@ -304,6 +357,18 @@ impl Dex {
     /// Ads the file in the given path to the current Dex data structure.
     pub fn add_file<P: AsRef<Path>>(_path: P) -> Result<()> {
         unimplemented!()
+    }
+
+    /// Verifies the file at the given path.
+    pub fn verify_file<P: AsRef<Path>>(&self, path: P) -> bool {
+        self.header.verify_file(path)
+    }
+
+    /// Verifies the file in the given reader.
+    ///
+    /// The reader should be positioned at the start of the file.
+    pub fn verify_reader<R: Read>(&self, reader: R) -> bool {
+        self.header.verify_reader(reader)
     }
 }
 
@@ -425,7 +490,7 @@ impl fmt::Debug for Header {
 
 impl Header {
     /// Obtains the header from a Dex file.
-    pub fn from_file<P: AsRef<Path>>(path: P, verify: bool) -> Result<Header> {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Header> {
         let f = try!(fs::File::open(path));
         let file_size = try!(f.metadata()).len();
         if file_size < HEADER_SIZE as u64 || file_size > usize::MAX as u64 {
@@ -434,8 +499,6 @@ impl Header {
         let header = try!(Header::from_reader(BufReader::new(f)));
         if file_size as usize != header.get_file_size() {
             Err(Error::invalid_file_size(file_size, Some(header.get_file_size())))
-        } else if verify {
-            unimplemented!()
         } else {
             Ok(header)
         }
@@ -898,6 +961,45 @@ impl Header {
     pub fn get_data_offset(&self) -> usize {
         self.data_offset
     }
+
+    pub fn generate_offset_map(&self) -> OffsetMap {
+        let mut offset_map = OffsetMap::with_capacity(7 + self.string_ids_size +
+                                                      self.prototype_ids_size +
+                                                      self.class_defs_size * 4);
+        if let Some(offset) = self.string_ids_offset {
+            offset_map.insert(offset, OffsetType::StringIdList);
+        }
+        if let Some(offset) = self.type_ids_offset {
+            offset_map.insert(offset, OffsetType::TypeIdList);
+        }
+        if let Some(offset) = self.prototype_ids_offset {
+            offset_map.insert(offset, OffsetType::PrototypeIdList);
+        }
+        if let Some(offset) = self.field_ids_offset {
+            offset_map.insert(offset, OffsetType::FieldIdList);
+        }
+        if let Some(offset) = self.method_ids_offset {
+            offset_map.insert(offset, OffsetType::MethodIdList);
+        }
+        if let Some(offset) = self.class_defs_offset {
+            offset_map.insert(offset, OffsetType::ClassDefList);
+        }
+        offset_map.insert(self.map_offset, OffsetType::Map);
+
+        offset_map
+    }
+
+    /// Verifies the file at the given path.
+    pub fn verify_file<P: AsRef<Path>>(&self, path: P) -> bool {
+        unimplemented!()
+    }
+
+    /// Verifies the file in the given reader.
+    ///
+    /// The reader should be positioned at the start of the file.
+    pub fn verify_reader<R: Read>(&self, reader: R) -> bool {
+        unimplemented!()
+    }
 }
 
 #[derive(Debug)]
@@ -906,15 +1008,53 @@ struct Map {
 }
 
 impl Map {
-    fn from_reader<R: Read + Seek, B: ByteOrder>(reader: &mut R) -> Result<Map> {
+    fn from_reader<R: Read, B: ByteOrder>(reader: &mut R,
+                                          offset_map: &mut OffsetMap)
+                                          -> Result<Map> {
         let size = try!(reader.read_u32::<B>()) as usize;
         let mut map_list = Vec::with_capacity(size);
+        offset_map.reserve_exact(size);
         for _ in 0..size {
             let item_type = try!(reader.read_u16::<B>());
-            try!(reader.seek(SeekFrom::Current(2)));
+            try!(reader.read_exact(&mut [0u8; 2]));
             let size = try!(reader.read_u32::<B>());
             let offset = try!(reader.read_u32::<B>());
-            map_list.push(try!(MapItem::new(item_type, size, offset)));
+            let map_item = try!(MapItem::new(item_type, size, offset));
+            match map_item.get_item_type() {
+                ItemType::Header | ItemType::StringId | ItemType::TypeId | ItemType::ProtoId |
+                ItemType::FieldId | ItemType::MethodId | ItemType::ClassDef | ItemType::Map => {}
+                ItemType::TypeList => {
+                    offset_map.insert(offset as usize, OffsetType::TypeList);
+                }
+                ItemType::AnnotationSetList => {
+                    offset_map.insert(offset as usize, OffsetType::AnnotationSetList);
+                }
+                ItemType::AnnotationSet => {
+                    offset_map.insert(offset as usize, OffsetType::AnnotationSet);
+                }
+                ItemType::ClassData => {
+                    offset_map.insert(offset as usize, OffsetType::AnnotationSetList);
+                }
+                ItemType::Code => {
+                    offset_map.insert(offset as usize, OffsetType::Code);
+                }
+                ItemType::StringData => {
+                    offset_map.insert(offset as usize, OffsetType::StringData);
+                }
+                ItemType::DebugInfo => {
+                    offset_map.insert(offset as usize, OffsetType::DebugInfo);
+                }
+                ItemType::Annotation => {
+                    offset_map.insert(offset as usize, OffsetType::Annotation);
+                }
+                ItemType::EncodedArray => {
+                    offset_map.insert(offset as usize, OffsetType::EncodedArray);
+                }
+                ItemType::AnnotationsDirectory => {
+                    offset_map.insert(offset as usize, OffsetType::AnnotationsDirectory);
+                }
+            }
+            map_list.push(map_item);
         }
         map_list.sort_by_key(|i| i.get_offset());
         Ok(Map { map_list: map_list })
