@@ -267,7 +267,6 @@ impl Dex {
                     }));
                     offset += 4 + MAP_ITEM_SIZE * map.as_ref().unwrap().get_item_list().len();
                 }
-                // OffsetType::MapItem,
                 // OffsetType::TypeList,
                 // OffsetType::Type,
                 // OffsetType::AnnotationSetList,
