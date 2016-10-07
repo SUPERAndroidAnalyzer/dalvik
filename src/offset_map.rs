@@ -84,7 +84,7 @@ impl Deref for OffsetMap {
     }
 }
 
-#[derive(Copy, Debug, Clone)]
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
 pub enum OffsetType {
     StringIdList,
     TypeIdList,
@@ -94,7 +94,6 @@ pub enum OffsetType {
     ClassDefList,
     Map,
     TypeList,
-    Type,
     AnnotationSetList,
     AnnotationSet,
     Annotation,

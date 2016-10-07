@@ -1,6 +1,5 @@
 use std::fmt;
 use error::{Result, Error};
-use sizes::*;
 
 /// Data structure representing the `string_id_item` type.
 #[derive(Debug, Clone)]
@@ -289,7 +288,7 @@ const TYPE_ANNOTATION_ITEM: u16 = 0x2004;
 const TYPE_ENCODED_ARRAY_ITEM: u16 = 0x2005;
 const TYPE_ANNOTATIONS_DIRECTORY_ITEM: u16 = 0x2006;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum ItemType {
     Header,
     StringId,
