@@ -92,7 +92,6 @@ pub enum OffsetType {
     FieldIdList,
     MethodIdList,
     ClassDefList,
-    ClassDef(usize),
     Map,
     TypeList,
     Type,

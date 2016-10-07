@@ -267,19 +267,18 @@ impl Dex {
                     }));
                     offset += 4 + MAP_ITEM_SIZE * map.as_ref().unwrap().get_item_list().len();
                 }
-                // OffsetType::TypeList,
-                // OffsetType::Type,
-                // OffsetType::AnnotationSetList,
-                // OffsetType::AnnotationSet,
-                // OffsetType::Annotation,
-                // OffsetType::AnnotationsDirectory,
-                // OffsetType::ClassData,
-                // OffsetType::Code,
-                // OffsetType::StringData,
-                // OffsetType::DebugInfo,
-                // OffsetType::EncodedArray,
-                // OffsetType::Link,
-                _ => unimplemented!(),
+                OffsetType::TypeList => unimplemented!(),
+                OffsetType::Type => unimplemented!(),
+                OffsetType::AnnotationSetList => unimplemented!(),
+                OffsetType::AnnotationSet => unimplemented!(),
+                OffsetType::Annotation => unimplemented!(),
+                OffsetType::AnnotationsDirectory => unimplemented!(),
+                OffsetType::ClassData => unimplemented!(),
+                OffsetType::Code => unimplemented!(),
+                OffsetType::StringData => unimplemented!(),
+                OffsetType::DebugInfo => unimplemented!(),
+                OffsetType::EncodedArray => unimplemented!(),
+                OffsetType::Link => unimplemented!(),
             }
         }
         // TODO search unknown data for offsets. Maybe an iterator with bounds.
