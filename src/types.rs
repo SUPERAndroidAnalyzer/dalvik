@@ -1,51 +1,6 @@
 use std::fmt;
 use error::{Result, Error};
 
-/// Data structure representing the `string_id_item` type.
-#[derive(Debug, Clone)]
-pub struct StringIdData {
-    offset: usize,
-}
-
-impl StringIdData {
-    /// Creates a new `StringIdData` from the `u32` representing the `string_data_off` of the
-    /// `string_id_item` type.
-    pub fn new(offset: u32) -> StringIdData {
-        StringIdData { offset: offset as usize }
-    }
-
-    /// Gets the string offset in the `data` section.
-    ///
-    /// Gets the offset from the start of the file to the string data for this item. The offset
-    /// should be to a location in the `data` section, and the data should be in the format
-    /// specified by `string_data_item`. There is no alignment requirement for the offset.
-    pub fn get_offset(&self) -> usize {
-        self.offset
-    }
-}
-
-/// Data structure representing the `type_id_item` type.
-#[derive(Debug, Clone)]
-pub struct TypeIdData {
-    descriptor_index: usize,
-}
-
-impl TypeIdData {
-    /// Creates a new `TypeIdData` from the `u32` representing the `descriptor_idx` of the
-    /// `type_id_item` type.
-    pub fn new(descriptor_index: u32) -> TypeIdData {
-        TypeIdData { descriptor_index: descriptor_index as usize }
-    }
-
-    /// Gets the descriptor index in the `string_ids` section.
-    ///
-    /// Gets the index into the `string_ids` list for the descriptor string of this type. The
-    /// string must conform to the syntax for `TypeDescriptor`.
-    pub fn get_descriptor_index(&self) -> usize {
-        self.descriptor_index
-    }
-}
-
 /// Data structure representing the `proto_id_item` type.
 #[derive(Debug, Clone)]
 pub struct PrototypeIdData {
