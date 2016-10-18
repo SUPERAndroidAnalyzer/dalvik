@@ -12,6 +12,8 @@ addons:
       - libelf-dev
       - libdw-dev
       - binutils-dev
+matrix:
+  fast_finish: true
 
 # Run builds for all the supported trains
 rust:

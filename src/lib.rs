@@ -35,6 +35,7 @@ pub struct Dex {
 
 // TODO check alignments
 impl Dex {
+    /// Reads the Dex data structure from the given path.
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Dex> {
         let file = try!(fs::File::open(path));
         let file_size = try!(file.metadata()).len();
@@ -43,12 +44,23 @@ impl Dex {
         }
         Dex::from_reader(BufReader::new(file), file_size as usize)
     }
-    /// Loads a new Dex data structure from the file at the given path.
+
+    /// Loads a new Dex data structure from the given reader.
     pub fn from_reader<R: Read>(mut reader: R, file_size: usize) -> Result<Dex> {
         let header = try!(Header::from_reader(&mut reader));
         if header.get_file_size() != file_size {
             return Err(Error::invalid_file_size(file_size as u64, Some(header.get_file_size())));
         }
+
+        if header.is_little_endian() {
+            Dex::read_data::<_, LittleEndian>(reader, header)
+        } else {
+            Dex::read_data::<_, BigEndian>(reader, header)
+        }
+    }
+
+    /// Reads the *dex* file data with the given byte order after reading the header.
+    fn read_data<R: Read, E: ByteOrder>(mut reader: R, header: Header) -> Result<Dex> {
         let mut offset = HEADER_SIZE;
         // We will store all offsets in one map. This enables us to do sequencial reading even if
         // offsets are not in the correct order.
@@ -72,15 +84,14 @@ impl Dex {
         let mut type_lists = Vec::new();
         let mut annotation_sets = Vec::new();
 
+        let read_end = if let Some(offset) = header.get_link_offset() {
+            offset
+        } else {
+            header.get_file_size() as usize
+        };
+
         // Read all the file.
-        while offset <
-              {
-            if let Some(offset) = header.get_link_offset() {
-                offset
-            } else {
-                file_size as usize
-            }
-        } {
+        while offset < read_end {
             let offset_type = match offset_map.get_offset(offset) {
                 Ok(offset_type) => offset_type,
                 Err(Some((next_offset, offset_type))) => {
@@ -103,11 +114,7 @@ impl Dex {
                 OffsetType::StringIdList => {
                     // Read all string offsets
                     for _ in 0..header.get_string_ids_size() {
-                        let offset = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        }) as usize;
+                        let offset = try!(reader.read_u32::<E>()) as usize;
                         offset_map.insert(offset, OffsetType::StringData);
                         string_ids.push((offset, None::<String>));
                     }
@@ -116,32 +123,16 @@ impl Dex {
                 OffsetType::TypeIdList => {
                     // Read all type string indexes
                     for _ in 0..header.get_type_ids_size() {
-                        type_ids.push(try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        }) as usize);
+                        type_ids.push(try!(reader.read_u32::<E>()) as usize);
                     }
                     offset += TYPE_ID_ITEM_SIZE * header.get_type_ids_size();
                 }
                 OffsetType::PrototypeIdList => {
                     // Read all prototype IDs
                     for _ in 0..header.get_prototype_ids_size() {
-                        let shorty_id = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
-                        let return_type_id = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
-                        let parameters_offset = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
+                        let shorty_id = try!(reader.read_u32::<E>());
+                        let return_type_id = try!(reader.read_u32::<E>());
+                        let parameters_offset = try!(reader.read_u32::<E>());
                         offset_map.insert(parameters_offset as usize, OffsetType::TypeList);
                         prototype_ids.push(PrototypeIdData::new(shorty_id,
                                                                 return_type_id,
@@ -152,21 +143,9 @@ impl Dex {
                 OffsetType::FieldIdList => {
                     // Read all field IDs
                     for _ in 0..header.get_field_ids_size() {
-                        let class_id = try!(if header.is_little_endian() {
-                            reader.read_u16::<LittleEndian>()
-                        } else {
-                            reader.read_u16::<BigEndian>()
-                        });
-                        let type_id = try!(if header.is_little_endian() {
-                            reader.read_u16::<LittleEndian>()
-                        } else {
-                            reader.read_u16::<BigEndian>()
-                        });
-                        let name_id = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
+                        let class_id = try!(reader.read_u16::<E>());
+                        let type_id = try!(reader.read_u16::<E>());
+                        let name_id = try!(reader.read_u32::<E>());
                         field_ids.push(FieldIdData::new(class_id, type_id, name_id));
                     }
                     offset += FIELD_ID_ITEM_SIZE * header.get_field_ids_size();
@@ -174,21 +153,9 @@ impl Dex {
                 OffsetType::MethodIdList => {
                     // Read all method IDs
                     for _ in 0..header.get_method_ids_size() {
-                        let class_id = try!(if header.is_little_endian() {
-                            reader.read_u16::<LittleEndian>()
-                        } else {
-                            reader.read_u16::<BigEndian>()
-                        });
-                        let prototype_id = try!(if header.is_little_endian() {
-                            reader.read_u16::<LittleEndian>()
-                        } else {
-                            reader.read_u16::<BigEndian>()
-                        });
-                        let name_id = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
+                        let class_id = try!(reader.read_u16::<E>());
+                        let prototype_id = try!(reader.read_u16::<E>());
+                        let name_id = try!(reader.read_u32::<E>());
                         method_ids.push(MethodIdData::new(class_id, prototype_id, name_id));
                     }
                     offset += METHOD_ID_ITEM_SIZE * header.get_method_ids_size();
@@ -196,46 +163,14 @@ impl Dex {
                 OffsetType::ClassDefList => {
                     // Read all class definitions
                     for _ in 0..header.get_class_defs_size() {
-                        let class_id = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
-                        let access_flags = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
-                        let superclass_id = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
-                        let interfaces_offset = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
-                        let source_file_id = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
-                        let annotations_offset = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
-                        let class_data_offset = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
-                        let static_values_offset = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        });
+                        let class_id = try!(reader.read_u32::<E>());
+                        let access_flags = try!(reader.read_u32::<E>());
+                        let superclass_id = try!(reader.read_u32::<E>());
+                        let interfaces_offset = try!(reader.read_u32::<E>());
+                        let source_file_id = try!(reader.read_u32::<E>());
+                        let annotations_offset = try!(reader.read_u32::<E>());
+                        let class_data_offset = try!(reader.read_u32::<E>());
+                        let static_values_offset = try!(reader.read_u32::<E>());
                         class_defs.push(try!(ClassDefData::new(class_id,
                                                                access_flags,
                                                                superclass_id,
@@ -262,11 +197,7 @@ impl Dex {
                 }
                 OffsetType::Map => {
                     // Read map
-                    map = Some(try!(if header.is_little_endian() {
-                        Map::from_reader::<_, LittleEndian>(&mut reader, &mut offset_map)
-                    } else {
-                        Map::from_reader::<_, LittleEndian>(&mut reader, &mut offset_map)
-                    }));
+                    map = Some(try!(Map::from_reader::<_, E>(&mut reader, &mut offset_map)));
                     offset += 4 + MAP_ITEM_SIZE * map.as_ref().unwrap().get_item_list().len();
                 }
                 OffsetType::TypeList => {
@@ -274,18 +205,10 @@ impl Dex {
                         map.as_ref().unwrap().get_num_items_for(ItemType::TypeList).unwrap();
                     type_lists.reserve_exact(num_type_lists);
                     for _ in 0..num_type_lists {
-                        let size = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        }) as usize;
+                        let size = try!(reader.read_u32::<E>()) as usize;
                         let mut type_list = Vec::with_capacity(size);
                         for _ in 0..size {
-                            type_list.push(try!(if header.is_little_endian() {
-                                reader.read_u16::<LittleEndian>()
-                            } else {
-                                reader.read_u16::<BigEndian>()
-                            }));
+                            type_list.push(try!(reader.read_u16::<E>()));
                         }
                         type_lists.push(type_list);
                         offset += 4 + TYPE_ITEM_SIZE * size;
@@ -302,18 +225,10 @@ impl Dex {
                         .unwrap();
                     annotation_sets.reserve_exact(num_anotation_sets);
                     for _ in 0..num_anotation_sets {
-                        let size = try!(if header.is_little_endian() {
-                            reader.read_u32::<LittleEndian>()
-                        } else {
-                            reader.read_u32::<BigEndian>()
-                        }) as usize;
+                        let size = try!(reader.read_u32::<E>()) as usize;
                         let mut annotation_set = Vec::with_capacity(size);
                         for _ in 0..size {
-                            annotation_set.push((try!(if header.is_little_endian() {
-                                reader.read_u32::<LittleEndian>()
-                            } else {
-                                reader.read_u32::<BigEndian>()
-                            }) as usize,
+                            annotation_set.push((try!(reader.read_u32::<E>()) as usize,
                                                  None::<usize>));
                         }
                         annotation_sets.push(annotation_set);
@@ -396,8 +311,6 @@ impl Dex {
         //         ItemType::AnnotationsDirectoryItem => unimplemented!(),
         //     }
         // }
-
-        // TODO search links?
 
         unimplemented!()
     }
