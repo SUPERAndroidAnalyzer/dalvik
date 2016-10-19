@@ -122,82 +122,60 @@ impl Dex {
                 OffsetType::TypeIdList => {
                     // Read all type string indexes
                     for _ in 0..header.get_type_ids_size() {
-                        type_ids.push(try!(reader.read_u32::<E>()) as usize);
+                        type_ids.push(try!(reader.read_u32::<E>()));
                     }
                     offset += TYPE_ID_ITEM_SIZE * header.get_type_ids_size() as u32;
                 }
                 OffsetType::PrototypeIdList => {
                     // Read all prototype IDs
                     for _ in 0..header.get_prototype_ids_size() {
-                        let shorty_id = try!(reader.read_u32::<E>());
-                        let return_type_id = try!(reader.read_u32::<E>());
-                        let parameters_offset = try!(reader.read_u32::<E>());
-                        offset_map.insert(parameters_offset, OffsetType::TypeList);
-                        prototype_ids.push(PrototypeIdData::new(shorty_id,
-                                                                return_type_id,
-                                                                parameters_offset));
+                        let prototype_id = try!(PrototypeIdData::from_reader::<_, E>(&mut reader));
+                        if let Some(offset) = prototype_id.get_parameters_offset() {
+                            offset_map.insert(offset, OffsetType::TypeList);
+                        }
+                        prototype_ids.push(prototype_id);
                     }
                     offset += PROTO_ID_ITEM_SIZE * header.get_prototype_ids_size() as u32;
                 }
                 OffsetType::FieldIdList => {
                     // Read all field IDs
                     for _ in 0..header.get_field_ids_size() {
-                        let class_id = try!(reader.read_u16::<E>());
-                        let type_id = try!(reader.read_u16::<E>());
-                        let name_id = try!(reader.read_u32::<E>());
-                        field_ids.push(FieldIdData::new(class_id, type_id, name_id));
+                        field_ids.push(try!(FieldIdData::from_reader::<_, E>(&mut reader)));
                     }
                     offset += FIELD_ID_ITEM_SIZE * header.get_field_ids_size() as u32;
                 }
                 OffsetType::MethodIdList => {
                     // Read all method IDs
                     for _ in 0..header.get_method_ids_size() {
-                        let class_id = try!(reader.read_u16::<E>());
-                        let prototype_id = try!(reader.read_u16::<E>());
-                        let name_id = try!(reader.read_u32::<E>());
-                        method_ids.push(MethodIdData::new(class_id, prototype_id, name_id));
+                        method_ids.push(try!(MethodIdData::from_reader::<_, E>(&mut reader)));
                     }
                     offset += METHOD_ID_ITEM_SIZE * header.get_method_ids_size() as u32;
                 }
                 OffsetType::ClassDefList => {
                     // Read all class definitions
                     for _ in 0..header.get_class_defs_size() {
-                        let class_id = try!(reader.read_u32::<E>());
-                        let access_flags = try!(reader.read_u32::<E>());
-                        let superclass_id = try!(reader.read_u32::<E>());
-                        let interfaces_offset = try!(reader.read_u32::<E>());
-                        let source_file_id = try!(reader.read_u32::<E>());
-                        let annotations_offset = try!(reader.read_u32::<E>());
-                        let class_data_offset = try!(reader.read_u32::<E>());
-                        let static_values_offset = try!(reader.read_u32::<E>());
-                        class_defs.push(try!(ClassDefData::new(class_id,
-                                                               access_flags,
-                                                               superclass_id,
-                                                               interfaces_offset,
-                                                               source_file_id,
-                                                               annotations_offset,
-                                                               class_data_offset,
-                                                               static_values_offset)));
-                        if interfaces_offset != 0 {
-                            offset_map.insert(interfaces_offset, OffsetType::TypeList);
+                        let class_def = try!(ClassDefData::from_reader::<_, E>(&mut reader));
+                        if let Some(offset) = class_def.get_interfaces_offset() {
+                            offset_map.insert(offset, OffsetType::TypeList);
                         }
-                        if annotations_offset != 0 {
-                            offset_map.insert(annotations_offset, OffsetType::AnnotationsDirectory);
+                        if let Some(offset) = class_def.get_annotations_offset() {
+                            offset_map.insert(offset, OffsetType::AnnotationsDirectory);
                         }
-                        if class_data_offset != 0 {
-                            offset_map.insert(class_data_offset, OffsetType::ClassData);
+                        if let Some(offset) = class_def.get_class_data_offset() {
+                            offset_map.insert(offset, OffsetType::ClassData);
                         }
-                        if static_values_offset != 0 {
-                            offset_map.insert(class_data_offset, OffsetType::EncodedArray);
+                        if let Some(offset) = class_def.get_static_values_offset() {
+                            offset_map.insert(offset, OffsetType::EncodedArray);
                         }
+                        class_defs.push(class_def);
                     }
                     offset += CLASS_DEF_ITEM_SIZE * header.get_class_defs_size() as u32;
                 }
                 OffsetType::Map => {
                     // Read map
-                    map = Some(try!(Map::from_reader::<_, E>(&mut reader, &mut offset_map)));
-                    offset += 4 +
-                              MAP_ITEM_SIZE * map.as_ref().unwrap().get_item_list().len() as u32;
+                    let new_map = try!(Map::from_reader::<_, E>(&mut reader, &mut offset_map));
+                    offset += 4 + MAP_ITEM_SIZE * new_map.get_item_list().len() as u32;
+                    map = Some(new_map);
                 }
                 OffsetType::TypeList => {
                     let num_type_lists =
@@ -332,56 +310,53 @@ impl Dex {
     }
 }
 
+/// The struct representing the *dex* file Map.
 #[derive(Debug)]
 struct Map {
     map_list: Vec<MapItem>,
 }
 
 impl Map {
-    pub fn from_reader<R: Read, B: ByteOrder>(reader: &mut R,
+    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R,
                                               offset_map: &mut OffsetMap)
                                               -> Result<Map> {
-        let size = try!(reader.read_u32::<B>());
+        let size = try!(reader.read_u32::<E>());
         let mut map_list = Vec::with_capacity(size as usize);
         offset_map.reserve_exact(size as usize);
         for _ in 0..size {
-            let item_type = try!(reader.read_u16::<B>());
-            try!(reader.read_exact(&mut [0u8; 2]));
-            let size = try!(reader.read_u32::<B>());
-            let offset = try!(reader.read_u32::<B>());
-            let map_item = try!(MapItem::new(item_type, size, offset));
+            let map_item = try!(MapItem::from_reader::<_, E>(reader));
             match map_item.get_item_type() {
                 ItemType::Header | ItemType::StringId | ItemType::TypeId | ItemType::ProtoId |
                 ItemType::FieldId | ItemType::MethodId | ItemType::ClassDef | ItemType::Map => {}
                 ItemType::TypeList => {
-                    offset_map.insert(offset, OffsetType::TypeList);
+                    offset_map.insert(map_item.get_offset(), OffsetType::TypeList);
                 }
                 ItemType::AnnotationSetList => {
-                    offset_map.insert(offset, OffsetType::AnnotationSetList);
+                    offset_map.insert(map_item.get_offset(), OffsetType::AnnotationSetList);
                 }
                 ItemType::AnnotationSet => {
-                    offset_map.insert(offset, OffsetType::AnnotationSet);
+                    offset_map.insert(map_item.get_offset(), OffsetType::AnnotationSet);
                 }
                 ItemType::ClassData => {
-                    offset_map.insert(offset, OffsetType::ClassData);
+                    offset_map.insert(map_item.get_offset(), OffsetType::ClassData);
                 }
                 ItemType::Code => {
-                    offset_map.insert(offset, OffsetType::Code);
+                    offset_map.insert(map_item.get_offset(), OffsetType::Code);
                 }
                 ItemType::StringData => {
-                    offset_map.insert(offset, OffsetType::StringData);
+                    offset_map.insert(map_item.get_offset(), OffsetType::StringData);
                 }
                 ItemType::DebugInfo => {
-                    offset_map.insert(offset, OffsetType::DebugInfo);
+                    offset_map.insert(map_item.get_offset(), OffsetType::DebugInfo);
                 }
                 ItemType::Annotation => {
-                    offset_map.insert(offset, OffsetType::Annotation);
+                    offset_map.insert(map_item.get_offset(), OffsetType::Annotation);
                 }
                 ItemType::EncodedArray => {
-                    offset_map.insert(offset, OffsetType::EncodedArray);
+                    offset_map.insert(map_item.get_offset(), OffsetType::EncodedArray);
                 }
                 ItemType::AnnotationsDirectory => {
-                    offset_map.insert(offset, OffsetType::AnnotationsDirectory);
+                    offset_map.insert(map_item.get_offset(), OffsetType::AnnotationsDirectory);
                 }
             }
             map_list.push(map_item);

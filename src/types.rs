@@ -1,5 +1,8 @@
 use std::fmt;
 use error::{Result, Error};
+use std::io::Read;
+
+use byteorder::{ByteOrder, ReadBytesExt};
 
 /// Data structure representing the `proto_id_item` type.
 #[derive(Debug, Clone)]
@@ -10,12 +13,12 @@ pub struct PrototypeIdData {
 }
 
 impl PrototypeIdData {
-    /// Creates a new `PrototypeIdData` from the three `u32` that conform the `proto_id_item` type.
-    pub fn new(shorty_index: u32,
-               return_type_index: u32,
-               parameters_offset: u32)
-               -> PrototypeIdData {
-        PrototypeIdData {
+    /// Creates a new `PrototypeIdData` from a reader.
+    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<PrototypeIdData> {
+        let shorty_index = try!(reader.read_u32::<E>());
+        let return_type_index = try!(reader.read_u32::<E>());
+        let parameters_offset = try!(reader.read_u32::<E>());
+        Ok(PrototypeIdData {
             shorty_index: shorty_index,
             return_type_index: return_type_index,
             parameters_offset: if parameters_offset != 0 {
@@ -23,7 +26,7 @@ impl PrototypeIdData {
             } else {
                 None
             },
-        }
+        })
     }
 
     /// Gets the shorty index.
@@ -62,14 +65,16 @@ pub struct FieldIdData {
 }
 
 impl FieldIdData {
-    /// Creates a new `FieldIdData` from the two `u16` and the `u32` that conform the
-    /// `field_id_item` type.
-    pub fn new(class_index: u16, type_index: u16, name_index: u32) -> FieldIdData {
-        FieldIdData {
+    /// Creates a new `FieldIdData` from a reader.
+    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<FieldIdData> {
+        let class_index = try!(reader.read_u16::<E>());
+        let type_index = try!(reader.read_u16::<E>());
+        let name_index = try!(reader.read_u32::<E>());
+        Ok(FieldIdData {
             class_index: class_index,
             type_index: type_index,
             name_index: name_index,
-        }
+        })
     }
 
     /// Gets the index of the class of the field.
@@ -105,14 +110,16 @@ pub struct MethodIdData {
 }
 
 impl MethodIdData {
-    /// Creates a new `MethodIdData` from the two `u16` and the `u32` that conform the
-    /// `method_id_item` type.
-    pub fn new(class_index: u16, prototype_index: u16, name_index: u32) -> MethodIdData {
-        MethodIdData {
+    /// Creates a new `MethodIdData` from a reader.
+    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<MethodIdData> {
+        let class_index = try!(reader.read_u16::<E>());
+        let prototype_index = try!(reader.read_u16::<E>());
+        let name_index = try!(reader.read_u32::<E>());
+        Ok(MethodIdData {
             class_index: class_index,
             prototype_index: prototype_index,
             name_index: name_index,
-        }
+        })
     }
 
     /// Gets the index of the class of the field.
@@ -142,7 +149,7 @@ impl MethodIdData {
 const NO_INDEX: u32 = 0xFFFFFFFF;
 
 bitflags! {
-    flags AccessFlags: u32 {
+    pub flags AccessFlags: u32 {
         const ACC_PUBLIC = 0x1,
         const ACC_PRIVATE = 0x2,
         const ACC_PROTECTED = 0x4,
@@ -177,50 +184,80 @@ pub struct ClassDefData {
 }
 
 impl ClassDefData {
-    pub fn new(class_id: u32,
-               access_flags: u32,
-               superclass_id: u32,
-               interfaces_offset: u32,
-               source_file_id: u32,
-               annotations_offset: u32,
-               class_data_offset: u32,
-               static_values_offset: u32)
-               -> Result<ClassDefData> {
+    /// Creates a new `ClassDefData` from a reader.
+    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<ClassDefData> {
+        let class_id = try!(reader.read_u32::<E>());
+        let access_flags = try!(reader.read_u32::<E>());
+        let superclass_id = try!(reader.read_u32::<E>());
+        let interfaces_offset = try!(reader.read_u32::<E>());
+        let source_file_id = try!(reader.read_u32::<E>());
+        let annotations_offset = try!(reader.read_u32::<E>());
+        let class_data_offset = try!(reader.read_u32::<E>());
+        let static_values_offset = try!(reader.read_u32::<E>());
+
+        #[inline]
+        fn some_if(value: u32, condition: bool) -> Option<u32> {
+            if condition { Some(value) } else { None }
+        }
+
         Ok(ClassDefData {
             class_id: class_id,
             access_flags: try!(AccessFlags::from_bits(access_flags)
                 .ok_or(Error::invalid_access_flags(access_flags))),
-            superclass_id: if superclass_id != NO_INDEX {
-                Some(superclass_id)
-            } else {
-                None
-            },
-            interfaces_offset: if interfaces_offset != 0 {
-                Some(interfaces_offset)
-            } else {
-                None
-            },
-            source_file_id: if source_file_id != NO_INDEX {
-                Some(source_file_id)
-            } else {
-                None
-            },
-            annotations_offset: if annotations_offset != 0 {
-                Some(annotations_offset)
-            } else {
-                None
-            },
-            class_data_offset: if class_data_offset != 0 {
-                Some(class_data_offset)
-            } else {
-                None
-            },
-            static_values_offset: if static_values_offset != 0 {
-                Some(static_values_offset)
-            } else {
-                None
-            },
+            superclass_id: some_if(superclass_id, superclass_id != NO_INDEX),
+            interfaces_offset: some_if(interfaces_offset, interfaces_offset != 0),
+            source_file_id: some_if(source_file_id, source_file_id != NO_INDEX),
+            annotations_offset: some_if(annotations_offset, annotations_offset != 0),
+            class_data_offset: some_if(class_data_offset, class_data_offset != 0),
+            static_values_offset: some_if(static_values_offset, static_values_offset != 0),
         })
+    }
+
+    /// Gets the class ID (index in the *Type IDs* list) of the class definition.
+    pub fn get_class_id(&self) -> usize {
+        self.class_id as usize
+    }
+
+    /// Gets the access flags of the class definition.
+    pub fn get_access_flags(&self) -> AccessFlags {
+        self.access_flags
+    }
+
+    /// Gets the class ID (index in the *Type IDs* list) of the superclass, if it exists.
+    pub fn get_superclass_id(&self) -> Option<usize> {
+        match self.superclass_id {
+            Some(i) => Some(i as usize),
+            None => None,
+        }
+    }
+
+    /// Gets the offset of the list of interfaces implemented by the class, if it has any.
+    pub fn get_interfaces_offset(&self) -> Option<u32> {
+        self.interfaces_offset
+    }
+
+    /// Gets the index in the *String IDs* list of the file name where most of the class was, if it
+    /// exists.
+    pub fn get_source_file_id(&self) -> Option<usize> {
+        match self.source_file_id {
+            Some(i) => Some(i as usize),
+            None => None,
+        }
+    }
+
+    /// Gets the offset of the annotations of the class, if it has any.
+    pub fn get_annotations_offset(&self) -> Option<u32> {
+        self.annotations_offset
+    }
+
+    /// Gets the offset for the data of the class, if it has any.
+    pub fn get_class_data_offset(&self) -> Option<u32> {
+        self.class_data_offset
+    }
+
+    /// Gets the offset for the static values of the class, if it has any.
+    pub fn get_static_values_offset(&self) -> Option<u32> {
+        self.static_values_offset
     }
 }
 
@@ -323,7 +360,11 @@ pub struct MapItem {
 }
 
 impl MapItem {
-    pub fn new(item_type: u16, size: u32, offset: u32) -> Result<MapItem> {
+    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<MapItem> {
+        let item_type = try!(reader.read_u16::<E>());
+        try!(reader.read_exact(&mut [0u8; 2]));
+        let size = try!(reader.read_u32::<E>());
+        let offset = try!(reader.read_u32::<E>());
         Ok(MapItem {
             item_type: try!(ItemType::from_u16(item_type)),
             size: size,
@@ -339,8 +380,8 @@ impl MapItem {
         self.size as usize
     }
 
-    pub fn get_offset(&self) -> usize {
-        self.offset as usize
+    pub fn get_offset(&self) -> u32 {
+        self.offset
     }
 }
 

@@ -2,7 +2,7 @@ use std::path::Path;
 use std::{fmt, fs, u32};
 use std::io::{BufReader, Read};
 
-use byteorder::{LittleEndian, BigEndian, ReadBytesExt};
+use byteorder::{LittleEndian, BigEndian, ByteOrder, ReadBytesExt};
 
 use error::{Error, Result};
 use sizes::*;
@@ -83,6 +83,7 @@ impl Header {
         } else if endian_tag != ENDIAN_CONSTANT {
             return Err(Error::invalid_endian_tag(endian_tag));
         }
+
         // Check header size
         if header_size != HEADER_SIZE {
             return Err(Error::invalid_header_size(header_size));
@@ -92,47 +93,54 @@ impl Header {
             return Err(Error::invalid_file_size(0, Some(file_size)));
         }
 
+        if endian_tag == ENDIAN_CONSTANT {
+            Header::read_data::<_, LittleEndian>(reader,
+                                                 magic,
+                                                 checksum,
+                                                 signature,
+                                                 file_size,
+                                                 header_size,
+                                                 ENDIAN_CONSTANT)
+        } else {
+            Header::read_data::<_, BigEndian>(reader,
+                                              magic,
+                                              checksum,
+                                              signature,
+                                              file_size,
+                                              header_size,
+                                              REVERSE_ENDIAN_CONSTANT)
+        }
+    }
+
+    fn read_data<R: Read, E: ByteOrder>(mut reader: R,
+                                        magic: [u8; 8],
+                                        checksum: u32,
+                                        signature: [u8; 20],
+                                        file_size: u32,
+                                        header_size: u32,
+                                        endian_tag: u32)
+                                        -> Result<Header> {
         let mut current_offset = HEADER_SIZE;
 
         // Link size
-        let link_size = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let link_size = try!(reader.read_u32::<E>());
         // Link offset
-        let link_offset = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let link_offset = try!(reader.read_u32::<E>());
         if link_size == 0 && link_offset != 0 {
             return Err(Error::mismatched_offsets("link_offset", link_offset, 0));
         }
 
         // Map offset
-        let map_offset = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let map_offset = try!(reader.read_u32::<E>());
         if map_offset == 0 {
             return Err(Error::MismatchedOffsets(String::from("`map_offset` was 0x00, and it \
                                                               can never be zero")));
         }
 
         // String IDs size
-        let string_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let string_ids_size = try!(reader.read_u32::<E>());
         // String IDs offset
-        let string_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let string_ids_offset = try!(reader.read_u32::<E>());
         if string_ids_size > 0 && string_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("string_ids_offset",
                                                  string_ids_offset,
@@ -141,20 +149,12 @@ impl Header {
         if string_ids_size == 0 && string_ids_offset != 0 {
             return Err(Error::mismatched_offsets("string_ids_offset", string_ids_offset, 0));
         }
-        current_offset += string_ids_size * 4;
+        current_offset += string_ids_size * STRING_ID_ITEM_SIZE;
 
         // Types IDs size
-        let type_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let type_ids_size = try!(reader.read_u32::<E>());
         // Types IDs offset
-        let type_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let type_ids_offset = try!(reader.read_u32::<E>());
         if type_ids_size > 0 && type_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("type_ids_offset",
                                                  type_ids_offset,
@@ -163,20 +163,12 @@ impl Header {
         if type_ids_size == 0 && type_ids_offset != 0 {
             return Err(Error::mismatched_offsets("type_ids_offset", type_ids_offset, 0));
         }
-        current_offset += type_ids_size * 4;
+        current_offset += type_ids_size * TYPE_ID_ITEM_SIZE;
 
         // Prototype IDs size
-        let prototype_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let prototype_ids_size = try!(reader.read_u32::<E>());
         // Prototype IDs offset
-        let prototype_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let prototype_ids_offset = try!(reader.read_u32::<E>());
         if prototype_ids_size > 0 && prototype_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("prototype_ids_offset",
                                                  prototype_ids_offset,
@@ -185,20 +177,12 @@ impl Header {
         if prototype_ids_size == 0 && prototype_ids_offset != 0 {
             return Err(Error::mismatched_offsets("prototype_ids_offset", prototype_ids_offset, 0));
         }
-        current_offset += prototype_ids_size * 3 * 4;
+        current_offset += prototype_ids_size * PROTO_ID_ITEM_SIZE;
 
         // Field IDs size
-        let field_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let field_ids_size = try!(reader.read_u32::<E>());
         // Field IDs offset
-        let field_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let field_ids_offset = try!(reader.read_u32::<E>());
         if field_ids_size > 0 && field_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("field_ids_offset",
                                                  field_ids_offset,
@@ -207,20 +191,12 @@ impl Header {
         if field_ids_size == 0 && field_ids_offset != 0 {
             return Err(Error::mismatched_offsets("field_ids_offset", field_ids_offset, 0));
         }
-        current_offset += field_ids_size * (2 * 2 + 4);
+        current_offset += field_ids_size * FIELD_ID_ITEM_SIZE;
 
         // Method IDs size
-        let method_ids_size = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let method_ids_size = try!(reader.read_u32::<E>());
         // Method IDs offset
-        let method_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let method_ids_offset = try!(reader.read_u32::<E>());
         if method_ids_size > 0 && method_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("method_ids_offset",
                                                  method_ids_offset,
@@ -229,20 +205,12 @@ impl Header {
         if method_ids_size == 0 && method_ids_offset != 0 {
             return Err(Error::mismatched_offsets("method_ids_offset", method_ids_offset, 0));
         }
-        current_offset += method_ids_size * (2 * 2 + 4);
+        current_offset += method_ids_size * METHOD_ID_ITEM_SIZE;
 
         // Class defs size
-        let class_defs_size = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let class_defs_size = try!(reader.read_u32::<E>());
         // Class defs offset
-        let class_defs_offset = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let class_defs_offset = try!(reader.read_u32::<E>());
         if class_defs_size > 0 && class_defs_offset != current_offset {
             return Err(Error::mismatched_offsets("class_defs_offset",
                                                  class_defs_offset,
@@ -254,11 +222,7 @@ impl Header {
         current_offset += class_defs_size * CLASS_DEF_ITEM_SIZE;
 
         // Data size
-        let data_size = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let data_size = try!(reader.read_u32::<E>());
         if data_size & 0b11 != 0 {
             return Err(Error::Header(format!("`data_size` must be a 4-byte multiple, but it \
                                               was {:#010x}",
@@ -266,11 +230,7 @@ impl Header {
         }
 
         // Data offset
-        let data_offset = try!(if endian_tag == ENDIAN_CONSTANT {
-            reader.read_u32::<LittleEndian>()
-        } else {
-            reader.read_u32::<BigEndian>()
-        });
+        let data_offset = try!(reader.read_u32::<E>());
         if data_offset != current_offset {
             // return Err(Error::mismatched_offsets("data_offset", data_offset, current_offset));
             // TODO seems that there is more information after the class definitions.
