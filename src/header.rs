@@ -396,6 +396,10 @@ impl Header {
             }
         }
 
+        fn some_if(x: u32, b: bool) -> Option<u32> {
+            if b { Some(x) } else { None }
+        }
+
         Ok(Header {
             magic: magic,
             checksum: checksum,
@@ -403,53 +407,22 @@ impl Header {
             file_size: file_size,
             header_size: header_size,
             endian_tag: endian_tag,
-            link_size: if link_size == 0 {
-                None
-            } else {
-                Some(link_size)
-            },
-            link_offset: if link_offset == 0 {
-                None
-            } else {
-                Some(link_offset)
-            },
+            link_size: some_if(link_size, link_size != 0),
+            link_offset: some_if(link_offset, link_offset != 0),
             map_offset: map_offset,
             string_ids_size: string_ids_size,
-            string_ids_offset: if string_ids_offset > 0 {
-                Some(string_ids_offset)
-            } else {
-                None
-            },
+            string_ids_offset: some_if(string_ids_offset, string_ids_offset > 0),
             type_ids_size: type_ids_size,
-            type_ids_offset: if type_ids_offset > 0 {
-                Some(type_ids_offset)
-            } else {
-                None
-            },
+            type_ids_offset: some_if(type_ids_offset, type_ids_offset > 0),
             prototype_ids_size: prototype_ids_size,
-            prototype_ids_offset: if prototype_ids_size > 0 {
-                Some(prototype_ids_offset)
-            } else {
-                None
-            },
+            prototype_ids_offset: some_if(prototype_ids_offset,
+                prototype_ids_size > 0),
             field_ids_size: field_ids_size,
-            field_ids_offset: if field_ids_size > 0 {
-                Some(field_ids_offset)
-            } else {
-                None
-            },
+            field_ids_offset: some_if(field_ids_offset, field_ids_size > 0),
             method_ids_size: method_ids_size,
-            method_ids_offset: if method_ids_size > 0 {
-                Some(method_ids_offset)
-            } else {
-                None
-            },
+            method_ids_offset: some_if(method_ids_offset, method_ids_size > 0),
             class_defs_size: class_defs_size,
-            class_defs_offset: if class_defs_size > 0 {
-                Some(class_defs_offset)
-            } else {
-                None
-            },
+            class_defs_offset: some_if(class_defs_offset, class_defs_size > 0),
             data_size: data_size,
             data_offset: data_offset,
         })
