@@ -363,7 +363,7 @@ impl Map {
                     offset_map.insert(offset, OffsetType::AnnotationSet);
                 }
                 ItemType::ClassData => {
-                    offset_map.insert(offset, OffsetType::AnnotationSetList);
+                    offset_map.insert(offset, OffsetType::ClassData);
                 }
                 ItemType::Code => {
                     offset_map.insert(offset, OffsetType::Code);

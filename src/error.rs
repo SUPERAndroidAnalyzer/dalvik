@@ -116,34 +116,34 @@ impl fmt::Display for Error {
 
 impl StdError for Error {
     fn description(&self) -> &str {
-        match self {
-            &Error::BytecodeParse(ref d) |
-            &Error::InvalidMagic(ref d) |
-            &Error::InvalidFileSize(ref d) |
-            &Error::InvalidEndianTag(ref d) |
-            &Error::InvalidHeaderSize(ref d) |
-            &Error::MismatchedOffsets(ref d) |
-            &Error::InvalidAccessFlags(ref d) |
-            &Error::InvalidItemType(ref d) |
-            &Error::Header(ref d) |
-            &Error::Map(ref d) => d,
-            &Error::IO(ref e) => e.description(),
+        match *self {
+            Error::BytecodeParse(ref d) |
+            Error::InvalidMagic(ref d) |
+            Error::InvalidFileSize(ref d) |
+            Error::InvalidEndianTag(ref d) |
+            Error::InvalidHeaderSize(ref d) |
+            Error::MismatchedOffsets(ref d) |
+            Error::InvalidAccessFlags(ref d) |
+            Error::InvalidItemType(ref d) |
+            Error::Header(ref d) |
+            Error::Map(ref d) => d,
+            Error::IO(ref e) => e.description(),
         }
     }
 
     fn cause(&self) -> Option<&StdError> {
-        match self {
-            &Error::BytecodeParse(_) |
-            &Error::InvalidMagic(_) |
-            &Error::InvalidFileSize(_) |
-            &Error::InvalidEndianTag(_) |
-            &Error::InvalidHeaderSize(_) |
-            &Error::MismatchedOffsets(_) |
-            &Error::InvalidAccessFlags(_) |
-            &Error::InvalidItemType(_) |
-            &Error::Header(_) |
-            &Error::Map(_) => None,
-            &Error::IO(ref e) => Some(e),
+        match *self {
+            Error::BytecodeParse(_) |
+            Error::InvalidMagic(_) |
+            Error::InvalidFileSize(_) |
+            Error::InvalidEndianTag(_) |
+            Error::InvalidHeaderSize(_) |
+            Error::MismatchedOffsets(_) |
+            Error::InvalidAccessFlags(_) |
+            Error::InvalidItemType(_) |
+            Error::Header(_) |
+            Error::Map(_) => None,
+            Error::IO(ref e) => Some(e),
         }
     }
 }

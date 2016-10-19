@@ -5,11 +5,6 @@ pub struct OffsetMap {
 }
 
 impl OffsetMap {
-    /// Creates a new offset map without allocating anything. The capacity will be zero.
-    pub fn new() -> OffsetMap {
-        OffsetMap { inner: Vec::new() }
-    }
-
     /// Creates a new offset map with the given initial capacity. It will allocate space for
     /// exactly `capacity` offsets.
     pub fn with_capacity(capacity: usize) -> OffsetMap {
@@ -18,7 +13,7 @@ impl OffsetMap {
 
     /// Inserts a new offset in the offset map.
     pub fn insert(&mut self, offset: u32, offset_type: OffsetType) -> bool {
-        if self.inner.len() > 0 {
+        if !self.inner.is_empty() {
             if offset > self.inner.last().unwrap().0 {
                 self.inner.push((offset, offset_type));
                 false
@@ -66,7 +61,7 @@ impl Deref for OffsetMap {
 }
 
 impl DerefMut for OffsetMap {
-    fn deref_mut<'a>(&'a mut self) -> &'a mut Vec<(u32, OffsetType)> {
+    fn deref_mut(&mut self) -> &mut Vec<(u32, OffsetType)> {
         &mut self.inner
     }
 }

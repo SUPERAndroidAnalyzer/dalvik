@@ -1,5 +1,5 @@
 use std::path::Path;
-use std::{fmt, fs, usize};
+use std::{fmt, fs, u32};
 use std::io::{BufReader, Read};
 
 use byteorder::{LittleEndian, BigEndian, ReadBytesExt};
@@ -129,7 +129,7 @@ impl Header {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Header> {
         let f = try!(fs::File::open(path));
         let file_size = try!(f.metadata()).len();
-        if file_size < HEADER_SIZE as u64 || file_size > usize::MAX as u64 {
+        if file_size < HEADER_SIZE as u64 || file_size > (u32::MAX as u64) {
             return Err(Error::invalid_file_size(file_size, None));
         }
         let header = try!(Header::from_reader(BufReader::new(f)));
