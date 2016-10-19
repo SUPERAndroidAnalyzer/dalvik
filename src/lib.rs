@@ -33,7 +33,6 @@ pub struct Dex {
     classes: Vec<ClassDef>,
 }
 
-// TODO check alignments
 impl Dex {
     /// Reads the Dex data structure from the given path.
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Dex> {
@@ -213,6 +212,7 @@ impl Dex {
                         type_lists.push(type_list);
                         offset += 4 + TYPE_ITEM_SIZE * size;
                         if size & 0b1 != 0 {
+                            // Align misaligned section
                             try!(reader.read_exact(&mut [0u8; TYPE_ITEM_SIZE as usize]));
                             offset += TYPE_ITEM_SIZE;
                         }

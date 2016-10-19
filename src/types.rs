@@ -322,17 +322,6 @@ pub struct MapItem {
     offset: u32,
 }
 
-impl fmt::Debug for MapItem {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "MapItem {{ item_type: {:?} ({:#06x}), size: {} items, offset: {:#010x} }}",
-               self.item_type,
-               u16::from(self.item_type),
-               self.size,
-               self.offset)
-    }
-}
-
 impl MapItem {
     pub fn new(item_type: u16, size: u32, offset: u32) -> Result<MapItem> {
         Ok(MapItem {
@@ -352,5 +341,16 @@ impl MapItem {
 
     pub fn get_offset(&self) -> usize {
         self.offset as usize
+    }
+}
+
+impl fmt::Debug for MapItem {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "MapItem {{ item_type: {:?} ({:#06x}), size: {} items, offset: {:#010x} }}",
+               self.item_type,
+               u16::from(self.item_type),
+               self.size,
+               self.offset)
     }
 }

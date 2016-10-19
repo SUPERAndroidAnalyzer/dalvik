@@ -38,92 +38,6 @@ pub struct Header {
     data_offset: u32,
 }
 
-impl fmt::Debug for Header {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "Header {{ magic: [ {} ] (version: {}), checksum: {:#x}, SHA-1 signature: {}, \
-                file_size: {} bytes, header_size: {} bytes, endian_tag: {:#x} ({} endian), {}, \
-                map_offset: {:#x}, {}, {}, {}, {}, {}, {}, data_size: {} bytes, data_offset: \
-                {:#x} }}",
-               {
-                   let mut magic_vec = Vec::with_capacity(8);
-                   for b in &self.magic {
-                       magic_vec.push(format!("{:#02x}", b))
-                   }
-                   magic_vec.join(", ")
-               },
-               self.get_dex_version(),
-               self.checksum,
-               {
-                   let mut signature = String::with_capacity(40);
-                   for b in &self.signature {
-                       signature.push_str(&format!("{:02x}", b))
-                   }
-                   signature
-               },
-               self.file_size,
-               self.header_size,
-               self.endian_tag,
-               if self.is_little_endian() {
-                   "little"
-               } else {
-                   "big"
-               },
-               if self.link_size.is_some() {
-                   format!("link_size: {} bytes, link_offset: {:#x}",
-                           self.link_size.unwrap(),
-                           self.link_offset.unwrap())
-               } else {
-                   String::from("no link section")
-               },
-               self.map_offset,
-               if self.string_ids_size > 0 {
-                   format!("string_ids_size: {} strings, string_ids_offset: {:#x}",
-                           self.string_ids_size,
-                           self.string_ids_offset.unwrap())
-               } else {
-                   String::from("no strings")
-               },
-               if self.type_ids_size > 0 {
-                   format!("type_ids_size: {} types, type_ids_offset: {:#x}",
-                           self.type_ids_size,
-                           self.type_ids_offset.unwrap())
-               } else {
-                   String::from("no types")
-               },
-               if self.prototype_ids_size > 0 {
-                   format!("prototype_ids_size: {} types, prototype_ids_offset: {:#x}",
-                           self.prototype_ids_size,
-                           self.prototype_ids_offset.unwrap())
-               } else {
-                   String::from("no prototypes")
-               },
-               if self.field_ids_size > 0 {
-                   format!("field_ids_size: {} types, field_ids_offset: {:#x}",
-                           self.field_ids_size,
-                           self.field_ids_offset.unwrap())
-               } else {
-                   String::from("no fields")
-               },
-               if self.method_ids_size > 0 {
-                   format!("method_ids_size: {} types, method_ids_offset: {:#x}",
-                           self.method_ids_size,
-                           self.method_ids_offset.unwrap())
-               } else {
-                   String::from("no methods")
-               },
-               if self.class_defs_size > 0 {
-                   format!("class_defs_size: {} types, class_defs_offset: {:#x}",
-                           self.class_defs_size,
-                           self.class_defs_offset.unwrap())
-               } else {
-                   String::from("no classes")
-               },
-               self.data_size,
-               self.data_offset)
-    }
-}
-
 impl Header {
     /// Obtains the header from a Dex file.
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Header> {
@@ -415,8 +329,7 @@ impl Header {
             type_ids_size: type_ids_size,
             type_ids_offset: some_if(type_ids_offset, type_ids_offset > 0),
             prototype_ids_size: prototype_ids_size,
-            prototype_ids_offset: some_if(prototype_ids_offset,
-                prototype_ids_size > 0),
+            prototype_ids_offset: some_if(prototype_ids_offset, prototype_ids_size > 0),
             field_ids_size: field_ids_size,
             field_ids_offset: some_if(field_ids_offset, field_ids_size > 0),
             method_ids_size: method_ids_size,
@@ -609,5 +522,91 @@ impl Header {
     /// The reader should be positioned at the start of the file.
     pub fn verify_reader<R: Read>(&self, reader: R) -> bool {
         unimplemented!()
+    }
+}
+
+impl fmt::Debug for Header {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "Header {{ magic: [ {} ] (version: {}), checksum: {:#x}, SHA-1 signature: {}, \
+                file_size: {} bytes, header_size: {} bytes, endian_tag: {:#x} ({} endian), {}, \
+                map_offset: {:#x}, {}, {}, {}, {}, {}, {}, data_size: {} bytes, data_offset: \
+                {:#x} }}",
+               {
+                   let mut magic_vec = Vec::with_capacity(8);
+                   for b in &self.magic {
+                       magic_vec.push(format!("{:#02x}", b))
+                   }
+                   magic_vec.join(", ")
+               },
+               self.get_dex_version(),
+               self.checksum,
+               {
+                   let mut signature = String::with_capacity(40);
+                   for b in &self.signature {
+                       signature.push_str(&format!("{:02x}", b))
+                   }
+                   signature
+               },
+               self.file_size,
+               self.header_size,
+               self.endian_tag,
+               if self.is_little_endian() {
+                   "little"
+               } else {
+                   "big"
+               },
+               if self.link_size.is_some() {
+                   format!("link_size: {} bytes, link_offset: {:#x}",
+                           self.link_size.unwrap(),
+                           self.link_offset.unwrap())
+               } else {
+                   String::from("no link section")
+               },
+               self.map_offset,
+               if self.string_ids_size > 0 {
+                   format!("string_ids_size: {} strings, string_ids_offset: {:#x}",
+                           self.string_ids_size,
+                           self.string_ids_offset.unwrap())
+               } else {
+                   String::from("no strings")
+               },
+               if self.type_ids_size > 0 {
+                   format!("type_ids_size: {} types, type_ids_offset: {:#x}",
+                           self.type_ids_size,
+                           self.type_ids_offset.unwrap())
+               } else {
+                   String::from("no types")
+               },
+               if self.prototype_ids_size > 0 {
+                   format!("prototype_ids_size: {} types, prototype_ids_offset: {:#x}",
+                           self.prototype_ids_size,
+                           self.prototype_ids_offset.unwrap())
+               } else {
+                   String::from("no prototypes")
+               },
+               if self.field_ids_size > 0 {
+                   format!("field_ids_size: {} types, field_ids_offset: {:#x}",
+                           self.field_ids_size,
+                           self.field_ids_offset.unwrap())
+               } else {
+                   String::from("no fields")
+               },
+               if self.method_ids_size > 0 {
+                   format!("method_ids_size: {} types, method_ids_offset: {:#x}",
+                           self.method_ids_size,
+                           self.method_ids_offset.unwrap())
+               } else {
+                   String::from("no methods")
+               },
+               if self.class_defs_size > 0 {
+                   format!("class_defs_size: {} types, class_defs_offset: {:#x}",
+                           self.class_defs_size,
+                           self.class_defs_offset.unwrap())
+               } else {
+                   String::from("no classes")
+               },
+               self.data_size,
+               self.data_offset)
     }
 }
