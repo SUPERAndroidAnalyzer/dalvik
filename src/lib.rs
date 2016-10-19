@@ -3,7 +3,7 @@ extern crate byteorder;
 extern crate bitflags;
 
 use std::path::Path;
-use std::{fs, usize};
+use std::{fs, u32};
 use std::io::prelude::*;
 use std::io::BufReader;
 
@@ -39,16 +39,16 @@ impl Dex {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Dex> {
         let file = try!(fs::File::open(path));
         let file_size = try!(file.metadata()).len();
-        if file_size < HEADER_SIZE as u64 || file_size > usize::MAX as u64 {
+        if file_size < HEADER_SIZE as u64 || file_size > u32::MAX as u64 {
             return Err(Error::invalid_file_size(file_size, None));
         }
-        Dex::from_reader(BufReader::new(file), file_size as usize)
+        Dex::from_reader(BufReader::new(file), file_size)
     }
 
     /// Loads a new Dex data structure from the given reader.
-    pub fn from_reader<R: Read>(mut reader: R, file_size: usize) -> Result<Dex> {
+    pub fn from_reader<R: Read>(mut reader: R, file_size: u64) -> Result<Dex> {
         let header = try!(Header::from_reader(&mut reader));
-        if header.get_file_size() != file_size {
+        if header.get_file_size() as u64 != file_size {
             return Err(Error::invalid_file_size(file_size as u64, Some(header.get_file_size())));
         }
 
@@ -87,7 +87,7 @@ impl Dex {
         let read_end = if let Some(offset) = header.get_link_offset() {
             offset
         } else {
-            header.get_file_size() as usize
+            header.get_file_size()
         };
 
         // Read all the file.
@@ -100,7 +100,7 @@ impl Dex {
                                  next_offset - offset,
                                  offset)
                     }
-                    let mut unknown_bytes = Vec::with_capacity(next_offset - offset);
+                    let mut unknown_bytes = Vec::with_capacity((next_offset - offset) as usize);
                     try!(reader.by_ref()
                         .take((next_offset - offset) as u64)
                         .read_to_end(&mut unknown_bytes));
@@ -114,18 +114,18 @@ impl Dex {
                 OffsetType::StringIdList => {
                     // Read all string offsets
                     for _ in 0..header.get_string_ids_size() {
-                        let offset = try!(reader.read_u32::<E>()) as usize;
+                        let offset = try!(reader.read_u32::<E>());
                         offset_map.insert(offset, OffsetType::StringData);
                         string_ids.push((offset, None::<String>));
                     }
-                    offset += STRING_ID_ITEM_SIZE * header.get_string_ids_size();
+                    offset += STRING_ID_ITEM_SIZE * header.get_string_ids_size() as u32;
                 }
                 OffsetType::TypeIdList => {
                     // Read all type string indexes
                     for _ in 0..header.get_type_ids_size() {
                         type_ids.push(try!(reader.read_u32::<E>()) as usize);
                     }
-                    offset += TYPE_ID_ITEM_SIZE * header.get_type_ids_size();
+                    offset += TYPE_ID_ITEM_SIZE * header.get_type_ids_size() as u32;
                 }
                 OffsetType::PrototypeIdList => {
                     // Read all prototype IDs
@@ -133,12 +133,12 @@ impl Dex {
                         let shorty_id = try!(reader.read_u32::<E>());
                         let return_type_id = try!(reader.read_u32::<E>());
                         let parameters_offset = try!(reader.read_u32::<E>());
-                        offset_map.insert(parameters_offset as usize, OffsetType::TypeList);
+                        offset_map.insert(parameters_offset, OffsetType::TypeList);
                         prototype_ids.push(PrototypeIdData::new(shorty_id,
                                                                 return_type_id,
                                                                 parameters_offset));
                     }
-                    offset += PROTO_ID_ITEM_SIZE * header.get_prototype_ids_size();
+                    offset += PROTO_ID_ITEM_SIZE * header.get_prototype_ids_size() as u32;
                 }
                 OffsetType::FieldIdList => {
                     // Read all field IDs
@@ -148,7 +148,7 @@ impl Dex {
                         let name_id = try!(reader.read_u32::<E>());
                         field_ids.push(FieldIdData::new(class_id, type_id, name_id));
                     }
-                    offset += FIELD_ID_ITEM_SIZE * header.get_field_ids_size();
+                    offset += FIELD_ID_ITEM_SIZE * header.get_field_ids_size() as u32;
                 }
                 OffsetType::MethodIdList => {
                     // Read all method IDs
@@ -158,7 +158,7 @@ impl Dex {
                         let name_id = try!(reader.read_u32::<E>());
                         method_ids.push(MethodIdData::new(class_id, prototype_id, name_id));
                     }
-                    offset += METHOD_ID_ITEM_SIZE * header.get_method_ids_size();
+                    offset += METHOD_ID_ITEM_SIZE * header.get_method_ids_size() as u32;
                 }
                 OffsetType::ClassDefList => {
                     // Read all class definitions
@@ -180,40 +180,40 @@ impl Dex {
                                                                class_data_offset,
                                                                static_values_offset)));
                         if interfaces_offset != 0 {
-                            offset_map.insert(interfaces_offset as usize, OffsetType::TypeList);
+                            offset_map.insert(interfaces_offset, OffsetType::TypeList);
                         }
                         if annotations_offset != 0 {
-                            offset_map.insert(annotations_offset as usize,
-                                              OffsetType::AnnotationsDirectory);
+                            offset_map.insert(annotations_offset, OffsetType::AnnotationsDirectory);
                         }
                         if class_data_offset != 0 {
-                            offset_map.insert(class_data_offset as usize, OffsetType::ClassData);
+                            offset_map.insert(class_data_offset, OffsetType::ClassData);
                         }
                         if static_values_offset != 0 {
-                            offset_map.insert(class_data_offset as usize, OffsetType::EncodedArray);
+                            offset_map.insert(class_data_offset, OffsetType::EncodedArray);
                         }
                     }
-                    offset += CLASS_DEF_ITEM_SIZE * header.get_class_defs_size();
+                    offset += CLASS_DEF_ITEM_SIZE * header.get_class_defs_size() as u32;
                 }
                 OffsetType::Map => {
                     // Read map
                     map = Some(try!(Map::from_reader::<_, E>(&mut reader, &mut offset_map)));
-                    offset += 4 + MAP_ITEM_SIZE * map.as_ref().unwrap().get_item_list().len();
+                    offset += 4 +
+                              MAP_ITEM_SIZE * map.as_ref().unwrap().get_item_list().len() as u32;
                 }
                 OffsetType::TypeList => {
                     let num_type_lists =
                         map.as_ref().unwrap().get_num_items_for(ItemType::TypeList).unwrap();
                     type_lists.reserve_exact(num_type_lists);
                     for _ in 0..num_type_lists {
-                        let size = try!(reader.read_u32::<E>()) as usize;
-                        let mut type_list = Vec::with_capacity(size);
+                        let size = try!(reader.read_u32::<E>());
+                        let mut type_list = Vec::with_capacity(size as usize);
                         for _ in 0..size {
                             type_list.push(try!(reader.read_u16::<E>()));
                         }
                         type_lists.push(type_list);
                         offset += 4 + TYPE_ITEM_SIZE * size;
                         if size & 0b1 != 0 {
-                            try!(reader.read_exact(&mut [0u8; TYPE_ITEM_SIZE]));
+                            try!(reader.read_exact(&mut [0u8; TYPE_ITEM_SIZE as usize]));
                             offset += TYPE_ITEM_SIZE;
                         }
                     }
@@ -225,11 +225,10 @@ impl Dex {
                         .unwrap();
                     annotation_sets.reserve_exact(num_anotation_sets);
                     for _ in 0..num_anotation_sets {
-                        let size = try!(reader.read_u32::<E>()) as usize;
-                        let mut annotation_set = Vec::with_capacity(size);
+                        let size = try!(reader.read_u32::<E>());
+                        let mut annotation_set = Vec::with_capacity(size as usize);
                         for _ in 0..size {
-                            annotation_set.push((try!(reader.read_u32::<E>()) as usize,
-                                                 None::<usize>));
+                            annotation_set.push((try!(reader.read_u32::<E>()), None::<u32>));
                         }
                         annotation_sets.push(annotation_set);
                         offset += 4 + ANNOTATION_SET_REF_SIZE * size;
@@ -342,9 +341,9 @@ impl Map {
     pub fn from_reader<R: Read, B: ByteOrder>(reader: &mut R,
                                               offset_map: &mut OffsetMap)
                                               -> Result<Map> {
-        let size = try!(reader.read_u32::<B>()) as usize;
-        let mut map_list = Vec::with_capacity(size);
-        offset_map.reserve_exact(size);
+        let size = try!(reader.read_u32::<B>());
+        let mut map_list = Vec::with_capacity(size as usize);
+        offset_map.reserve_exact(size as usize);
         for _ in 0..size {
             let item_type = try!(reader.read_u16::<B>());
             try!(reader.read_exact(&mut [0u8; 2]));
@@ -355,34 +354,34 @@ impl Map {
                 ItemType::Header | ItemType::StringId | ItemType::TypeId | ItemType::ProtoId |
                 ItemType::FieldId | ItemType::MethodId | ItemType::ClassDef | ItemType::Map => {}
                 ItemType::TypeList => {
-                    offset_map.insert(offset as usize, OffsetType::TypeList);
+                    offset_map.insert(offset, OffsetType::TypeList);
                 }
                 ItemType::AnnotationSetList => {
-                    offset_map.insert(offset as usize, OffsetType::AnnotationSetList);
+                    offset_map.insert(offset, OffsetType::AnnotationSetList);
                 }
                 ItemType::AnnotationSet => {
-                    offset_map.insert(offset as usize, OffsetType::AnnotationSet);
+                    offset_map.insert(offset, OffsetType::AnnotationSet);
                 }
                 ItemType::ClassData => {
-                    offset_map.insert(offset as usize, OffsetType::AnnotationSetList);
+                    offset_map.insert(offset, OffsetType::AnnotationSetList);
                 }
                 ItemType::Code => {
-                    offset_map.insert(offset as usize, OffsetType::Code);
+                    offset_map.insert(offset, OffsetType::Code);
                 }
                 ItemType::StringData => {
-                    offset_map.insert(offset as usize, OffsetType::StringData);
+                    offset_map.insert(offset, OffsetType::StringData);
                 }
                 ItemType::DebugInfo => {
-                    offset_map.insert(offset as usize, OffsetType::DebugInfo);
+                    offset_map.insert(offset, OffsetType::DebugInfo);
                 }
                 ItemType::Annotation => {
-                    offset_map.insert(offset as usize, OffsetType::Annotation);
+                    offset_map.insert(offset, OffsetType::Annotation);
                 }
                 ItemType::EncodedArray => {
-                    offset_map.insert(offset as usize, OffsetType::EncodedArray);
+                    offset_map.insert(offset, OffsetType::EncodedArray);
                 }
                 ItemType::AnnotationsDirectory => {
-                    offset_map.insert(offset as usize, OffsetType::AnnotationsDirectory);
+                    offset_map.insert(offset, OffsetType::AnnotationsDirectory);
                 }
             }
             map_list.push(map_item);

@@ -16,26 +16,26 @@ pub struct Header {
     magic: [u8; 8],
     checksum: u32,
     signature: [u8; 20],
-    file_size: usize,
-    header_size: usize,
+    file_size: u32,
+    header_size: u32,
     endian_tag: u32,
-    link_size: Option<usize>,
-    link_offset: Option<usize>,
-    map_offset: usize,
-    string_ids_size: usize,
-    string_ids_offset: Option<usize>,
-    type_ids_size: usize,
-    type_ids_offset: Option<usize>,
-    prototype_ids_size: usize,
-    prototype_ids_offset: Option<usize>,
-    field_ids_size: usize,
-    field_ids_offset: Option<usize>,
-    method_ids_size: usize,
-    method_ids_offset: Option<usize>,
-    class_defs_size: usize,
-    class_defs_offset: Option<usize>,
-    data_size: usize,
-    data_offset: usize,
+    link_size: Option<u32>,
+    link_offset: Option<u32>,
+    map_offset: u32,
+    string_ids_size: u32,
+    string_ids_offset: Option<u32>,
+    type_ids_size: u32,
+    type_ids_offset: Option<u32>,
+    prototype_ids_size: u32,
+    prototype_ids_offset: Option<u32>,
+    field_ids_size: u32,
+    field_ids_offset: Option<u32>,
+    method_ids_size: u32,
+    method_ids_offset: Option<u32>,
+    class_defs_size: u32,
+    class_defs_offset: Option<u32>,
+    data_size: u32,
+    data_offset: u32,
 }
 
 impl fmt::Debug for Header {
@@ -133,7 +133,7 @@ impl Header {
             return Err(Error::invalid_file_size(file_size, None));
         }
         let header = try!(Header::from_reader(BufReader::new(f)));
-        if file_size as usize != header.get_file_size() {
+        if file_size != header.get_file_size() as u64 {
             Err(Error::invalid_file_size(file_size, Some(header.get_file_size())))
         } else {
             Ok(header)
@@ -169,8 +169,6 @@ impl Header {
         } else if endian_tag != ENDIAN_CONSTANT {
             return Err(Error::invalid_endian_tag(endian_tag));
         }
-        let header_size = header_size as usize;
-        let file_size = file_size as usize;
         // Check header size
         if header_size != HEADER_SIZE {
             return Err(Error::invalid_header_size(header_size));
@@ -187,13 +185,13 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         // Link offset
         let link_offset = try!(if endian_tag == ENDIAN_CONSTANT {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if link_size == 0 && link_offset != 0 {
             return Err(Error::mismatched_offsets("link_offset", link_offset, 0));
         }
@@ -203,7 +201,7 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if map_offset == 0 {
             return Err(Error::MismatchedOffsets(String::from("`map_offset` was 0x00, and it \
                                                               can never be zero")));
@@ -214,13 +212,13 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         // String IDs offset
         let string_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if string_ids_size > 0 && string_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("string_ids_offset",
                                                  string_ids_offset,
@@ -236,13 +234,13 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         // Types IDs offset
         let type_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if type_ids_size > 0 && type_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("type_ids_offset",
                                                  type_ids_offset,
@@ -258,13 +256,13 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         // Prototype IDs offset
         let prototype_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if prototype_ids_size > 0 && prototype_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("prototype_ids_offset",
                                                  prototype_ids_offset,
@@ -280,13 +278,13 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         // Field IDs offset
         let field_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if field_ids_size > 0 && field_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("field_ids_offset",
                                                  field_ids_offset,
@@ -302,13 +300,13 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         // Method IDs offset
         let method_ids_offset = try!(if endian_tag == ENDIAN_CONSTANT {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if method_ids_size > 0 && method_ids_offset != current_offset {
             return Err(Error::mismatched_offsets("method_ids_offset",
                                                  method_ids_offset,
@@ -324,13 +322,13 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         // Class defs offset
         let class_defs_offset = try!(if endian_tag == ENDIAN_CONSTANT {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if class_defs_size > 0 && class_defs_offset != current_offset {
             return Err(Error::mismatched_offsets("class_defs_offset",
                                                  class_defs_offset,
@@ -346,7 +344,7 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if data_size & 0b11 != 0 {
             return Err(Error::Header(format!("`data_size` must be a 4-byte multiple, but it \
                                               was {:#010x}",
@@ -358,7 +356,7 @@ impl Header {
             reader.read_u32::<LittleEndian>()
         } else {
             reader.read_u32::<BigEndian>()
-        }) as usize;
+        });
         if data_offset != current_offset {
             // return Err(Error::mismatched_offsets("data_offset", data_offset, current_offset));
             // TODO seems that there is more information after the class definitions.
@@ -408,12 +406,12 @@ impl Header {
             link_size: if link_size == 0 {
                 None
             } else {
-                Some(link_size as usize)
+                Some(link_size)
             },
             link_offset: if link_offset == 0 {
                 None
             } else {
-                Some(link_offset as usize)
+                Some(link_offset)
             },
             map_offset: map_offset,
             string_ids_size: string_ids_size,
@@ -485,14 +483,14 @@ impl Header {
     }
 
     /// Gets file size.
-    pub fn get_file_size(&self) -> usize {
+    pub fn get_file_size(&self) -> u32 {
         self.file_size
     }
 
     /// Gets header size, in bytes.
     ///
     /// This must be 0x70.
-    pub fn get_header_size(&self) -> usize {
+    pub fn get_header_size(&self) -> u32 {
         self.header_size
     }
 
@@ -515,93 +513,96 @@ impl Header {
 
     /// Gets the link section size
     pub fn get_link_size(&self) -> Option<usize> {
-        self.link_size
+        match self.link_size {
+            Some(s) => Some(s as usize),
+            None => None,
+        }
     }
 
     /// Gets the link section offset.
-    pub fn get_link_offset(&self) -> Option<usize> {
+    pub fn get_link_offset(&self) -> Option<u32> {
         self.link_offset
     }
 
     /// Gets the map section offset.
-    pub fn get_map_offset(&self) -> usize {
+    pub fn get_map_offset(&self) -> u32 {
         self.map_offset
     }
 
     /// Gets the string IDs list size.
     pub fn get_string_ids_size(&self) -> usize {
-        self.string_ids_size
+        self.string_ids_size as usize
     }
 
     /// Gets the string IDs list offset.
-    pub fn get_string_ids_offset(&self) -> Option<usize> {
+    pub fn get_string_ids_offset(&self) -> Option<u32> {
         self.string_ids_offset
     }
 
     /// Gets the type IDs list size.
     pub fn get_type_ids_size(&self) -> usize {
-        self.type_ids_size
+        self.type_ids_size as usize
     }
 
     /// Gets the type IDs list offset.
-    pub fn get_type_ids_offset(&self) -> Option<usize> {
+    pub fn get_type_ids_offset(&self) -> Option<u32> {
         self.type_ids_offset
     }
 
     /// Gets the prototype IDs list size.
     pub fn get_prototype_ids_size(&self) -> usize {
-        self.prototype_ids_size
+        self.prototype_ids_size as usize
     }
 
     /// Gets the prototype IDs list offset.
-    pub fn get_prototype_ids_offset(&self) -> Option<usize> {
+    pub fn get_prototype_ids_offset(&self) -> Option<u32> {
         self.prototype_ids_offset
     }
 
     /// Gets the field IDs list size.
     pub fn get_field_ids_size(&self) -> usize {
-        self.field_ids_size
+        self.field_ids_size as usize
     }
 
     /// Gets the field IDs list offset.
-    pub fn get_field_ids_offset(&self) -> Option<usize> {
+    pub fn get_field_ids_offset(&self) -> Option<u32> {
         self.field_ids_offset
     }
 
     /// Gets the method IDs list size.
     pub fn get_method_ids_size(&self) -> usize {
-        self.method_ids_size
+        self.method_ids_size as usize
     }
 
     /// Gets the method IDs list offset.
-    pub fn get_method_ids_offset(&self) -> Option<usize> {
+    pub fn get_method_ids_offset(&self) -> Option<u32> {
         self.method_ids_offset
     }
 
     /// Gets the class definition list size.
     pub fn get_class_defs_size(&self) -> usize {
-        self.class_defs_size
+        self.class_defs_size as usize
     }
 
     /// Gets the class definition list offset.
-    pub fn get_class_defs_offset(&self) -> Option<usize> {
+    pub fn get_class_defs_offset(&self) -> Option<u32> {
         self.class_defs_offset
     }
 
     /// Gets the data section size.
     pub fn get_data_size(&self) -> usize {
-        self.data_size
+        self.data_size as usize
     }
 
     /// Gets the data secrion offset.
-    pub fn get_data_offset(&self) -> usize {
+    pub fn get_data_offset(&self) -> u32 {
         self.data_offset
     }
 
     pub fn generate_offset_map(&self) -> OffsetMap {
-        let mut offset_map = OffsetMap::with_capacity(7 + self.string_ids_size +
-                                                      self.prototype_ids_size +
-                                                      self.class_defs_size * 4);
+        let mut offset_map = OffsetMap::with_capacity(7 + self.string_ids_size as usize +
+                                                      self.prototype_ids_size as usize +
+                                                      self.class_defs_size as usize * 4);
         if let Some(offset) = self.string_ids_offset {
             offset_map.insert(offset, OffsetType::StringIdList);
         }

@@ -4,9 +4,9 @@ use error::{Result, Error};
 /// Data structure representing the `proto_id_item` type.
 #[derive(Debug, Clone)]
 pub struct PrototypeIdData {
-    shorty_index: usize,
-    return_type_index: usize,
-    parameters_offset: Option<usize>,
+    shorty_index: u32,
+    return_type_index: u32,
+    parameters_offset: Option<u32>,
 }
 
 impl PrototypeIdData {
@@ -16,10 +16,10 @@ impl PrototypeIdData {
                parameters_offset: u32)
                -> PrototypeIdData {
         PrototypeIdData {
-            shorty_index: shorty_index as usize,
-            return_type_index: return_type_index as usize,
+            shorty_index: shorty_index,
+            return_type_index: return_type_index,
             parameters_offset: if parameters_offset != 0 {
-                Some(parameters_offset as usize)
+                Some(parameters_offset)
             } else {
                 None
             },
@@ -32,14 +32,14 @@ impl PrototypeIdData {
     /// prototype. The string must conform to the syntax for `ShortyDescriptor`, and must
     /// correspond to the return type and parameters of this item.
     pub fn get_shorty_index(&self) -> usize {
-        self.shorty_index
+        self.shorty_index as usize
     }
 
     /// Gets the return type index.
     ///
     /// Gets the index into the `type_ids` list for the return type of this prototype.
     pub fn get_return_type_index(&self) -> usize {
-        self.return_type_index
+        self.return_type_index as usize
     }
 
     /// Gets the parameter list offset, if the prototype has parameters.
@@ -48,7 +48,7 @@ impl PrototypeIdData {
     /// prototype, or `None` if this prototype has no parameters. This offset, should be in the
     /// data section, and the `data` there should be in the format specified by `type_list`.
     /// Additionally, there should be no reference to the type `void` in the list.
-    pub fn get_parameters_offset(&self) -> Option<usize> {
+    pub fn get_parameters_offset(&self) -> Option<u32> {
         self.parameters_offset
     }
 }
@@ -56,9 +56,9 @@ impl PrototypeIdData {
 /// Structure representing the `field_id_item` type.
 #[derive(Debug, Clone)]
 pub struct FieldIdData {
-    class_index: usize,
-    type_index: usize,
-    name_index: usize,
+    class_index: u16,
+    type_index: u16,
+    name_index: u32,
 }
 
 impl FieldIdData {
@@ -66,9 +66,9 @@ impl FieldIdData {
     /// `field_id_item` type.
     pub fn new(class_index: u16, type_index: u16, name_index: u32) -> FieldIdData {
         FieldIdData {
-            class_index: class_index as usize,
-            type_index: type_index as usize,
-            name_index: name_index as usize,
+            class_index: class_index,
+            type_index: type_index,
+            name_index: name_index,
         }
     }
 
@@ -77,14 +77,14 @@ impl FieldIdData {
     /// Gets the index into the `type_ids` list for the definer of this field. This must be a class
     /// type, and not an array or primitive type.
     pub fn get_class_index(&self) -> usize {
-        self.class_index
+        self.class_index as usize
     }
 
     /// Gets the index of the type of the class.
     ///
     /// Gets the index into the `type_ids` list for the type of this field.
     pub fn get_type_index(&self) -> usize {
-        self.type_index
+        self.type_index as usize
     }
 
     /// Gets the index to the name of this field.
@@ -92,16 +92,16 @@ impl FieldIdData {
     /// Gets the index into the `string_ids` list for the name of this field. The string must
     /// conform to the syntax for `MemberName`.
     pub fn get_name_index(&self) -> usize {
-        self.name_index
+        self.name_index as usize
     }
 }
 
 /// Structure representing the `method_id_item` type.
 #[derive(Debug, Clone)]
 pub struct MethodIdData {
-    class_index: usize,
-    prototype_index: usize,
-    name_index: usize,
+    class_index: u16,
+    prototype_index: u16,
+    name_index: u32,
 }
 
 impl MethodIdData {
@@ -109,9 +109,9 @@ impl MethodIdData {
     /// `method_id_item` type.
     pub fn new(class_index: u16, prototype_index: u16, name_index: u32) -> MethodIdData {
         MethodIdData {
-            class_index: class_index as usize,
-            prototype_index: prototype_index as usize,
-            name_index: name_index as usize,
+            class_index: class_index,
+            prototype_index: prototype_index,
+            name_index: name_index,
         }
     }
 
@@ -120,14 +120,14 @@ impl MethodIdData {
     /// Gets the index into the `type_ids` list for the definer of this method. This must be a
     /// class or array type, and not a primitive type.
     pub fn get_class_index(&self) -> usize {
-        self.class_index
+        self.class_index as usize
     }
 
     /// Gets the index of the prototype of the class.
     ///
     /// Gets the index into the `prototype_ids` list for the prototype of this method.
     pub fn get_prototype_index(&self) -> usize {
-        self.prototype_index
+        self.prototype_index as usize
     }
 
     /// Gets the index to the name of this field.
@@ -135,7 +135,7 @@ impl MethodIdData {
     /// Gets the index into the `string_ids` list for the name of this field. The string must
     /// conform to the syntax for `MemberName`.
     pub fn get_name_index(&self) -> usize {
-        self.name_index
+        self.name_index as usize
     }
 }
 
@@ -166,14 +166,14 @@ bitflags! {
 }
 
 pub struct ClassDefData {
-    class_id: usize,
+    class_id: u32,
     access_flags: AccessFlags,
-    superclass_id: Option<usize>,
-    interfaces_offset: Option<usize>,
-    source_file_id: Option<usize>,
-    annotations_offset: Option<usize>,
-    class_data_offset: Option<usize>,
-    static_values_offset: Option<usize>,
+    superclass_id: Option<u32>,
+    interfaces_offset: Option<u32>,
+    source_file_id: Option<u32>,
+    annotations_offset: Option<u32>,
+    class_data_offset: Option<u32>,
+    static_values_offset: Option<u32>,
 }
 
 impl ClassDefData {
@@ -187,36 +187,36 @@ impl ClassDefData {
                static_values_offset: u32)
                -> Result<ClassDefData> {
         Ok(ClassDefData {
-            class_id: class_id as usize,
+            class_id: class_id,
             access_flags: try!(AccessFlags::from_bits(access_flags)
                 .ok_or(Error::invalid_access_flags(access_flags))),
             superclass_id: if superclass_id != NO_INDEX {
-                Some(superclass_id as usize)
+                Some(superclass_id)
             } else {
                 None
             },
             interfaces_offset: if interfaces_offset != 0 {
-                Some(interfaces_offset as usize)
+                Some(interfaces_offset)
             } else {
                 None
             },
             source_file_id: if source_file_id != NO_INDEX {
-                Some(source_file_id as usize)
+                Some(source_file_id)
             } else {
                 None
             },
             annotations_offset: if annotations_offset != 0 {
-                Some(annotations_offset as usize)
+                Some(annotations_offset)
             } else {
                 None
             },
             class_data_offset: if class_data_offset != 0 {
-                Some(class_data_offset as usize)
+                Some(class_data_offset)
             } else {
                 None
             },
             static_values_offset: if static_values_offset != 0 {
-                Some(static_values_offset as usize)
+                Some(static_values_offset)
             } else {
                 None
             },
@@ -318,8 +318,8 @@ impl From<ItemType> for u16 {
 
 pub struct MapItem {
     item_type: ItemType,
-    size: usize,
-    offset: usize,
+    size: u32,
+    offset: u32,
 }
 
 impl fmt::Debug for MapItem {
@@ -337,8 +337,8 @@ impl MapItem {
     pub fn new(item_type: u16, size: u32, offset: u32) -> Result<MapItem> {
         Ok(MapItem {
             item_type: try!(ItemType::from_u16(item_type)),
-            size: size as usize,
-            offset: offset as usize,
+            size: size,
+            offset: offset,
         })
     }
 
@@ -347,55 +347,10 @@ impl MapItem {
     }
 
     pub fn get_num_items(&self) -> usize {
-        self.size
+        self.size as usize
     }
 
     pub fn get_offset(&self) -> usize {
-        self.offset
-    }
-}
-
-#[allow(unused)]
-pub enum LEB128 {
-    B1(u8),
-    B2(u8, u8),
-    B3(u8, u8, u8),
-    B4(u8, u8, u8, u8),
-    B5(u8, u8, u8, u8, u8),
-}
-
-#[allow(dead_code)]
-impl LEB128 {
-    pub fn parse(bytes: &[u8]) -> LEB128 {
-        let leb128 = match bytes.len() {
-            1 => LEB128::B1(*unsafe { bytes.get_unchecked(0) }),
-            2 => {
-                LEB128::B2(*unsafe { bytes.get_unchecked(0) },
-                           *unsafe { bytes.get_unchecked(1) })
-            }
-            3 => {
-                LEB128::B3(*unsafe { bytes.get_unchecked(0) },
-                           *unsafe { bytes.get_unchecked(1) },
-                           *unsafe { bytes.get_unchecked(2) })
-            }
-            4 => {
-                LEB128::B4(*unsafe { bytes.get_unchecked(0) },
-                           *unsafe { bytes.get_unchecked(1) },
-                           *unsafe { bytes.get_unchecked(2) },
-                           *unsafe { bytes.get_unchecked(3) })
-            }
-            5 => {
-                LEB128::B5(*unsafe { bytes.get_unchecked(0) },
-                           *unsafe { bytes.get_unchecked(1) },
-                           *unsafe { bytes.get_unchecked(2) },
-                           *unsafe { bytes.get_unchecked(3) },
-                           *unsafe { bytes.get_unchecked(4) })
-            }
-            l => {
-                panic!("LEB128 slice length is {}, it must be between 1 and 5 bytes",
-                       l)
-            }
-        };
-        unimplemented!()
+        self.offset as usize
     }
 }

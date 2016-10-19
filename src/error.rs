@@ -1,6 +1,6 @@
 use std::error::Error as StdError;
 use std::result::Result as StdResult;
-use std::{fmt, io, usize};
+use std::{fmt, io, u32};
 use sizes::HEADER_SIZE;
 
 /// Dalvik parser result type.
@@ -44,7 +44,7 @@ impl Error {
         Error::InvalidMagic(format!("invalid dex magic number: {:?}", dex_magic))
     }
     /// Creates a new invalid file size error.
-    pub fn invalid_file_size(file_size: u64, header_size: Option<usize>) -> Error {
+    pub fn invalid_file_size(file_size: u64, header_size: Option<u32>) -> Error {
         match header_size {
             Some(size) => {
                 if size < HEADER_SIZE {
@@ -65,7 +65,7 @@ impl Error {
                 Error::InvalidFileSize(format!("invalid dex file size: the size must be \
                                                    between {} and {} bytes, but the size is {}",
                                                HEADER_SIZE,
-                                               usize::MAX,
+                                               u32::MAX,
                                                file_size))
             }
         }
@@ -77,15 +77,15 @@ impl Error {
                                         endian_tag))
     }
     /// Creates a new invalid header size error.
-    pub fn invalid_header_size(header_size: usize) -> Error {
+    pub fn invalid_header_size(header_size: u32) -> Error {
         Error::InvalidHeaderSize(format!("invalid dex header_size: {}, it can only be {}",
                                          header_size,
                                          HEADER_SIZE))
     }
     /// Creates a new mismatched offset error.
     pub fn mismatched_offsets<S: AsRef<str>>(offset_name: S,
-                                             current_offset: usize,
-                                             expected_offset: usize)
+                                             current_offset: u32,
+                                             expected_offset: u32)
                                              -> Error {
         Error::MismatchedOffsets(format!("invalid `{}` offset: expected {:#010x}, got {:#010x}",
                                          offset_name.as_ref(),

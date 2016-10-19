@@ -1,40 +1,23 @@
-use std::ops::Deref;
-use std::slice::Iter;
+use std::ops::{Deref, DerefMut};
 
 pub struct OffsetMap {
-    inner: Vec<(usize, OffsetType)>,
+    inner: Vec<(u32, OffsetType)>,
 }
 
 impl OffsetMap {
+    /// Creates a new offset map without allocating anything. The capacity will be zero.
     pub fn new() -> OffsetMap {
         OffsetMap { inner: Vec::new() }
     }
 
+    /// Creates a new offset map with the given initial capacity. It will allocate space for
+    /// exactly `capacity` offsets.
     pub fn with_capacity(capacity: usize) -> OffsetMap {
         OffsetMap { inner: Vec::with_capacity(capacity) }
     }
 
-    pub fn capacity(&self) -> usize {
-        self.inner.capacity()
-    }
-
-    pub fn reserve(&mut self, additional: usize) {
-        self.inner.reserve(additional);
-    }
-
-    pub fn reserve_exact(&mut self, additional: usize) {
-        self.inner.reserve_exact(additional);
-    }
-
-    pub fn shrink_to_fit(&mut self) {
-        self.inner.shrink_to_fit();
-    }
-
-    pub fn clear(&mut self) {
-        self.inner.clear();
-    }
-
-    pub fn insert(&mut self, offset: usize, offset_type: OffsetType) -> bool {
+    /// Inserts a new offset in the offset map.
+    pub fn insert(&mut self, offset: u32, offset_type: OffsetType) -> bool {
         if self.inner.len() > 0 {
             if offset > self.inner.last().unwrap().0 {
                 self.inner.push((offset, offset_type));
@@ -57,7 +40,9 @@ impl OffsetMap {
         }
     }
 
-    pub fn get_offset(&self, offset: usize) -> Result<OffsetType, Option<(usize, OffsetType)>> {
+    /// Gets the given offset, if it exists at the map. The parameter is the offset from the start
+    /// of the file, and it will be searched in the stored offsets in the map.
+    pub fn get_offset(&self, offset: u32) -> Result<OffsetType, Option<(u32, OffsetType)>> {
         match self.binary_search_by(|probe| probe.0.cmp(&offset)) {
             Ok(i) => Ok(self.inner.get(i).unwrap().1),
             Err(i) => {
@@ -70,17 +55,19 @@ impl OffsetMap {
             }
         }
     }
-
-    pub fn iter(&self) -> Iter<(usize, OffsetType)> {
-        self.inner.iter()
-    }
 }
 
 impl Deref for OffsetMap {
-    type Target = Vec<(usize, OffsetType)>;
+    type Target = Vec<(u32, OffsetType)>;
 
-    fn deref(&self) -> &Vec<(usize, OffsetType)> {
+    fn deref(&self) -> &Vec<(u32, OffsetType)> {
         &self.inner
+    }
+}
+
+impl DerefMut for OffsetMap {
+    fn deref_mut<'a>(&'a mut self) -> &'a mut Vec<(u32, OffsetType)> {
+        &mut self.inner
     }
 }
 
