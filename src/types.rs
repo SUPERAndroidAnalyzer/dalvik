@@ -2,7 +2,7 @@ use std::fmt;
 use error::{Result, Error};
 use std::io::Read;
 
-use byteorder::{ByteOrder, ReadBytesExt};
+use byteorder::{LittleEndian, ByteOrder, ReadBytesExt};
 
 /// Data structure representing the `proto_id_item` type.
 #[derive(Debug, Clone)]
@@ -172,6 +172,7 @@ bitflags! {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct ClassDefData {
     class_id: u32,
     access_flags: AccessFlags,
@@ -258,6 +259,314 @@ impl ClassDefData {
     /// Gets the offset for the static values of the class, if it has any.
     pub fn get_static_values_offset(&self) -> Option<u32> {
         self.static_values_offset
+    }
+}
+
+const VISIBILITY_BUILD: u8 = 0x00;
+const VISIBILITY_RUNTIME: u8 = 0x01;
+const VISIBILITY_SYSTEM: u8 = 0x02;
+
+/// Annotation visibility
+#[derive(Debug, Clone, Copy)]
+pub enum Visibility {
+    Build,
+    Runtime,
+    System,
+}
+
+impl Visibility {
+    fn from_u8(byte: u8) -> Result<Visibility> {
+        match byte {
+            VISIBILITY_BUILD => Ok(Visibility::Build),
+            VISIBILITY_RUNTIME => Ok(Visibility::Runtime),
+            VISIBILITY_SYSTEM => Ok(Visibility::System),
+            b => Err(Error::invalid_visibility(b)),
+        }
+    }
+}
+
+const VALUE_BYTE: u8 = 0x00;
+const VALUE_SHORT: u8 = 0x02;
+const VALUE_CHAR: u8 = 0x03;
+const VALUE_INT: u8 = 0x04;
+const VALUE_LONG: u8 = 0x06;
+const VALUE_FLOAT: u8 = 0x10;
+const VALUE_DOUBLE: u8 = 0x11;
+const VALUE_STRING: u8 = 0x17;
+const VALUE_TYPE: u8 = 0x18;
+const VALUE_FIELD: u8 = 0x19;
+const VALUE_METHOD: u8 = 0x1a;
+const VALUE_ENUM: u8 = 0x1b;
+const VALUE_ARRAY: u8 = 0x1c;
+const VALUE_ANNOTATION: u8 = 0x1d;
+const VALUE_NULL: u8 = 0x1e;
+const VALUE_BOOLEAN: u8 = 0x1f;
+
+/// Value.
+#[derive(Debug, Clone)]
+pub enum Value {
+    Byte(i8),
+    Short(i16),
+    Char(u16),
+    Int(i32),
+    Long(i64),
+    Float(f32),
+    Double(f64),
+    String(u32),
+    Type(u32),
+    Field(u32),
+    Method(u32),
+    Enum(u32), // Array(Array),
+    Annotation(Annotation),
+    Null,
+    Boolean(bool),
+}
+
+impl Value {
+    fn from_reader<R: Read>(reader: &mut R) -> Result<(Value, u32)> {
+        let mut value_type = [0u8];
+        try!(reader.read_exact(&mut value_type));
+        let arg = value_type[0] >> 5;
+        let value_type = value_type[0] & 0b00011111;
+
+        fn read_u32<R: Read>(reader: &mut R, arg: u8) -> Result<(u32, u32)> {
+            match arg {
+                0 => Ok((try!(reader.read_u8()) as u32, 2)),
+                1 => Ok((try!(reader.read_u16::<LittleEndian>()) as u32, 3)),
+                2 => {
+                    let mut bytes = [0u8; 3];
+                    try!(reader.read_exact(&mut bytes));
+                    // Reading in little endian
+                    Ok((bytes[0] as u32 | (bytes[1] as u32) << 8 | (bytes[2] as u32) << 16, 4))
+
+                }
+                3 => Ok((try!(reader.read_u32::<LittleEndian>()), 5)),
+                a => Err(Error::invalid_value(format!("Invalid arg ({}) for u32 value", a))),
+            }
+        }
+
+        match value_type {
+            VALUE_BYTE => {
+                if arg == 0 {
+                    Ok((Value::Byte(try!(reader.read_i8())), 2))
+                } else {
+                    Err(Error::invalid_value(format!("Invalid arg ({}) for Byte value", arg)))
+                }
+            }
+            VALUE_SHORT => {
+                match arg {
+                    0 => Ok((Value::Short(try!(reader.read_i8()) as i16), 2)),
+                    1 => Ok((Value::Short(try!(reader.read_i16::<LittleEndian>())), 3)),
+                    a => Err(Error::invalid_value(format!("Invalid arg ({}) for Short value", a))),
+                }
+            }
+            VALUE_CHAR => {
+                match arg {
+                    0 => Ok((Value::Char(try!(reader.read_u8()) as u16), 2)),
+                    1 => Ok((Value::Char(try!(reader.read_u16::<LittleEndian>())), 3)),
+                    a => Err(Error::invalid_value(format!("Invalid arg ({}) for Char value", a))),
+                }
+            }
+            VALUE_INT => {
+                match arg {
+                    0 => Ok((Value::Int(try!(reader.read_i8()) as i32), 2)),
+                    1 => Ok((Value::Int(try!(reader.read_i16::<LittleEndian>()) as i32), 3)),
+                    2 => {
+                        let mut bytes = [0u8; 3];
+                        try!(reader.read_exact(&mut bytes));
+                        // Reading in little endian
+                        Ok((Value::Int(bytes[0] as i32 | (bytes[1] as i32) << 8 |
+                                       (bytes[2] as i8 as i32) << 16),
+                            4))
+
+                    }
+                    3 => Ok((Value::Int(try!(reader.read_i32::<LittleEndian>())), 5)),
+                    a => Err(Error::invalid_value(format!("Invalid arg ({}) for Int value", a))),
+                }
+            }
+            VALUE_LONG => {
+                match arg {
+                    0 => Ok((Value::Long(try!(reader.read_i8()) as i64), 2)),
+                    1 => Ok((Value::Long(try!(reader.read_i16::<LittleEndian>()) as i64), 3)),
+                    2 => {
+                        let mut bytes = [0u8; 3];
+                        try!(reader.read_exact(&mut bytes));
+                        // Reading in little endian
+                        Ok((Value::Long(bytes[0] as i64 | (bytes[1] as i64) << 8 |
+                                        (bytes[2] as i8 as i64) << 16),
+                            4))
+
+                    }
+                    3 => Ok((Value::Long(try!(reader.read_i32::<LittleEndian>()) as i64), 5)),
+                    4 => {
+                        let mut bytes = [0u8; 5];
+                        try!(reader.read_exact(&mut bytes));
+                        // Reading in little endian
+                        Ok((Value::Long(bytes[0] as i64 | (bytes[1] as i64) << 8 |
+                                        (bytes[2] as i64) << 16 |
+                                        (bytes[3] as i64) << 24 |
+                                        (bytes[4] as i8 as i64) << 32),
+                            6))
+
+                    }
+                    5 => {
+                        let mut bytes = [0u8; 6];
+                        try!(reader.read_exact(&mut bytes));
+                        // Reading in little endian
+                        Ok((Value::Long(bytes[0] as i64 | (bytes[1] as i64) << 8 |
+                                        (bytes[2] as i64) << 16 |
+                                        (bytes[3] as i64) << 24 |
+                                        (bytes[4] as i64) << 32 |
+                                        (bytes[5] as i8 as i64) << 40),
+                            7))
+
+                    }
+                    6 => {
+                        let mut bytes = [0u8; 7];
+                        try!(reader.read_exact(&mut bytes));
+                        // Reading in little endian
+                        Ok((Value::Long(bytes[0] as i64 | (bytes[1] as i64) << 8 |
+                                        (bytes[2] as i64) << 16 |
+                                        (bytes[3] as i64) << 24 |
+                                        (bytes[4] as i64) << 32 |
+                                        (bytes[5] as i64) << 40 |
+                                        (bytes[6] as i8 as i64) << 48),
+                            8))
+
+                    }
+                    7 => Ok((Value::Long(try!(reader.read_i64::<LittleEndian>())), 9)),
+                    _ => unreachable!(),
+                }
+            }
+            VALUE_FLOAT => unimplemented!(),
+            VALUE_DOUBLE => unimplemented!(),
+            VALUE_STRING => {
+                let (string_index, read) = try!(read_u32(reader, arg));
+                Ok((Value::String(string_index), read))
+            }
+            VALUE_TYPE => {
+                let (type_index, read) = try!(read_u32(reader, arg));
+                Ok((Value::Type(type_index), read))
+            }
+            VALUE_FIELD => {
+                let (field_index, read) = try!(read_u32(reader, arg));
+                Ok((Value::Field(field_index), read))
+            }
+            VALUE_METHOD => {
+                let (method_index, read) = try!(read_u32(reader, arg));
+                Ok((Value::Method(method_index), read))
+            }
+            VALUE_ENUM => {
+                let (enum_index, read) = try!(read_u32(reader, arg));
+                Ok((Value::Enum(enum_index), read))
+            }
+            VALUE_ARRAY => unimplemented!(),
+            VALUE_ANNOTATION => {
+                let (annotation, read) = try!(Annotation::from_reader(reader));
+                Ok((Value::Annotation(annotation), read))
+            }
+            VALUE_NULL => Ok((Value::Null, 1)),
+            VALUE_BOOLEAN => {
+                match arg {
+                    0 => Ok((Value::Boolean(false), 1)),
+                    1 => Ok((Value::Boolean(true), 1)),
+                    _ => Err(Error::invalid_value("")),
+                }
+            }
+            v => panic!("Invalid value: {:#04x}, arg: {}", v, arg), // TODO return error
+        }
+    }
+}
+
+/// Annotation element.
+#[derive(Debug, Clone)]
+pub struct AnnotationElement {
+    name: u32,
+    value: Value,
+}
+
+impl AnnotationElement {
+    /// Gets the index of the name string.
+    pub fn get_name_index(&self) -> u32 {
+        self.name
+    }
+
+    /// Gets the value of the annotation element.
+    pub fn get_value(&self) -> &Value {
+        &self.value
+    }
+}
+
+/// Annotation.
+#[derive(Debug, Clone)]
+pub struct Annotation {
+    type_id: u32,
+    elements: Vec<AnnotationElement>,
+}
+
+impl Annotation {
+    /// Creates an annotation from a reader.
+    fn from_reader<R: Read>(reader: &mut R) -> Result<(Annotation, u32)> {
+        let (type_id, mut read) = try!(read_uleb128(reader));
+        let (size, size_read) = try!(read_uleb128(reader));
+        read += size_read;
+        let mut elements = Vec::with_capacity(size as usize);
+        for _ in 0..size {
+            let (name_id, name_read) = try!(read_uleb128(reader));
+            let (value, value_read) = try!(Value::from_reader(reader));
+            read += name_read + value_read;
+            elements.push(AnnotationElement {
+                name: name_id,
+                value: value,
+            });
+        }
+        Ok((Annotation {
+            type_id: type_id,
+            elements: elements,
+        },
+            read))
+    }
+
+    /// Gets the index of the type of the annotation.
+    pub fn get_type_index(&self) -> u32 {
+        self.type_id
+    }
+
+    /// Gets the elements of the annotation.
+    pub fn get_elements(&self) -> &[AnnotationElement] {
+        &self.elements
+    }
+}
+
+/// Annotation item
+#[derive(Debug, Clone)]
+pub struct AnnotationItem {
+    visibility: Visibility,
+    annotation: Annotation,
+}
+
+impl AnnotationItem {
+    /// Creates a new annotation item from a reader.
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<(AnnotationItem, u32)> {
+        let mut visibility = [0u8];
+        try!(reader.read_exact(&mut visibility));
+        let visibility = try!(Visibility::from_u8(visibility[0]));
+        let (annotation, read) = try!(Annotation::from_reader(reader));
+        Ok((AnnotationItem {
+            visibility: visibility,
+            annotation: annotation,
+        },
+            read + 1))
+    }
+
+    /// Gets the visibility of the annotation item.
+    pub fn get_visibility(&self) -> Visibility {
+        self.visibility
+    }
+
+    /// Gets the annotation of the annotation item.
+    pub fn get_annotation(&self) -> &Annotation {
+        &self.annotation
     }
 }
 
@@ -394,4 +703,30 @@ impl fmt::Debug for MapItem {
                self.size,
                self.offset)
     }
+}
+
+/// Reads a uleb128 from a reader.
+///
+/// Returns the u32 represented by the uleb128 and the number of bytes read.
+fn read_uleb128<R: Read>(reader: &mut R) -> Result<(u32, u32)> {
+    let mut result = 0;
+    let mut read = 0;
+    for (i, byte) in reader.bytes().enumerate() {
+        let byte = try!(byte);
+        let payload = (byte & 0b01111111) as u32;
+        match i {
+            0 => result |= payload,
+            1 => result |= payload << 7,
+            2 => result |= payload << 14,
+            3 => result |= payload << 21,
+            4 => result |= payload << 28,
+            _ => return Err(Error::invalid_uleb128()),
+        }
+
+        if byte & 0b10000000 == 0x00 {
+            read = i + 1;
+            break;
+        }
+    }
+    Ok((result, read as u32))
 }

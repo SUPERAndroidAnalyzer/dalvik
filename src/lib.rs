@@ -19,7 +19,8 @@ pub mod header;
 use error::{Result, Error};
 use sizes::*;
 pub use header::Header;
-use types::{PrototypeIdData, FieldIdData, MethodIdData, ClassDefData, MapItem, ItemType};
+use types::{PrototypeIdData, FieldIdData, MethodIdData, ClassDefData, MapItem, ItemType,
+            AnnotationItem};
 use offset_map::{OffsetMap, OffsetType};
 
 #[derive(Debug)]
@@ -81,7 +82,9 @@ impl Dex {
 
         let mut map = None;
         let mut type_lists = Vec::new();
+        let mut annotation_set_ref_lists = Vec::new();
         let mut annotation_sets = Vec::new();
+        let mut annotations = Vec::new();
 
         let read_end = if let Some(offset) = header.get_link_offset() {
             offset
@@ -178,7 +181,7 @@ impl Dex {
                     map = Some(new_map);
                 }
                 OffsetType::TypeList => {
-                    let num_type_lists =
+                    let num_type_lists = // TODO do not unwrap
                         map.as_ref().unwrap().get_num_items_for(ItemType::TypeList).unwrap();
                     type_lists.reserve_exact(num_type_lists);
                     for _ in 0..num_type_lists {
@@ -197,97 +200,94 @@ impl Dex {
                     }
                 }
                 OffsetType::AnnotationSetList => {
-                    let num_anotation_sets = map.as_ref()
-                        .unwrap()
+                    let num_annotation_set_ref_lists = map.as_ref()
+                        .unwrap() // TODO do not unwrap
                         .get_num_items_for(ItemType::AnnotationSetList)
-                        .unwrap();
-                    annotation_sets.reserve_exact(num_anotation_sets);
-                    for _ in 0..num_anotation_sets {
+                        .unwrap(); // TODO do not unwrap
+                    annotation_set_ref_lists.reserve_exact(num_annotation_set_ref_lists);
+                    for _ in 0..num_annotation_set_ref_lists {
                         let size = try!(reader.read_u32::<E>());
-                        let mut annotation_set = Vec::with_capacity(size as usize);
+                        let mut annotation_set_list = Vec::with_capacity(size as usize);
                         for _ in 0..size {
-                            annotation_set.push((try!(reader.read_u32::<E>()), None::<u32>));
+                            let annotation_set_offset = try!(reader.read_u32::<E>());
+                            offset_map.insert(annotation_set_offset, OffsetType::AnnotationSet);
+                            annotation_set_list.push(annotation_set_offset);
                         }
-                        annotation_sets.push(annotation_set);
+                        annotation_set_ref_lists.push(annotation_set_list);
                         offset += 4 + ANNOTATION_SET_REF_SIZE * size;
                     }
                 }
-                OffsetType::AnnotationSet => unimplemented!(),
-                OffsetType::Annotation => unimplemented!(),
-                OffsetType::AnnotationsDirectory => unimplemented!(),
-                OffsetType::ClassData => unimplemented!(),
-                OffsetType::Code => unimplemented!(),
-                OffsetType::StringData => unimplemented!(),
-                OffsetType::DebugInfo => unimplemented!(),
-                OffsetType::EncodedArray => unimplemented!(),
-                OffsetType::Link => unimplemented!(),
+                OffsetType::AnnotationSet => {
+                    let num_annotation_sets = map.as_ref()
+                        .unwrap() // TODO do not unwrap
+                        .get_num_items_for(ItemType::AnnotationSet)
+                        .unwrap(); // TODO do not unwrap
+                    annotation_sets.reserve_exact(num_annotation_sets);
+                    for _ in 0..num_annotation_sets {
+                        let size = try!(reader.read_u32::<E>());
+                        let mut annotation_set = Vec::with_capacity(size as usize);
+                        for _ in 0..size {
+                            let annotation_offset = try!(reader.read_u32::<E>());
+                            offset_map.insert(annotation_offset, OffsetType::Annotation);
+                            annotation_set.push(annotation_offset);
+                        }
+                        annotation_sets.push(annotation_set);
+                        offset += 4 + ANNOTATION_SET_ITEM_SIZE * size;
+                    }
+                }
+                OffsetType::Annotation => {
+                    println!("Annotations found at offset {:#010x}!", offset);
+                    let num_annotations = map.as_ref()
+                        .unwrap() // TODO do not unwrap
+                        .get_num_items_for(ItemType::Annotation)
+                        .unwrap(); // TODO do not unwrap
+                    annotations.reserve_exact(num_annotations);
+                    for _ in 0..num_annotations {
+                        let (annotation, read) = try!(AnnotationItem::from_reader(&mut reader));
+                        println!("Annotation found: {:?}", annotation);
+                        annotations.push(annotation);
+                        offset += read;
+                    }
+                }
+                OffsetType::AnnotationsDirectory => {
+                    let mut byte = [0];
+                    try!(reader.read_exact(&mut byte));
+                    offset += 1;
+                }//unimplemented!(),
+                OffsetType::ClassData => {
+                    let mut byte = [0];
+                    try!(reader.read_exact(&mut byte));
+                    offset += 1;
+                }//unimplemented!(),
+                OffsetType::Code => {
+                    let mut byte = [0];
+                    try!(reader.read_exact(&mut byte));
+                    offset += 1;
+                }//unimplemented!(),
+                OffsetType::StringData => {
+                    let mut byte = [0];
+                    try!(reader.read_exact(&mut byte));
+                    offset += 1;
+                }//unimplemented!(),
+                OffsetType::DebugInfo => {
+                    let mut byte = [0];
+                    try!(reader.read_exact(&mut byte));
+                    offset += 1;
+                }//unimplemented!(),
+                OffsetType::EncodedArray => {
+                    let mut byte = [0];
+                    try!(reader.read_exact(&mut byte));
+                    offset += 1;
+                }//unimplemented!(),
+                OffsetType::Link => {
+                    let mut byte = [0];
+                    try!(reader.read_exact(&mut byte));
+                    offset += 1;
+                }//unimplemented!(),
             }
         }
         // TODO search unknown data for offsets. Maybe an iterator with bounds.
         // That would only require 2 binary searches and one slicing, and then, an iterator.
-
-        // let mut annotation_set_refs = Vec::with_capacity(0);
-        // let mut annotation_sets = Vec::with_capacity(0);
-        // for map_item in map.get_map_list() {
-        //     match map_item.get_item_type() {
-        //         ItemType::HeaderItem | ItemType::StringIdItem | ItemType::TypeIdItem |
-        //         ItemType::ProtoIdItem | ItemType::FieldIdItem | ItemType::MethodIdItem |
-        //         ItemType::ClassDefItem | ItemType::MapList | ItemType::TypeList => {}
-        //         ItemType::AnnotationSetRefList => {
-        //             if map_item.get_num_items() > 0 {
-        //                 annotation_set_refs.reserve_exact(map_item.get_num_items());
-        //                 for _ in 0..map_item.get_num_items() {
-        //                     try!(reader.seek(SeekFrom::Start(map_item.get_offset() as u64)));
-        //                     let list_size = try!(if header.is_little_endian() {
-        //                         reader.read_u32::<LittleEndian>()
-        //                     } else {
-        //                         reader.read_u32::<BigEndian>()
-        //                     }) as usize;
-        //                     let mut annotations_offset = Vec::with_capacity(list_size);
-        //                     for _ in 0..list_size {
-        //                         let offset = try!(if header.is_little_endian() {
-        //                             reader.read_u32::<LittleEndian>()
-        //                         } else {
-        //                             reader.read_u32::<BigEndian>()
-        //                         }) as usize;
-        //                         annotations_offset.push(if offset != 0 {Some(offset)} else
-        // {None});
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         ItemType::AnnotationSetItem => {
-        //             if map_item.get_num_items() > 0 {
-        //                 annotation_set_list.reserve_exact(map_item.get_num_items());
-        //                 for _ in 0..map_item.get_num_items() {
-        //                     try!(reader.seek(SeekFrom::Start(map_item.get_offset() as u64)));
-        //                     let list_size = try!(if header.is_little_endian() {
-        //                         reader.read_u32::<LittleEndian>()
-        //                     } else {
-        //                         reader.read_u32::<BigEndian>()
-        //                     }) as usize;
-        //                     let mut annotations_offset = Vec::with_capacity(list_size);
-        //                     for _ in 0..list_size {
-        //                         let offset = try!(if header.is_little_endian() {
-        //                             reader.read_u32::<LittleEndian>()
-        //                         } else {
-        //                             reader.read_u32::<BigEndian>()
-        //                         }) as usize;
-        //                         annotations_offset.push(if offset != 0 {Some(offset)} else
-        // {None});
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         ItemType::ClassDataItem => unimplemented!(),
-        //         ItemType::CodeItem => unimplemented!(),
-        //         ItemType::StringDataItem => unimplemented!(),
-        //         ItemType::DebugInfoItem => unimplemented!(),
-        //         ItemType::AnnotationItem => unimplemented!(),
-        //         ItemType::EncodedArrayItem => unimplemented!(),
-        //         ItemType::AnnotationsDirectoryItem => unimplemented!(),
-        //     }
-        // }
 
         unimplemented!()
     }
