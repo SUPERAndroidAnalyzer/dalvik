@@ -236,7 +236,6 @@ impl Dex {
                     }
                 }
                 OffsetType::Annotation => {
-                    println!("Annotations found at offset {:#010x}!", offset);
                     let num_annotations = map.as_ref()
                         .unwrap() // TODO do not unwrap
                         .get_num_items_for(ItemType::Annotation)
@@ -244,7 +243,6 @@ impl Dex {
                     annotations.reserve_exact(num_annotations);
                     for _ in 0..num_annotations {
                         let (annotation, read) = try!(AnnotationItem::from_reader(&mut reader));
-                        println!("Annotation found: {:?}", annotation);
                         annotations.push(annotation);
                         offset += read;
                     }
@@ -288,6 +286,8 @@ impl Dex {
         }
         // TODO search unknown data for offsets. Maybe an iterator with bounds.
         // That would only require 2 binary searches and one slicing, and then, an iterator.
+
+        // TODO generate final data structure.
 
         unimplemented!()
     }

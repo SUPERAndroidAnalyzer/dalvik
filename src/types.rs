@@ -316,7 +316,8 @@ pub enum Value {
     Type(u32),
     Field(u32),
     Method(u32),
-    Enum(u32), // Array(Array),
+    Enum(u32),
+    Array(Vec<Value>),
     Annotation(Annotation),
     Null,
     Boolean(bool),
@@ -438,8 +439,26 @@ impl Value {
                     _ => unreachable!(),
                 }
             }
-            VALUE_FLOAT => unimplemented!(),
-            VALUE_DOUBLE => unimplemented!(),
+            VALUE_FLOAT => {
+                match arg {
+                    c @ 0...3 => {
+                        let mut bytes = [0u8; 4];
+                        try!(reader.read_exact(&mut bytes[..c as usize + 1]));
+                        Ok((Value::Float(LittleEndian::read_f32(&bytes)), c as u32 + 3))
+                    }
+                    _ => unreachable!(), // TODO return error
+                }
+            }
+            VALUE_DOUBLE => {
+                match arg {
+                    c @ 0...7 => {
+                        let mut bytes = [0u8; 8];
+                        try!(reader.read_exact(&mut bytes[..c as usize + 1]));
+                        Ok((Value::Double(LittleEndian::read_f64(&bytes)), c as u32 + 3))
+                    }
+                    _ => unreachable!(), // TODO return error
+                }
+            }
             VALUE_STRING => {
                 let (string_index, read) = try!(read_u32(reader, arg));
                 Ok((Value::String(string_index), read))
@@ -460,10 +479,19 @@ impl Value {
                 let (enum_index, read) = try!(read_u32(reader, arg));
                 Ok((Value::Enum(enum_index), read))
             }
-            VALUE_ARRAY => unimplemented!(),
+            VALUE_ARRAY => {
+                let (size, mut read) = try!(read_uleb128(reader));
+                let mut array = Vec::with_capacity(size as usize);
+                for _ in 0..size {
+                    let (value, value_read) = try!(Value::from_reader(reader));
+                    read += value_read;
+                    array.push(value);
+                }
+                Ok((Value::Array(array), read + 1))
+            }
             VALUE_ANNOTATION => {
                 let (annotation, read) = try!(Annotation::from_reader(reader));
-                Ok((Value::Annotation(annotation), read))
+                Ok((Value::Annotation(annotation), read + 1))
             }
             VALUE_NULL => Ok((Value::Null, 1)),
             VALUE_BOOLEAN => {
