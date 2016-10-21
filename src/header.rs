@@ -480,7 +480,7 @@ impl Header {
     /// Verifies the file in the given reader.
     ///
     /// The reader should be positioned at the start of the file.
-    pub fn verify_reader<R: Read>(&self, reader: R) -> bool {
+    pub fn verify_reader<R: Read>(&self, mut reader: R) -> bool {
         unimplemented!()
     }
 }

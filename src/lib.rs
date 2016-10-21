@@ -10,7 +10,7 @@ use std::io::BufReader;
 use byteorder::{BigEndian, LittleEndian, ByteOrder, ReadBytesExt};
 
 pub mod error;
-pub mod bytecode; // TODO: not in use
+// pub mod bytecode; // TODO: not in use
 pub mod types; // TODO: Should not be public
 pub mod sizes; // TODO: Should not be public
 pub mod offset_map; // TODO: Should not be public
@@ -20,7 +20,7 @@ use error::{Result, Error};
 use sizes::*;
 pub use header::Header;
 use types::{PrototypeIdData, FieldIdData, MethodIdData, ClassDefData, MapItem, ItemType,
-            AnnotationItem};
+            AnnotationItem, Array};
 use offset_map::{OffsetMap, OffsetType};
 
 #[derive(Debug)]
@@ -80,11 +80,11 @@ impl Dex {
         let mut method_ids = Vec::with_capacity(header.get_method_ids_size());
         let mut class_defs = Vec::with_capacity(header.get_class_defs_size());
 
-        let mut map = None;
         let mut type_lists = Vec::new();
         let mut annotation_set_ref_lists = Vec::new();
         let mut annotation_sets = Vec::new();
         let mut annotations = Vec::new();
+        let mut arrays = Vec::new();
 
         let read_end = if let Some(offset) = header.get_link_offset() {
             offset
@@ -112,6 +112,7 @@ impl Dex {
                 }
                 _ => break,
             };
+
             match offset_type {
                 OffsetType::StringIdList => {
                     // Read all string offsets
@@ -176,76 +177,65 @@ impl Dex {
                 }
                 OffsetType::Map => {
                     // Read map
-                    let new_map = try!(Map::from_reader::<_, E>(&mut reader, &mut offset_map));
-                    offset += 4 + MAP_ITEM_SIZE * new_map.get_item_list().len() as u32;
-                    map = Some(new_map);
+                    let map = try!(Map::from_reader::<_, E>(&mut reader, &mut offset_map));
+                    if let Some(count) = map.get_num_items_for(ItemType::TypeList) {
+                        type_lists.reserve_exact(count);
+                    }
+                    if let Some(count) = map.get_num_items_for(ItemType::AnnotationSetList) {
+                        annotation_set_ref_lists.reserve_exact(count);
+                    }
+                    if let Some(count) = map.get_num_items_for(ItemType::AnnotationSet) {
+                        annotation_sets.reserve_exact(count);
+                    }
+                    if let Some(count) = map.get_num_items_for(ItemType::Annotation) {
+                        annotations.reserve_exact(count);
+                    }
+                    if let Some(count) = map.get_num_items_for(ItemType::EncodedArray) {
+                        arrays.reserve_exact(count);
+                    }
+                    offset += 4 + MAP_ITEM_SIZE * map.get_item_list().len() as u32;
                 }
                 OffsetType::TypeList => {
-                    let num_type_lists = // TODO do not unwrap
-                        map.as_ref().unwrap().get_num_items_for(ItemType::TypeList).unwrap();
-                    type_lists.reserve_exact(num_type_lists);
-                    for _ in 0..num_type_lists {
-                        let size = try!(reader.read_u32::<E>());
-                        let mut type_list = Vec::with_capacity(size as usize);
-                        for _ in 0..size {
-                            type_list.push(try!(reader.read_u16::<E>()));
-                        }
-                        type_lists.push(type_list);
-                        offset += 4 + TYPE_ITEM_SIZE * size;
-                        if size & 0b1 != 0 {
-                            // Align misaligned section
-                            try!(reader.read_exact(&mut [0u8; TYPE_ITEM_SIZE as usize]));
-                            offset += TYPE_ITEM_SIZE;
-                        }
+                    let size = try!(reader.read_u32::<E>());
+
+                    let mut type_list = Vec::with_capacity(size as usize);
+                    for _ in 0..size {
+                        type_list.push(try!(reader.read_u16::<E>()));
+                    }
+                    type_lists.push(type_list);
+
+                    offset += 4 + TYPE_ITEM_SIZE * size;
+                    if size & 0b1 != 0 {
+                        // Align misaligned section
+                        try!(reader.read_exact(&mut [0u8; TYPE_ITEM_SIZE as usize]));
+                        offset += TYPE_ITEM_SIZE;
                     }
                 }
                 OffsetType::AnnotationSetList => {
-                    let num_annotation_set_ref_lists = map.as_ref()
-                        .unwrap() // TODO do not unwrap
-                        .get_num_items_for(ItemType::AnnotationSetList)
-                        .unwrap(); // TODO do not unwrap
-                    annotation_set_ref_lists.reserve_exact(num_annotation_set_ref_lists);
-                    for _ in 0..num_annotation_set_ref_lists {
-                        let size = try!(reader.read_u32::<E>());
-                        let mut annotation_set_list = Vec::with_capacity(size as usize);
-                        for _ in 0..size {
-                            let annotation_set_offset = try!(reader.read_u32::<E>());
-                            offset_map.insert(annotation_set_offset, OffsetType::AnnotationSet);
-                            annotation_set_list.push(annotation_set_offset);
-                        }
-                        annotation_set_ref_lists.push(annotation_set_list);
-                        offset += 4 + ANNOTATION_SET_REF_SIZE * size;
+                    let size = try!(reader.read_u32::<E>());
+                    let mut annotation_set_list = Vec::with_capacity(size as usize);
+
+                    for _ in 0..size {
+                        let annotation_set_offset = try!(reader.read_u32::<E>());
+                        offset_map.insert(annotation_set_offset, OffsetType::AnnotationSet);
+                        annotation_set_list.push(annotation_set_offset);
                     }
+                    annotation_set_ref_lists.push(annotation_set_list);
+
+                    offset += 4 + ANNOTATION_SET_REF_SIZE * size;
                 }
                 OffsetType::AnnotationSet => {
-                    let num_annotation_sets = map.as_ref()
-                        .unwrap() // TODO do not unwrap
-                        .get_num_items_for(ItemType::AnnotationSet)
-                        .unwrap(); // TODO do not unwrap
-                    annotation_sets.reserve_exact(num_annotation_sets);
-                    for _ in 0..num_annotation_sets {
-                        let size = try!(reader.read_u32::<E>());
-                        let mut annotation_set = Vec::with_capacity(size as usize);
-                        for _ in 0..size {
-                            let annotation_offset = try!(reader.read_u32::<E>());
-                            offset_map.insert(annotation_offset, OffsetType::Annotation);
-                            annotation_set.push(annotation_offset);
-                        }
-                        annotation_sets.push(annotation_set);
-                        offset += 4 + ANNOTATION_SET_ITEM_SIZE * size;
+                    let size = try!(reader.read_u32::<E>());
+                    let mut annotation_set = Vec::with_capacity(size as usize);
+
+                    for _ in 0..size {
+                        let annotation_offset = try!(reader.read_u32::<E>());
+                        offset_map.insert(annotation_offset, OffsetType::Annotation);
+                        annotation_set.push(annotation_offset);
                     }
-                }
-                OffsetType::Annotation => {
-                    let num_annotations = map.as_ref()
-                        .unwrap() // TODO do not unwrap
-                        .get_num_items_for(ItemType::Annotation)
-                        .unwrap(); // TODO do not unwrap
-                    annotations.reserve_exact(num_annotations);
-                    for _ in 0..num_annotations {
-                        let (annotation, read) = try!(AnnotationItem::from_reader(&mut reader));
-                        annotations.push(annotation);
-                        offset += read;
-                    }
+                    annotation_sets.push(annotation_set);
+
+                    offset += 4 + ANNOTATION_SET_ITEM_SIZE * size;
                 }
                 OffsetType::AnnotationsDirectory => {
                     let mut byte = [0];
@@ -272,18 +262,20 @@ impl Dex {
                     try!(reader.read_exact(&mut byte));
                     offset += 1;
                 }//unimplemented!(),
+                OffsetType::Annotation => {
+                    let (annotation, read) = try!(AnnotationItem::from_reader(&mut reader));
+                    annotations.push((offset, annotation));
+                    offset += read;
+                }
                 OffsetType::EncodedArray => {
-                    let mut byte = [0];
-                    try!(reader.read_exact(&mut byte));
-                    offset += 1;
+                    let (array, read) = try!(Array::from_reader(&mut reader));
+                    arrays.push(array);
+                    offset += read;
                 }//unimplemented!(),
-                OffsetType::Link => {
-                    let mut byte = [0];
-                    try!(reader.read_exact(&mut byte));
-                    offset += 1;
-                }//unimplemented!(),
+                OffsetType::Link => unreachable!(),
             }
         }
+        println!("Read OK!");
         // TODO search unknown data for offsets. Maybe an iterator with bounds.
         // That would only require 2 binary searches and one slicing, and then, an iterator.
 

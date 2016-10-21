@@ -317,7 +317,7 @@ pub enum Value {
     Field(u32),
     Method(u32),
     Enum(u32),
-    Array(Vec<Value>),
+    Array(Array),
     Annotation(Annotation),
     Null,
     Boolean(bool),
@@ -342,7 +342,7 @@ impl Value {
 
                 }
                 3 => Ok((try!(reader.read_u32::<LittleEndian>()), 5)),
-                a => Err(Error::invalid_value(format!("Invalid arg ({}) for u32 value", a))),
+                a => Err(Error::invalid_value(format!("invalid arg ({}) for u32 value", a))),
             }
         }
 
@@ -351,21 +351,21 @@ impl Value {
                 if arg == 0 {
                     Ok((Value::Byte(try!(reader.read_i8())), 2))
                 } else {
-                    Err(Error::invalid_value(format!("Invalid arg ({}) for Byte value", arg)))
+                    Err(Error::invalid_value(format!("invalid arg ({}) for Byte value", arg)))
                 }
             }
             VALUE_SHORT => {
                 match arg {
                     0 => Ok((Value::Short(try!(reader.read_i8()) as i16), 2)),
                     1 => Ok((Value::Short(try!(reader.read_i16::<LittleEndian>())), 3)),
-                    a => Err(Error::invalid_value(format!("Invalid arg ({}) for Short value", a))),
+                    a => Err(Error::invalid_value(format!("invalid arg ({}) for Short value", a))),
                 }
             }
             VALUE_CHAR => {
                 match arg {
                     0 => Ok((Value::Char(try!(reader.read_u8()) as u16), 2)),
                     1 => Ok((Value::Char(try!(reader.read_u16::<LittleEndian>())), 3)),
-                    a => Err(Error::invalid_value(format!("Invalid arg ({}) for Char value", a))),
+                    a => Err(Error::invalid_value(format!("invalid arg ({}) for Char value", a))),
                 }
             }
             VALUE_INT => {
@@ -382,7 +382,7 @@ impl Value {
 
                     }
                     3 => Ok((Value::Int(try!(reader.read_i32::<LittleEndian>())), 5)),
-                    a => Err(Error::invalid_value(format!("Invalid arg ({}) for Int value", a))),
+                    a => Err(Error::invalid_value(format!("invalid arg ({}) for Int value", a))),
                 }
             }
             VALUE_LONG => {
@@ -444,9 +444,9 @@ impl Value {
                     c @ 0...3 => {
                         let mut bytes = [0u8; 4];
                         try!(reader.read_exact(&mut bytes[..c as usize + 1]));
-                        Ok((Value::Float(LittleEndian::read_f32(&bytes)), c as u32 + 3))
+                        Ok((Value::Float(LittleEndian::read_f32(&bytes)), c as u32 + 2))
                     }
-                    _ => unreachable!(), // TODO return error
+                    a => Err(Error::invalid_value(format!("invalid arg ({}) for Float value", a))),
                 }
             }
             VALUE_DOUBLE => {
@@ -454,9 +454,9 @@ impl Value {
                     c @ 0...7 => {
                         let mut bytes = [0u8; 8];
                         try!(reader.read_exact(&mut bytes[..c as usize + 1]));
-                        Ok((Value::Double(LittleEndian::read_f64(&bytes)), c as u32 + 3))
+                        Ok((Value::Double(LittleEndian::read_f64(&bytes)), c as u32 + 2))
                     }
-                    _ => unreachable!(), // TODO return error
+                    _ => unreachable!(),
                 }
             }
             VALUE_STRING => {
@@ -480,13 +480,7 @@ impl Value {
                 Ok((Value::Enum(enum_index), read))
             }
             VALUE_ARRAY => {
-                let (size, mut read) = try!(read_uleb128(reader));
-                let mut array = Vec::with_capacity(size as usize);
-                for _ in 0..size {
-                    let (value, value_read) = try!(Value::from_reader(reader));
-                    read += value_read;
-                    array.push(value);
-                }
+                let (array, read) = try!(Array::from_reader(reader));
                 Ok((Value::Array(array), read + 1))
             }
             VALUE_ANNOTATION => {
@@ -498,11 +492,34 @@ impl Value {
                 match arg {
                     0 => Ok((Value::Boolean(false), 1)),
                     1 => Ok((Value::Boolean(true), 1)),
-                    _ => Err(Error::invalid_value("")),
+                    _ => {
+                        Err(Error::invalid_value(format!("invalid arg ({}) for Boolean value",
+                                                         arg)))
+                    }
                 }
             }
-            v => panic!("Invalid value: {:#04x}, arg: {}", v, arg), // TODO return error
+            v => Err(Error::invalid_value(format!("invalid value type {:#04x}", v))),
         }
+    }
+}
+
+/// Array
+#[derive(Debug, Clone)]
+pub struct Array {
+    inner: Vec<Value>,
+}
+
+impl Array {
+    /// Creates an array from a reader.
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<(Array, u32)> {
+        let (size, mut read) = try!(read_uleb128(reader));
+        let mut array = Vec::with_capacity(size as usize);
+        for _ in 0..size {
+            let (value, value_read) = try!(Value::from_reader(reader));
+            read += value_read;
+            array.push(value);
+        }
+        Ok((Array { inner: array }, read))
     }
 }
 
