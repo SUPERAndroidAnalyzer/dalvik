@@ -615,6 +615,132 @@ impl AnnotationItem {
     }
 }
 
+pub struct FieldAnnotations {
+    field_id: u32,
+    offset: u32,
+}
+
+impl FieldAnnotations {
+    /// Gets the index of the field with annotations in the *Field IDs* list.
+    pub fn get_field_index(&self) -> usize {
+        self.field_id as usize
+    }
+
+    /// Gets the offset of the annotations of the field.
+    pub fn get_annotations_offset(&self) -> u32 {
+        self.offset
+    }
+}
+
+pub struct MethodAnnotations {
+    method_id: u32,
+    offset: u32,
+}
+
+impl MethodAnnotations {
+    /// Gets the index of the method with annotations in the *Method IDs* list.
+    pub fn get_method_index(&self) -> usize {
+        self.method_id as usize
+    }
+
+    /// Gets the offset of the annotations of the method.
+    pub fn get_annotations_offset(&self) -> u32 {
+        self.offset
+    }
+}
+
+pub struct ParameterAnnotations {
+    method_id: u32,
+    offset: u32,
+}
+
+impl ParameterAnnotations {
+    /// Gets the index of the method with annotations in the *Method IDs* list.
+    pub fn get_method_index(&self) -> usize {
+        self.method_id as usize
+    }
+
+    /// Gets the offset of the annotations of the method.
+    pub fn get_annotations_offset(&self) -> u32 {
+        self.offset
+    }
+}
+
+pub struct AnnotationsDirectory {
+    class_annotations_offset: Option<u32>,
+    field_annotations: Vec<FieldAnnotations>,
+    method_annotations: Vec<MethodAnnotations>,
+    parameter_annotations: Vec<ParameterAnnotations>,
+}
+
+impl AnnotationsDirectory {
+    /// Creates a new annotations directory from a reader.
+    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<AnnotationsDirectory> {
+        let class_annotations_offset = try!(reader.read_u32::<E>());
+        let field_annotations_size = try!(reader.read_u32::<E>()) as usize;
+        let method_annotations_size = try!(reader.read_u32::<E>()) as usize;
+        let parameter_annotations_size = try!(reader.read_u32::<E>()) as usize;
+
+        let mut field_annotations = Vec::with_capacity(field_annotations_size);
+        for _ in 0..field_annotations_size {
+            let field_id = try!(reader.read_u32::<E>());
+            let offset = try!(reader.read_u32::<E>());
+            field_annotations.push(FieldAnnotations {
+                field_id: field_id,
+                offset: offset,
+            });
+        }
+        let mut method_annotations = Vec::with_capacity(method_annotations_size);
+        for _ in 0..method_annotations_size {
+            let method_id = try!(reader.read_u32::<E>());
+            let offset = try!(reader.read_u32::<E>());
+            method_annotations.push(MethodAnnotations {
+                method_id: method_id,
+                offset: offset,
+            });
+        }
+        let mut parameter_annotations = Vec::with_capacity(parameter_annotations_size);
+        for _ in 0..parameter_annotations_size {
+            let method_id = try!(reader.read_u32::<E>());
+            let offset = try!(reader.read_u32::<E>());
+            parameter_annotations.push(ParameterAnnotations {
+                method_id: method_id,
+                offset: offset,
+            });
+        }
+        Ok(AnnotationsDirectory {
+            class_annotations_offset: if class_annotations_offset != 0 {
+                Some(class_annotations_offset)
+            } else {
+                None
+            },
+            field_annotations: field_annotations,
+            method_annotations: method_annotations,
+            parameter_annotations: parameter_annotations,
+        })
+    }
+
+    /// Gets the class annotations offset, if they exist.
+    pub fn get_class_annotations_offset(&self) -> Option<u32> {
+        self.class_annotations_offset
+    }
+
+    /// Gets the field annotations.
+    pub fn get_field_annotations(&self) -> &Vec<FieldAnnotations> {
+        &self.field_annotations
+    }
+
+    /// Gets the method annotations.
+    pub fn get_method_annotations(&self) -> &Vec<MethodAnnotations> {
+        &self.method_annotations
+    }
+
+    /// Gets the parameter annotations.
+    pub fn get_parameter_annotations(&self) -> &Vec<ParameterAnnotations> {
+        &self.parameter_annotations
+    }
+}
+
 const TYPE_HEADER_ITEM: u16 = 0x0000;
 const TYPE_STRING_ID_ITEM: u16 = 0x0001;
 const TYPE_TYPE_ID_ITEM: u16 = 0x0002;

@@ -20,7 +20,7 @@ use error::{Result, Error};
 use sizes::*;
 pub use header::Header;
 use types::{PrototypeIdData, FieldIdData, MethodIdData, ClassDefData, MapItem, ItemType,
-            AnnotationItem, Array};
+            AnnotationItem, Array, AnnotationsDirectory};
 use offset_map::{OffsetMap, OffsetType};
 
 #[derive(Debug)]
@@ -85,6 +85,7 @@ impl Dex {
         let mut annotation_sets = Vec::new();
         let mut annotations = Vec::new();
         let mut arrays = Vec::new();
+        let mut annotations_directories = Vec::new();
 
         let read_end = if let Some(offset) = header.get_link_offset() {
             offset
@@ -193,6 +194,9 @@ impl Dex {
                     if let Some(count) = map.get_num_items_for(ItemType::EncodedArray) {
                         arrays.reserve_exact(count);
                     }
+                    if let Some(count) = map.get_num_items_for(ItemType::AnnotationsDirectory) {
+                        annotations_directories.reserve_exact(count);
+                    }
                     offset += 4 + MAP_ITEM_SIZE * map.get_item_list().len() as u32;
                 }
                 OffsetType::TypeList => {
@@ -237,11 +241,6 @@ impl Dex {
 
                     offset += 4 + ANNOTATION_SET_ITEM_SIZE * size;
                 }
-                OffsetType::AnnotationsDirectory => {
-                    let mut byte = [0];
-                    try!(reader.read_exact(&mut byte));
-                    offset += 1;
-                }//unimplemented!(),
                 OffsetType::ClassData => {
                     let mut byte = [0];
                     try!(reader.read_exact(&mut byte));
@@ -271,7 +270,15 @@ impl Dex {
                     let (array, read) = try!(Array::from_reader(&mut reader));
                     arrays.push(array);
                     offset += read;
-                }//unimplemented!(),
+                }
+                OffsetType::AnnotationsDirectory => {
+                    let directory = try!(AnnotationsDirectory::from_reader::<_, E>(&mut reader));
+                    let read = 4 * 4 + directory.get_field_annotations().len() * 8 +
+                               directory.get_method_annotations().len() * 8 +
+                               directory.get_parameter_annotations().len() * 8;
+                    annotations_directories.push((offset, directory));
+                    offset += read as u32;
+                }
                 OffsetType::Link => unreachable!(),
             }
         }
