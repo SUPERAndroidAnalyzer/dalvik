@@ -51,7 +51,7 @@ after_success:
   - |
       if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       travis-cargo --only stable doc &&
-      travis-cargo --only stable doc-upload;
+      travis-cargo --only stable doc-upload --branch develop;
       fi
   - |
       if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
