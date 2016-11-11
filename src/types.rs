@@ -15,9 +15,9 @@ pub struct PrototypeIdData {
 impl PrototypeIdData {
     /// Creates a new `PrototypeIdData` from a reader.
     pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<PrototypeIdData> {
-        let shorty_index = try!(reader.read_u32::<E>());
-        let return_type_index = try!(reader.read_u32::<E>());
-        let parameters_offset = try!(reader.read_u32::<E>());
+        let shorty_index = reader.read_u32::<E>()?;
+        let return_type_index = reader.read_u32::<E>()?;
+        let parameters_offset = reader.read_u32::<E>()?;
         Ok(PrototypeIdData {
             shorty_index: shorty_index,
             return_type_index: return_type_index,
@@ -67,9 +67,9 @@ pub struct FieldIdData {
 impl FieldIdData {
     /// Creates a new `FieldIdData` from a reader.
     pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<FieldIdData> {
-        let class_index = try!(reader.read_u16::<E>());
-        let type_index = try!(reader.read_u16::<E>());
-        let name_index = try!(reader.read_u32::<E>());
+        let class_index = reader.read_u16::<E>()?;
+        let type_index = reader.read_u16::<E>()?;
+        let name_index = reader.read_u32::<E>()?;
         Ok(FieldIdData {
             class_index: class_index,
             type_index: type_index,
@@ -112,9 +112,9 @@ pub struct MethodIdData {
 impl MethodIdData {
     /// Creates a new `MethodIdData` from a reader.
     pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<MethodIdData> {
-        let class_index = try!(reader.read_u16::<E>());
-        let prototype_index = try!(reader.read_u16::<E>());
-        let name_index = try!(reader.read_u32::<E>());
+        let class_index = reader.read_u16::<E>()?;
+        let prototype_index = reader.read_u16::<E>()?;
+        let name_index = reader.read_u32::<E>()?;
         Ok(MethodIdData {
             class_index: class_index,
             prototype_index: prototype_index,
@@ -187,14 +187,14 @@ pub struct ClassDefData {
 impl ClassDefData {
     /// Creates a new `ClassDefData` from a reader.
     pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<ClassDefData> {
-        let class_id = try!(reader.read_u32::<E>());
-        let access_flags = try!(reader.read_u32::<E>());
-        let superclass_id = try!(reader.read_u32::<E>());
-        let interfaces_offset = try!(reader.read_u32::<E>());
-        let source_file_id = try!(reader.read_u32::<E>());
-        let annotations_offset = try!(reader.read_u32::<E>());
-        let class_data_offset = try!(reader.read_u32::<E>());
-        let static_values_offset = try!(reader.read_u32::<E>());
+        let class_id = reader.read_u32::<E>()?;
+        let access_flags = reader.read_u32::<E>()?;
+        let superclass_id = reader.read_u32::<E>()?;
+        let interfaces_offset = reader.read_u32::<E>()?;
+        let source_file_id = reader.read_u32::<E>()?;
+        let annotations_offset = reader.read_u32::<E>()?;
+        let class_data_offset = reader.read_u32::<E>()?;
+        let static_values_offset = reader.read_u32::<E>()?;
 
         #[inline]
         fn some_if(value: u32, condition: bool) -> Option<u32> {
@@ -203,8 +203,8 @@ impl ClassDefData {
 
         Ok(ClassDefData {
             class_id: class_id,
-            access_flags: try!(AccessFlags::from_bits(access_flags)
-                .ok_or(Error::invalid_access_flags(access_flags))),
+            access_flags: AccessFlags::from_bits(access_flags)
+                .ok_or(Error::invalid_access_flags(access_flags))?,
             superclass_id: some_if(superclass_id, superclass_id != NO_INDEX),
             interfaces_offset: some_if(interfaces_offset, interfaces_offset != 0),
             source_file_id: some_if(source_file_id, source_file_id != NO_INDEX),
@@ -326,22 +326,22 @@ pub enum Value {
 impl Value {
     fn from_reader<R: Read>(reader: &mut R) -> Result<(Value, u32)> {
         let mut value_type = [0u8];
-        try!(reader.read_exact(&mut value_type));
+        reader.read_exact(&mut value_type)?;
         let arg = value_type[0] >> 5;
         let value_type = value_type[0] & 0b00011111;
 
         fn read_u32<R: Read>(reader: &mut R, arg: u8) -> Result<(u32, u32)> {
             match arg {
-                0 => Ok((try!(reader.read_u8()) as u32, 2)),
-                1 => Ok((try!(reader.read_u16::<LittleEndian>()) as u32, 3)),
+                0 => Ok((reader.read_u8()? as u32, 2)),
+                1 => Ok((reader.read_u16::<LittleEndian>()? as u32, 3)),
                 2 => {
                     let mut bytes = [0u8; 3];
-                    try!(reader.read_exact(&mut bytes));
+                    reader.read_exact(&mut bytes)?;
                     // Reading in little endian
                     Ok((bytes[0] as u32 | (bytes[1] as u32) << 8 | (bytes[2] as u32) << 16, 4))
 
                 }
-                3 => Ok((try!(reader.read_u32::<LittleEndian>()), 5)),
+                3 => Ok((reader.read_u32::<LittleEndian>()?, 5)),
                 a => Err(Error::invalid_value(format!("invalid arg ({}) for u32 value", a))),
             }
         }
@@ -349,59 +349,59 @@ impl Value {
         match value_type {
             VALUE_BYTE => {
                 if arg == 0 {
-                    Ok((Value::Byte(try!(reader.read_i8())), 2))
+                    Ok((Value::Byte(reader.read_i8()?), 2))
                 } else {
                     Err(Error::invalid_value(format!("invalid arg ({}) for Byte value", arg)))
                 }
             }
             VALUE_SHORT => {
                 match arg {
-                    0 => Ok((Value::Short(try!(reader.read_i8()) as i16), 2)),
-                    1 => Ok((Value::Short(try!(reader.read_i16::<LittleEndian>())), 3)),
+                    0 => Ok((Value::Short(reader.read_i8()? as i16), 2)),
+                    1 => Ok((Value::Short(reader.read_i16::<LittleEndian>()?), 3)),
                     a => Err(Error::invalid_value(format!("invalid arg ({}) for Short value", a))),
                 }
             }
             VALUE_CHAR => {
                 match arg {
-                    0 => Ok((Value::Char(try!(reader.read_u8()) as u16), 2)),
-                    1 => Ok((Value::Char(try!(reader.read_u16::<LittleEndian>())), 3)),
+                    0 => Ok((Value::Char(reader.read_u8()? as u16), 2)),
+                    1 => Ok((Value::Char(reader.read_u16::<LittleEndian>()?), 3)),
                     a => Err(Error::invalid_value(format!("invalid arg ({}) for Char value", a))),
                 }
             }
             VALUE_INT => {
                 match arg {
-                    0 => Ok((Value::Int(try!(reader.read_i8()) as i32), 2)),
-                    1 => Ok((Value::Int(try!(reader.read_i16::<LittleEndian>()) as i32), 3)),
+                    0 => Ok((Value::Int(reader.read_i8()? as i32), 2)),
+                    1 => Ok((Value::Int(reader.read_i16::<LittleEndian>()? as i32), 3)),
                     2 => {
                         let mut bytes = [0u8; 3];
-                        try!(reader.read_exact(&mut bytes));
+                        reader.read_exact(&mut bytes)?;
                         // Reading in little endian
                         Ok((Value::Int(bytes[0] as i32 | (bytes[1] as i32) << 8 |
                                        (bytes[2] as i8 as i32) << 16),
                             4))
 
                     }
-                    3 => Ok((Value::Int(try!(reader.read_i32::<LittleEndian>())), 5)),
+                    3 => Ok((Value::Int(reader.read_i32::<LittleEndian>()?), 5)),
                     a => Err(Error::invalid_value(format!("invalid arg ({}) for Int value", a))),
                 }
             }
             VALUE_LONG => {
                 match arg {
-                    0 => Ok((Value::Long(try!(reader.read_i8()) as i64), 2)),
-                    1 => Ok((Value::Long(try!(reader.read_i16::<LittleEndian>()) as i64), 3)),
+                    0 => Ok((Value::Long(reader.read_i8()? as i64), 2)),
+                    1 => Ok((Value::Long(reader.read_i16::<LittleEndian>()? as i64), 3)),
                     2 => {
                         let mut bytes = [0u8; 3];
-                        try!(reader.read_exact(&mut bytes));
+                        reader.read_exact(&mut bytes)?;
                         // Reading in little endian
                         Ok((Value::Long(bytes[0] as i64 | (bytes[1] as i64) << 8 |
                                         (bytes[2] as i8 as i64) << 16),
                             4))
 
                     }
-                    3 => Ok((Value::Long(try!(reader.read_i32::<LittleEndian>()) as i64), 5)),
+                    3 => Ok((Value::Long(reader.read_i32::<LittleEndian>()? as i64), 5)),
                     4 => {
                         let mut bytes = [0u8; 5];
-                        try!(reader.read_exact(&mut bytes));
+                        reader.read_exact(&mut bytes)?;
                         // Reading in little endian
                         Ok((Value::Long(bytes[0] as i64 | (bytes[1] as i64) << 8 |
                                         (bytes[2] as i64) << 16 |
@@ -412,7 +412,7 @@ impl Value {
                     }
                     5 => {
                         let mut bytes = [0u8; 6];
-                        try!(reader.read_exact(&mut bytes));
+                        reader.read_exact(&mut bytes)?;
                         // Reading in little endian
                         Ok((Value::Long(bytes[0] as i64 | (bytes[1] as i64) << 8 |
                                         (bytes[2] as i64) << 16 |
@@ -424,7 +424,7 @@ impl Value {
                     }
                     6 => {
                         let mut bytes = [0u8; 7];
-                        try!(reader.read_exact(&mut bytes));
+                        reader.read_exact(&mut bytes)?;
                         // Reading in little endian
                         Ok((Value::Long(bytes[0] as i64 | (bytes[1] as i64) << 8 |
                                         (bytes[2] as i64) << 16 |
@@ -435,7 +435,7 @@ impl Value {
                             8))
 
                     }
-                    7 => Ok((Value::Long(try!(reader.read_i64::<LittleEndian>())), 9)),
+                    7 => Ok((Value::Long(reader.read_i64::<LittleEndian>()?), 9)),
                     _ => unreachable!(),
                 }
             }
@@ -443,7 +443,7 @@ impl Value {
                 match arg {
                     c @ 0...3 => {
                         let mut bytes = [0u8; 4];
-                        try!(reader.read_exact(&mut bytes[..c as usize + 1]));
+                        reader.read_exact(&mut bytes[..c as usize + 1])?;
                         Ok((Value::Float(LittleEndian::read_f32(&bytes)), c as u32 + 2))
                     }
                     a => Err(Error::invalid_value(format!("invalid arg ({}) for Float value", a))),
@@ -453,38 +453,38 @@ impl Value {
                 match arg {
                     c @ 0...7 => {
                         let mut bytes = [0u8; 8];
-                        try!(reader.read_exact(&mut bytes[..c as usize + 1]));
+                        reader.read_exact(&mut bytes[..c as usize + 1])?;
                         Ok((Value::Double(LittleEndian::read_f64(&bytes)), c as u32 + 2))
                     }
                     _ => unreachable!(),
                 }
             }
             VALUE_STRING => {
-                let (string_index, read) = try!(read_u32(reader, arg));
+                let (string_index, read) = read_u32(reader, arg)?;
                 Ok((Value::String(string_index), read))
             }
             VALUE_TYPE => {
-                let (type_index, read) = try!(read_u32(reader, arg));
+                let (type_index, read) = read_u32(reader, arg)?;
                 Ok((Value::Type(type_index), read))
             }
             VALUE_FIELD => {
-                let (field_index, read) = try!(read_u32(reader, arg));
+                let (field_index, read) = read_u32(reader, arg)?;
                 Ok((Value::Field(field_index), read))
             }
             VALUE_METHOD => {
-                let (method_index, read) = try!(read_u32(reader, arg));
+                let (method_index, read) = read_u32(reader, arg)?;
                 Ok((Value::Method(method_index), read))
             }
             VALUE_ENUM => {
-                let (enum_index, read) = try!(read_u32(reader, arg));
+                let (enum_index, read) = read_u32(reader, arg)?;
                 Ok((Value::Enum(enum_index), read))
             }
             VALUE_ARRAY => {
-                let (array, read) = try!(Array::from_reader(reader));
+                let (array, read) = Array::from_reader(reader)?;
                 Ok((Value::Array(array), read + 1))
             }
             VALUE_ANNOTATION => {
-                let (annotation, read) = try!(Annotation::from_reader(reader));
+                let (annotation, read) = Annotation::from_reader(reader)?;
                 Ok((Value::Annotation(annotation), read + 1))
             }
             VALUE_NULL => Ok((Value::Null, 1)),
@@ -512,10 +512,10 @@ pub struct Array {
 impl Array {
     /// Creates an array from a reader.
     pub fn from_reader<R: Read>(reader: &mut R) -> Result<(Array, u32)> {
-        let (size, mut read) = try!(read_uleb128(reader));
+        let (size, mut read) = read_uleb128(reader)?;
         let mut array = Vec::with_capacity(size as usize);
         for _ in 0..size {
-            let (value, value_read) = try!(Value::from_reader(reader));
+            let (value, value_read) = Value::from_reader(reader)?;
             read += value_read;
             array.push(value);
         }
@@ -552,13 +552,13 @@ pub struct Annotation {
 impl Annotation {
     /// Creates an annotation from a reader.
     fn from_reader<R: Read>(reader: &mut R) -> Result<(Annotation, u32)> {
-        let (type_id, mut read) = try!(read_uleb128(reader));
-        let (size, size_read) = try!(read_uleb128(reader));
+        let (type_id, mut read) = read_uleb128(reader)?;
+        let (size, size_read) = read_uleb128(reader)?;
         read += size_read;
         let mut elements = Vec::with_capacity(size as usize);
         for _ in 0..size {
-            let (name_id, name_read) = try!(read_uleb128(reader));
-            let (value, value_read) = try!(Value::from_reader(reader));
+            let (name_id, name_read) = read_uleb128(reader)?;
+            let (value, value_read) = Value::from_reader(reader)?;
             read += name_read + value_read;
             elements.push(AnnotationElement {
                 name: name_id,
@@ -594,9 +594,9 @@ impl AnnotationItem {
     /// Creates a new annotation item from a reader.
     pub fn from_reader<R: Read>(reader: &mut R) -> Result<(AnnotationItem, u32)> {
         let mut visibility = [0u8];
-        try!(reader.read_exact(&mut visibility));
-        let visibility = try!(Visibility::from_u8(visibility[0]));
-        let (annotation, read) = try!(Annotation::from_reader(reader));
+        reader.read_exact(&mut visibility)?;
+        let visibility = Visibility::from_u8(visibility[0])?;
+        let (annotation, read) = Annotation::from_reader(reader)?;
         Ok((AnnotationItem {
             visibility: visibility,
             annotation: annotation,
@@ -676,15 +676,15 @@ pub struct AnnotationsDirectory {
 impl AnnotationsDirectory {
     /// Creates a new annotations directory from a reader.
     pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<AnnotationsDirectory> {
-        let class_annotations_offset = try!(reader.read_u32::<E>());
-        let field_annotations_size = try!(reader.read_u32::<E>()) as usize;
-        let method_annotations_size = try!(reader.read_u32::<E>()) as usize;
-        let parameter_annotations_size = try!(reader.read_u32::<E>()) as usize;
+        let class_annotations_offset = reader.read_u32::<E>()?;
+        let field_annotations_size = reader.read_u32::<E>()? as usize;
+        let method_annotations_size = reader.read_u32::<E>()? as usize;
+        let parameter_annotations_size = reader.read_u32::<E>()? as usize;
 
         let mut field_annotations = Vec::with_capacity(field_annotations_size);
         for _ in 0..field_annotations_size {
-            let field_id = try!(reader.read_u32::<E>());
-            let offset = try!(reader.read_u32::<E>());
+            let field_id = reader.read_u32::<E>()?;
+            let offset = reader.read_u32::<E>()?;
             field_annotations.push(FieldAnnotations {
                 field_id: field_id,
                 offset: offset,
@@ -692,8 +692,8 @@ impl AnnotationsDirectory {
         }
         let mut method_annotations = Vec::with_capacity(method_annotations_size);
         for _ in 0..method_annotations_size {
-            let method_id = try!(reader.read_u32::<E>());
-            let offset = try!(reader.read_u32::<E>());
+            let method_id = reader.read_u32::<E>()?;
+            let offset = reader.read_u32::<E>()?;
             method_annotations.push(MethodAnnotations {
                 method_id: method_id,
                 offset: offset,
@@ -701,8 +701,8 @@ impl AnnotationsDirectory {
         }
         let mut parameter_annotations = Vec::with_capacity(parameter_annotations_size);
         for _ in 0..parameter_annotations_size {
-            let method_id = try!(reader.read_u32::<E>());
-            let offset = try!(reader.read_u32::<E>());
+            let method_id = reader.read_u32::<E>()?;
+            let offset = reader.read_u32::<E>()?;
             parameter_annotations.push(ParameterAnnotations {
                 method_id: method_id,
                 offset: offset,
@@ -841,12 +841,12 @@ pub struct MapItem {
 
 impl MapItem {
     pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<MapItem> {
-        let item_type = try!(reader.read_u16::<E>());
-        try!(reader.read_exact(&mut [0u8; 2]));
-        let size = try!(reader.read_u32::<E>());
-        let offset = try!(reader.read_u32::<E>());
+        let item_type = reader.read_u16::<E>()?;
+        reader.read_exact(&mut [0u8; 2])?;
+        let size = reader.read_u32::<E>()?;
+        let offset = reader.read_u32::<E>()?;
         Ok(MapItem {
-            item_type: try!(ItemType::from_u16(item_type)),
+            item_type: ItemType::from_u16(item_type)?,
             size: size,
             offset: offset,
         })
@@ -883,7 +883,7 @@ fn read_uleb128<R: Read>(reader: &mut R) -> Result<(u32, u32)> {
     let mut result = 0;
     let mut read = 0;
     for (i, byte) in reader.bytes().enumerate() {
-        let byte = try!(byte);
+        let byte = byte?;
         let payload = (byte & 0b01111111) as u32;
         match i {
             0 => result |= payload,
