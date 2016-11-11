@@ -204,7 +204,7 @@ impl ClassDefData {
         Ok(ClassDefData {
             class_id: class_id,
             access_flags: AccessFlags::from_bits(access_flags)
-                .ok_or(Error::invalid_access_flags(access_flags))?,
+                .ok_or_else(|| Error::invalid_access_flags(access_flags))?,
             superclass_id: some_if(superclass_id, superclass_id != NO_INDEX),
             interfaces_offset: some_if(interfaces_offset, interfaces_offset != 0),
             source_file_id: some_if(source_file_id, source_file_id != NO_INDEX),
