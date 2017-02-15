@@ -1,6 +1,6 @@
 use std::fmt;
-use error::{Result, Error};
-use std::io::Read;
+use error::*;
+use std::io::{Read, BufRead};
 
 use byteorder::{LittleEndian, ByteOrder, ReadBytesExt};
 
@@ -204,7 +204,7 @@ impl ClassDefData {
         Ok(ClassDefData {
             class_id: class_id,
             access_flags: AccessFlags::from_bits(access_flags)
-                .ok_or_else(|| Error::invalid_access_flags(access_flags))?,
+                .ok_or_else(|| Error::from(ErrorKind::InvalidAccessFlags(access_flags)))?,
             superclass_id: some_if(superclass_id, superclass_id != NO_INDEX),
             interfaces_offset: some_if(interfaces_offset, interfaces_offset != 0),
             source_file_id: some_if(source_file_id, source_file_id != NO_INDEX),
@@ -262,9 +262,9 @@ impl ClassDefData {
     }
 }
 
-const VISIBILITY_BUILD: u8 = 0x00;
-const VISIBILITY_RUNTIME: u8 = 0x01;
-const VISIBILITY_SYSTEM: u8 = 0x02;
+pub const VISIBILITY_BUILD: u8 = 0x00;
+pub const VISIBILITY_RUNTIME: u8 = 0x01;
+pub const VISIBILITY_SYSTEM: u8 = 0x02;
 
 /// Annotation visibility
 #[derive(Debug, Clone, Copy)]
@@ -280,7 +280,7 @@ impl Visibility {
             VISIBILITY_BUILD => Ok(Visibility::Build),
             VISIBILITY_RUNTIME => Ok(Visibility::Runtime),
             VISIBILITY_SYSTEM => Ok(Visibility::System),
-            b => Err(Error::invalid_visibility(b)),
+            b => Err(ErrorKind::InvalidVisibility(b).into()),
         }
     }
 }
@@ -342,7 +342,10 @@ impl Value {
 
                 }
                 3 => Ok((reader.read_u32::<LittleEndian>()?, 5)),
-                a => Err(Error::invalid_value(format!("invalid arg ({}) for u32 value", a))),
+                a => {
+                    Err(ErrorKind::InvalidValue(format!("invalid arg ({}) for u32 value", a))
+                        .into())
+                }
             }
         }
 
@@ -351,21 +354,28 @@ impl Value {
                 if arg == 0 {
                     Ok((Value::Byte(reader.read_i8()?), 2))
                 } else {
-                    Err(Error::invalid_value(format!("invalid arg ({}) for Byte value", arg)))
+                    Err(ErrorKind::InvalidValue(format!("invalid arg ({}) for Byte value", arg))
+                        .into())
                 }
             }
             VALUE_SHORT => {
                 match arg {
                     0 => Ok((Value::Short(reader.read_i8()? as i16), 2)),
                     1 => Ok((Value::Short(reader.read_i16::<LittleEndian>()?), 3)),
-                    a => Err(Error::invalid_value(format!("invalid arg ({}) for Short value", a))),
+                    a => {
+                        Err(ErrorKind::InvalidValue(format!("invalid arg ({}) for Short value", a))
+                            .into())
+                    }
                 }
             }
             VALUE_CHAR => {
                 match arg {
                     0 => Ok((Value::Char(reader.read_u8()? as u16), 2)),
                     1 => Ok((Value::Char(reader.read_u16::<LittleEndian>()?), 3)),
-                    a => Err(Error::invalid_value(format!("invalid arg ({}) for Char value", a))),
+                    a => {
+                        Err(ErrorKind::InvalidValue(format!("invalid arg ({}) for Char value", a))
+                            .into())
+                    }
                 }
             }
             VALUE_INT => {
@@ -382,7 +392,10 @@ impl Value {
 
                     }
                     3 => Ok((Value::Int(reader.read_i32::<LittleEndian>()?), 5)),
-                    a => Err(Error::invalid_value(format!("invalid arg ({}) for Int value", a))),
+                    a => {
+                        Err(ErrorKind::InvalidValue(format!("invalid arg ({}) for Int value", a))
+                            .into())
+                    }
                 }
             }
             VALUE_LONG => {
@@ -446,7 +459,10 @@ impl Value {
                         reader.read_exact(&mut bytes[..c as usize + 1])?;
                         Ok((Value::Float(LittleEndian::read_f32(&bytes)), c as u32 + 2))
                     }
-                    a => Err(Error::invalid_value(format!("invalid arg ({}) for Float value", a))),
+                    a => {
+                        Err(ErrorKind::InvalidValue(format!("invalid arg ({}) for Float value", a))
+                            .into())
+                    }
                 }
             }
             VALUE_DOUBLE => {
@@ -493,12 +509,13 @@ impl Value {
                     0 => Ok((Value::Boolean(false), 1)),
                     1 => Ok((Value::Boolean(true), 1)),
                     _ => {
-                        Err(Error::invalid_value(format!("invalid arg ({}) for Boolean value",
-                                                         arg)))
+                        Err(ErrorKind::InvalidValue(format!("invalid arg ({}) for Boolean value",
+                                                            arg))
+                            .into())
                     }
                 }
             }
-            v => Err(Error::invalid_value(format!("invalid value type {:#04x}", v))),
+            v => Err(ErrorKind::InvalidValue(format!("invalid value type {:#04x}", v)).into()),
         }
     }
 }
@@ -566,9 +583,9 @@ impl Annotation {
             });
         }
         Ok((Annotation {
-            type_id: type_id,
-            elements: elements,
-        },
+                type_id: type_id,
+                elements: elements,
+            },
             read))
     }
 
@@ -598,9 +615,9 @@ impl AnnotationItem {
         let visibility = Visibility::from_u8(visibility[0])?;
         let (annotation, read) = Annotation::from_reader(reader)?;
         Ok((AnnotationItem {
-            visibility: visibility,
-            annotation: annotation,
-        },
+                visibility: visibility,
+                annotation: annotation,
+            },
             read + 1))
     }
 
@@ -803,7 +820,7 @@ impl ItemType {
             TYPE_ANNOTATION_ITEM => Ok(ItemType::Annotation),
             TYPE_ENCODED_ARRAY_ITEM => Ok(ItemType::EncodedArray),
             TYPE_ANNOTATIONS_DIRECTORY_ITEM => Ok(ItemType::AnnotationsDirectory),
-            v => Err(Error::invalid_item_type(v)),
+            v => Err(ErrorKind::InvalidItemType(v).into()),
         }
     }
 }
@@ -876,6 +893,27 @@ impl fmt::Debug for MapItem {
     }
 }
 
+pub struct StringReader;
+
+impl StringReader {
+    pub fn read_string<R: BufRead>(reader: &mut R) -> Result<(String, u32)> {
+        let (size, mut read) = read_uleb128(reader)?;
+        let mut data = Vec::with_capacity(size as usize);
+        if size > 0 {
+            read += reader.read_until(0, &mut data)? as u32;
+            data.pop();
+        }
+
+        let string = String::from_utf8(data).chain_err(|| "error decoding UTF-8 from string data")?;
+        let char_count = string.chars().count();
+        if char_count != size as usize {
+            Err(ErrorKind::StringSizeMismatch(size, char_count).into())
+        } else {
+            Ok((string, read))
+        }
+    }
+}
+
 /// Reads a uleb128 from a reader.
 ///
 /// Returns the u32 represented by the uleb128 and the number of bytes read.
@@ -891,7 +929,7 @@ fn read_uleb128<R: Read>(reader: &mut R) -> Result<(u32, u32)> {
             2 => result |= payload << 14,
             3 => result |= payload << 21,
             4 => result |= payload << 28,
-            _ => return Err(Error::invalid_uleb128()),
+            _ => return Err(ErrorKind::InvalidUleb128.into()),
         }
 
         if byte & 0b10000000 == 0x00 {

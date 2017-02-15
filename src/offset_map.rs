@@ -1,5 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
+/// Structure representing a list of offsets.
 pub struct OffsetMap {
     inner: Vec<(u32, OffsetType)>,
 }
@@ -35,8 +36,10 @@ impl OffsetMap {
         }
     }
 
-    /// Gets the given offset, if it exists at the map. The parameter is the offset from the start
-    /// of the file, and it will be searched in the stored offsets in the map.
+    /// Gets the given offset, if it exists at the map.
+    ///
+    /// The parameter is the offset from the start of the file, and it will be searched in the
+    /// stored offsets in the map.
     pub fn get_offset(&mut self, offset: u32) -> Result<OffsetType, Option<(u32, OffsetType)>> {
         match self.binary_search_by(|probe| probe.0.cmp(&offset)) {
             Ok(i) => Ok(self.inner.remove(i).1),
@@ -66,6 +69,7 @@ impl DerefMut for OffsetMap {
     }
 }
 
+/// Type of offset.
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 pub enum OffsetType {
     StringIdList,

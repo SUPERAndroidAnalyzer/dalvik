@@ -1,6 +1,11 @@
+// `error_chain!` can recurse deeply
+#![recursion_limit = "1024"]
+
 extern crate byteorder;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate error_chain;
 
 use std::path::Path;
 use std::{fs, u32};
@@ -16,11 +21,11 @@ pub mod sizes; // TODO: Should not be public
 pub mod offset_map; // TODO: Should not be public
 pub mod header;
 
-use error::{Result, Error};
+use error::*;
 use sizes::*;
 pub use header::Header;
 use types::{PrototypeIdData, FieldIdData, MethodIdData, ClassDefData, MapItem, ItemType,
-            AnnotationItem, Array, AnnotationsDirectory};
+            AnnotationItem, Array, AnnotationsDirectory, StringReader};
 use offset_map::{OffsetMap, OffsetType};
 
 #[derive(Debug)]
@@ -40,16 +45,16 @@ impl Dex {
         let file = fs::File::open(path)?;
         let file_size = file.metadata()?.len();
         if file_size < HEADER_SIZE as u64 || file_size > u32::MAX as u64 {
-            return Err(Error::invalid_file_size(file_size, None));
+            return Err(ErrorKind::InvalidFileSize(file_size).into());
         }
         Dex::from_reader(BufReader::new(file), file_size)
     }
 
     /// Loads a new Dex data structure from the given reader.
-    pub fn from_reader<R: Read>(mut reader: R, file_size: u64) -> Result<Dex> {
+    pub fn from_reader<R: BufRead>(mut reader: R, file_size: u64) -> Result<Dex> {
         let header = Header::from_reader(&mut reader)?;
         if header.get_file_size() as u64 != file_size {
-            return Err(Error::invalid_file_size(file_size as u64, Some(header.get_file_size())));
+            return Err(ErrorKind::HeaderFileSizeMismatch(file_size, header.get_file_size()).into());
         }
 
         if header.is_little_endian() {
@@ -60,7 +65,8 @@ impl Dex {
     }
 
     /// Reads the *dex* file data with the given byte order after reading the header.
-    fn read_data<R: Read, E: ByteOrder>(mut reader: R, header: Header) -> Result<Dex> {
+    #[allow(cyclomatic_complexity)]
+    fn read_data<R: BufRead, E: ByteOrder>(mut reader: R, header: Header) -> Result<Dex> {
         let mut offset = HEADER_SIZE;
         // We will store all offsets in one map. This enables us to do sequencial reading even if
         // offsets are not in the correct order.
@@ -83,6 +89,7 @@ impl Dex {
         let mut type_lists = Vec::new();
         let mut annotation_set_ref_lists = Vec::new();
         let mut annotation_sets = Vec::new();
+        let mut strings = Vec::new();
         let mut annotations = Vec::new();
         let mut arrays = Vec::new();
         let mut annotations_directories = Vec::new();
@@ -178,7 +185,9 @@ impl Dex {
                 }
                 OffsetType::Map => {
                     // Read map
-                    let map = Map::from_reader::<_, E>(&mut reader, &mut offset_map)?;
+                    let map = Map::from_reader::<_, E>(&mut reader, &mut offset_map).chain_err(|| {
+                            format!("error reading map at offset {:#010x}", offset)
+                        })?;
                     if let Some(count) = map.get_num_items_for(ItemType::TypeList) {
                         type_lists.reserve_exact(count);
                     }
@@ -200,23 +209,38 @@ impl Dex {
                     offset += 4 + MAP_ITEM_SIZE * map.get_item_list().len() as u32;
                 }
                 OffsetType::TypeList => {
-                    let size = reader.read_u32::<E>()?;
+                    let size = reader.read_u32::<E>()
+                        .chain_err(|| {
+                            format!("error reading type list size size at offset {:#010x}",
+                                    offset)
+                        })?;
 
                     let mut type_list = Vec::with_capacity(size as usize);
-                    for _ in 0..size {
-                        type_list.push(reader.read_u16::<E>()?);
+                    for i in 0..size {
+                        type_list.push(reader.read_u16::<E>().chain_err(|| {
+                            format!("error reading type ID for type item at index {} at type list \
+                                     at offset {:#010x}", i, offset)
+                        })?);
                     }
                     type_lists.push(type_list);
 
                     offset += 4 + TYPE_ITEM_SIZE * size;
                     if size & 0b1 != 0 {
                         // Align misaligned section
-                        reader.read_exact(&mut [0u8; TYPE_ITEM_SIZE as usize])?;
+                        reader.read_exact(&mut [0u8; TYPE_ITEM_SIZE as usize])
+                            .chain_err(|| {
+                                format!("error aligning misaligned type list at offset {:#010x}",
+                                        offset)
+                            })?;
                         offset += TYPE_ITEM_SIZE;
                     }
                 }
                 OffsetType::AnnotationSetList => {
-                    let size = reader.read_u32::<E>()?;
+                    let size = reader.read_u32::<E>()
+                        .chain_err(|| {
+                            format!("error reading anotation set list size at offset {:#010x}",
+                                    offset)
+                        })?;
                     let mut annotation_set_list = Vec::with_capacity(size as usize);
 
                     for _ in 0..size {
@@ -229,11 +253,21 @@ impl Dex {
                     offset += 4 + ANNOTATION_SET_REF_SIZE * size;
                 }
                 OffsetType::AnnotationSet => {
-                    let size = reader.read_u32::<E>()?;
+                    let size = reader.read_u32::<E>()
+                        .chain_err(|| {
+                            format!("error reading anotation set size at offset {:#010x}",
+                                    offset)
+                        })?;
                     let mut annotation_set = Vec::with_capacity(size as usize);
 
-                    for _ in 0..size {
-                        let annotation_offset = reader.read_u32::<E>()?;
+                    for i in 0..size {
+                        let annotation_offset = reader.read_u32::<E>()
+                            .chain_err(|| {
+                                format!("error reading anotation offset at index {} in anotation \
+                                         set at offset {:#010x}",
+                                        i,
+                                        offset)
+                            })?;
                         offset_map.insert(annotation_offset, OffsetType::Annotation);
                         annotation_set.push(annotation_offset);
                     }
@@ -252,10 +286,12 @@ impl Dex {
                     offset += 1;
                 }//unimplemented!(),
                 OffsetType::StringData => {
-                    let mut byte = [0];
-                    reader.read_exact(&mut byte)?;
-                    offset += 1;
-                }//unimplemented!(),
+                    let (string, read) = StringReader::read_string(&mut reader).chain_err(|| {
+                            format!("error reading string data at offset {:#010x}", offset)
+                        })?;
+                    strings.push((offset, string));
+                    offset += read;
+                }
                 OffsetType::DebugInfo => {
                     let mut byte = [0];
                     reader.read_exact(&mut byte)?;
@@ -282,6 +318,7 @@ impl Dex {
                 OffsetType::Link => unreachable!(),
             }
         }
+
         println!("Read OK!");
         // TODO search unknown data for offsets. Maybe an iterator with bounds.
         // That would only require 2 binary searches and one slicing, and then, an iterator.

@@ -10,10 +10,12 @@ description = """
 Dalvik parser in pure Rust.
 """
 keywords = ["dalvik", "parser", "android", "dex"]
+categories = ["parser-implementations"]
 
 [dependencies]
-byteorder = "^0.5"
-bitflags = "^0.7"
+byteorder = "^1.0"
+bitflags = "^0.8"
+error-chain = "^0.9"
 
 [features]
 default = []

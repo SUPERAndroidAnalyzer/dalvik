@@ -1,174 +1,112 @@
-use std::error::Error as StdError;
-use std::result::Result as StdResult;
-use std::{fmt, io, u32};
+use std::u32;
 use sizes::HEADER_SIZE;
+use header::{ENDIAN_CONSTANT, REVERSE_ENDIAN_CONSTANT};
+use types::{VISIBILITY_BUILD, VISIBILITY_RUNTIME, VISIBILITY_SYSTEM};
 
-/// Dalvik parser result type.
-pub type Result<T> = StdResult<T, Error>;
-
-/// Dalvik parser errors.
-#[derive(Debug)]
-pub enum Error {
-    /// Invalid magic number.
-    InvalidMagic(String),
-    /// Invalid file size.
-    InvalidFileSize(String),
-    /// Invalid file size.
-    InvalidEndianTag(String),
-    /// Invalid header size.
-    InvalidHeaderSize(String),
-    /// Mismatched offsets.
-    MismatchedOffsets(String),
-    /// Invalid access flags.
-    InvalidAccessFlags(String),
-    /// Invalid item type.
-    InvalidItemType(String),
-    /// Invalid visibility.
-    InvalidVisibility(String),
-    /// Invalid value.
-    InvalidValue(String),
-    /// Invalid uleb128.
-    InvalidUleb128(&'static str),
-    /// Generic header error.
-    Header(String),
-    /// Generic map error.
-    Map(String),
-    /// IO error.
-    IO(io::Error),
-}
-
-#[doc(hidden)]
-impl Error {
-    /// Creates a new invalid magic number error.
-    pub fn invalid_magic(dex_magic: [u8; 8]) -> Error {
-        Error::InvalidMagic(format!("invalid dex magic number: {:?}", dex_magic))
+error_chain!{
+    foreign_links {
+        Io(::std::io::Error);
+        FromUTF8(::std::string::FromUtf8Error);
     }
 
-    /// Creates a new invalid file size error.
-    pub fn invalid_file_size(file_size: u64, header_size: Option<u32>) -> Error {
-        match header_size {
-            Some(size) => {
-                if size < HEADER_SIZE {
-                    Error::InvalidFileSize(format!("the file size in the header file is not \
-                                                       valid: {}, the size must be bigger or \
-                                                       equal to {} bytes",
-                                                   size,
-                                                   HEADER_SIZE))
-                } else {
-                    Error::InvalidFileSize(format!("the file size in the dex file and the \
-                                                       actual dex file size do not match - file \
-                                                       size in header: {}, real file size: {}",
-                                                   size,
-                                                   file_size))
-                }
-            }
-            None => {
-                Error::InvalidFileSize(format!("invalid dex file size: the size must be \
-                                                   between {} and {} bytes, but the size is {}",
-                                               HEADER_SIZE,
-                                               u32::MAX,
-                                               file_size))
-            }
+    errors {
+        /// Incorrect dex magic number.
+        IncorrectMagic(dex_magic: [u8; 8]) {
+            description("incorrect dex magic number")
+            display("incorrect dex magic number: {:?}", dex_magic)
         }
-    }
 
-    /// Creates a new invalid endian tag error.
-    pub fn invalid_endian_tag(endian_tag: u32) -> Error {
-        Error::InvalidEndianTag(format!("invalid dex endian tag: {:#010x}, it can only be \
-                                            `ENDIAN_CONSTANT` or `REVERSE_ENDIAN_CONSTANT`",
-                                        endian_tag))
-    }
-
-    /// Creates a new invalid header size error.
-    pub fn invalid_header_size(header_size: u32) -> Error {
-        Error::InvalidHeaderSize(format!("invalid dex header_size: {}, it can only be {}",
-                                         header_size,
-                                         HEADER_SIZE))
-    }
-
-    /// Creates a new mismatched offset error.
-    pub fn mismatched_offsets<S: AsRef<str>>(offset_name: S,
-                                             current_offset: u32,
-                                             expected_offset: u32)
-                                             -> Error {
-        Error::MismatchedOffsets(format!("invalid `{}` offset: expected {:#010x}, got {:#010x}",
-                                         offset_name.as_ref(),
-                                         expected_offset,
-                                         current_offset))
-    }
-
-    /// Creates a new invalid access flags error.
-    pub fn invalid_access_flags(access_flags: u32) -> Error {
-        Error::InvalidAccessFlags(format!("invalid access flags: {:#010x}", access_flags))
-    }
-
-    /// Creates an invalid item type error.
-    pub fn invalid_item_type(item_type: u16) -> Error {
-        Error::InvalidItemType(format!("invalid item type: {:#06x}", item_type))
-    }
-
-    /// Creates an invalid visibility error.
-    pub fn invalid_visibility(visibility: u8) -> Error {
-        Error::InvalidVisibility(format!("invalid visibility: {:#04x}", visibility))
-    }
-
-    /// Creates an invalid value error.
-    pub fn invalid_value<S: AsRef<str>>(error: S) -> Error {
-        Error::InvalidValue(error.as_ref().to_owned())
-    }
-
-    /// Creates an invalid uleb128 error.
-    pub fn invalid_uleb128() -> Error {
-        Error::InvalidUleb128("an uleb128 with more than 5 bytes was found")
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::IO(err)
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.description())
-    }
-}
-
-impl StdError for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::InvalidMagic(ref d) |
-            Error::InvalidFileSize(ref d) |
-            Error::InvalidEndianTag(ref d) |
-            Error::InvalidHeaderSize(ref d) |
-            Error::MismatchedOffsets(ref d) |
-            Error::InvalidAccessFlags(ref d) |
-            Error::InvalidItemType(ref d) |
-            Error::InvalidVisibility(ref d) |
-            Error::InvalidValue(ref d) |
-            Error::Header(ref d) |
-            Error::Map(ref d) => d,
-            Error::InvalidUleb128(d) => d,
-            Error::IO(ref e) => e.description(),
+        /// Mismatch between file size in header and real file size.
+        HeaderFileSizeMismatch(file_size: u64, size_in_header: u32) {
+            description("invalid dex file size in header")
+            display("invalid dex file size")
         }
-    }
 
-    fn cause(&self) -> Option<&StdError> {
-        match *self {
-            Error::InvalidMagic(_) |
-            Error::InvalidFileSize(_) |
-            Error::InvalidEndianTag(_) |
-            Error::InvalidHeaderSize(_) |
-            Error::MismatchedOffsets(_) |
-            Error::InvalidAccessFlags(_) |
-            Error::InvalidItemType(_) |
-            Error::InvalidVisibility(_) |
-            Error::InvalidValue(_) |
-            Error::InvalidUleb128(_) |
-            Error::Header(_) |
-            Error::Map(_) => None,
-            Error::IO(ref e) => Some(e),
+        /// Invalid file size.
+        InvalidFileSize(file_size: u64) {
+            description("invalid dex file size")
+            display("invalid dex file size: file size must be between {} and {} bytes, \
+                     but the size of the file was {} bytes", HEADER_SIZE, u32::MAX, file_size)
+        }
+
+        /// Invalid endian tag.
+        InvalidEndianTag(endian_tag: u32) {
+            description("invalid dex endian tag")
+            display("invalid dex endian tag: {:#010x}, it can only be `ENDIAN_CONSTANT` ({:#010x}) \
+                     or `REVERSE_ENDIAN_CONSTANT` ({:#010x})", endian_tag, ENDIAN_CONSTANT,
+                    REVERSE_ENDIAN_CONSTANT)
+        }
+
+        /// Incorrect header size.
+        IncorrectHeaderSize(header_size: u32) {
+            description("incorrect header size")
+            display("invalid dex header_size: {} bytes, it can only be {} bytes", header_size,
+                    HEADER_SIZE)
+        }
+
+        /// Invalid offset.
+        InvalidOffset(desc: String) {
+            description("invalid offset")
+            display("invalid offset: {}", desc)
+        }
+
+        /// Mismatched offsets.
+        MismatchedOffsets(offset_name: &'static str, current_offset: u32, expected_offset: u32) {
+            description("mismatched offsets")
+            display("mismatched `{}` offsets: expected {:#010x}, current offset {:#010x}",
+                    offset_name, expected_offset, current_offset)
+        }
+
+        /// Invalid access flags.
+        InvalidAccessFlags(access_flags: u32) {
+            description("invalid access flags")
+            display("invalid access flags: {:#010x}", access_flags)
+        }
+
+        /// Invalid item type.
+        InvalidItemType(item_type: u16) {
+            description("invalid item type")
+            display("invalid item type: {:#06x}", item_type)
+        }
+
+        /// Invalid visibility modifier.
+        InvalidVisibility(visibility: u8) {
+            description("invalid visibility modifier")
+            display("invalid visibility modifier: {:#04x}, only `VISIBILITY_BUILD` ({:#04x}), \
+                     `VISIBILITY_RUNTIME` ({:#04x}) and `VISIBILITY_SYSTEM` ({:#04x}) are \
+                     permitted", visibility, VISIBILITY_BUILD, VISIBILITY_RUNTIME,
+                    VISIBILITY_SYSTEM)
+        }
+
+        /// Invalid value.
+        InvalidValue(error: String) {
+            description("invalid value")
+            display("invalid value: {}", error)
+        }
+
+        /// String size mismatch.
+        StringSizeMismatch(expected_size: u32, actual_size: usize) {
+            description("string size mismatch")
+            display("string size mismatch: expected {} characters, found {}", expected_size,
+                    actual_size)
+        }
+
+        /// Invalid uleb128.
+        InvalidUleb128 {
+            description("invalid uleb128")
+            display("invalid uleb128: an uleb128 with more than 5 bytes was found")
+        }
+
+        /// Generic header error.
+        Header(error: String) {
+            description("error in dex header")
+            display("error in dex header: {}", error)
+        }
+
+        /// Generic map error.
+        Map(error: String) {
+            description("error in dex map")
+            display("error in dex map: {}", error)
         }
     }
 }
