@@ -893,9 +893,11 @@ impl fmt::Debug for MapItem {
     }
 }
 
+/// Dex string reader.
 pub struct StringReader;
 
 impl StringReader {
+    /// Reads a string from a reader.
     pub fn read_string<R: BufRead>(reader: &mut R) -> Result<(String, u32)> {
         let (size, mut read) = read_uleb128(reader)?;
         let mut data = Vec::with_capacity(size as usize);
@@ -911,6 +913,44 @@ impl StringReader {
         } else {
             Ok((string, read))
         }
+    }
+}
+
+/// Debug information structure.
+pub struct DebugInfo {
+    line_start: u32,
+    parameter_names: Vec<u32>,
+}
+
+impl DebugInfo {
+    pub fn from_reader<R: Read>(reader: &mut R) -> Result<(DebugInfo, u32)> {
+        let (line_start, mut read) =
+            read_uleb128(reader).chain_err(|| "could not read line_start field")?;
+        let (parameters_size, read_p) =
+            read_uleb128(reader).chain_err(|| "could not read parameters_size field")?;
+        read += read_p;
+
+        let mut parameter_names = Vec::with_capacity(parameters_size as usize);
+        for _ in 0..parameters_size {
+            let (name_index_p1, read_i) =
+                read_uleb128(reader).chain_err(|| "could not read parameter name index")?;
+            read += read_i;
+            parameter_names.push(name_index_p1.wrapping_sub(1));
+        }
+
+        Ok((DebugInfo {
+                line_start: line_start,
+                parameter_names: parameter_names,
+            },
+            read))
+    }
+
+    pub fn get_line_start(&self) -> u32 {
+        self.line_start
+    }
+
+    pub fn get_parameter_names(&self) -> &[u32] {
+        &self.parameter_names
     }
 }
 

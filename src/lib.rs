@@ -25,7 +25,7 @@ use error::*;
 use sizes::*;
 pub use header::Header;
 use types::{PrototypeIdData, FieldIdData, MethodIdData, ClassDefData, MapItem, ItemType,
-            AnnotationItem, Array, AnnotationsDirectory, StringReader};
+            AnnotationItem, Array, AnnotationsDirectory, StringReader, DebugInfo};
 use offset_map::{OffsetMap, OffsetType};
 
 #[derive(Debug)]
@@ -90,6 +90,7 @@ impl Dex {
         let mut annotation_set_ref_lists = Vec::new();
         let mut annotation_sets = Vec::new();
         let mut strings = Vec::new();
+        let mut debug_infos = Vec::new();
         let mut annotations = Vec::new();
         let mut arrays = Vec::new();
         let mut annotations_directories = Vec::new();
@@ -293,10 +294,13 @@ impl Dex {
                     offset += read;
                 }
                 OffsetType::DebugInfo => {
-                    let mut byte = [0];
-                    reader.read_exact(&mut byte)?;
-                    offset += 1;
-                }//unimplemented!(),
+                    let (debug_info, read) = DebugInfo::from_reader(&mut reader).chain_err(|| {
+                            format!("could not read debug information at offset {:#010x}",
+                                    offset)
+                        })?;
+                    debug_infos.push((offset, debug_info));
+                    offset += read;
+                }
                 OffsetType::Annotation => {
                     let (annotation, read) = AnnotationItem::from_reader(&mut reader)?;
                     annotations.push((offset, annotation));
