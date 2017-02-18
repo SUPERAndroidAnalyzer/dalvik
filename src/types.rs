@@ -766,9 +766,12 @@ pub struct AnnotationsDirectory {
 
 impl AnnotationsDirectory {
     /// Creates a new annotations directory from a reader.
-    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<AnnotationsDirectory> {
+    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R,
+                                              offset_map: &mut OffsetMap)
+                                              -> Result<AnnotationsDirectory> {
         let class_annotations_offset = reader.read_u32::<E>()
             .chain_err(|| "could not read class annotations offset")?;
+        offset_map.insert(class_annotations_offset, OffsetType::AnnotationSet);
         let field_annotations_size =
             reader.read_u32::<E>().chain_err(|| "could not read field annotations size")? as usize;
         let method_annotations_size =
@@ -1172,6 +1175,7 @@ impl StringReader {
 pub struct DebugInfo {
     line_start: u32,
     parameter_names: Vec<u32>,
+    bytecode: DebugBytecode,
 }
 
 impl DebugInfo {
@@ -1184,15 +1188,20 @@ impl DebugInfo {
 
         let mut parameter_names = Vec::with_capacity(parameters_size as usize);
         for _ in 0..parameters_size {
-            let (name_index_p1, read_i) =
-                read_uleb128(reader).chain_err(|| "could not read parameter name index")?;
+            let (name_index, read_i) =
+                read_uleb128p1(reader).chain_err(|| "could not read parameter name index")?;
             read += read_i;
-            parameter_names.push(name_index_p1.wrapping_sub(1));
+            parameter_names.push(name_index);
         }
+
+        let (bytecode, read_b) =
+            DebugBytecode::from_reader(reader).chain_err(|| "could not read debug bytecode")?;
+        read += read_b;
 
         Ok((DebugInfo {
                 line_start: line_start,
                 parameter_names: parameter_names,
+                bytecode: bytecode,
             },
             read))
     }
@@ -1206,6 +1215,308 @@ impl DebugInfo {
     }
 }
 
+/// Debug bytecode.
+#[derive(Debug)]
+struct DebugBytecode {
+    bytecode: Vec<DebugInstruction>,
+}
+
+impl DebugBytecode {
+    /// Reads the debug bytecode from a reader.
+    fn from_reader<R: Read>(reader: &mut R) -> Result<(DebugBytecode, u32)> {
+        let mut bytecode = Vec::new();
+        let mut read = 0;
+        loop {
+            let (instruction, read_i) =
+                DebugInstruction::from_reader(reader).chain_err(|| "could not read instruction")?;
+            read += read_i;
+            bytecode.push(instruction);
+
+            if instruction == DebugInstruction::EndSequence {
+                break;
+            }
+        }
+        Ok((DebugBytecode { bytecode: bytecode }, read))
+    }
+}
+
+/// Debug state machine instruction.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum DebugInstruction {
+    EndSequence,
+    AdvancePc { addr_diff: u32 },
+    AdvanceLine { line_diff: i32 },
+    StartLocal {
+        register_num: u32,
+        name_id: u32,
+        type_id: u32,
+    },
+    StartLocalExtended {
+        register_num: u32,
+        name_id: u32,
+        type_id: u32,
+        sig_id: u32,
+    },
+    EndLocal { register_num: u32 },
+    RestartLocal { register_num: u32 },
+    SetPrologueEnd,
+    SetEpilogueBegin,
+    SetFile { name_id: u32 },
+    SpecialOpcode { opcode: u8 },
+}
+
+impl DebugInstruction {
+    fn from_reader<R: Read>(reader: &mut R) -> Result<(DebugInstruction, u32)> {
+        let mut opcode = [0u8];
+        reader.read_exact(&mut opcode);
+        let mut read = 1;
+        let instruction = match opcode[0] {
+            0x00u8 => DebugInstruction::EndSequence,
+            0x01u8 => {
+                let (addr_diff, read_ad) = read_uleb128(reader).chain_err(||{
+                        "could not read `addr_diff` for the DBG_ADVANCE_PC instruction"
+                    })?;
+                read += read_ad;
+                DebugInstruction::AdvancePc { addr_diff: addr_diff }
+            }
+            0x02u8 => {
+                let (line_diff, read_ld) = read_sleb128(reader).chain_err(||{
+                        "could not read `line_diff` for the DBG_ADVANCE_LINE instruction"
+                    })?;
+                read += read_ld;
+                DebugInstruction::AdvanceLine { line_diff: line_diff }
+            }
+            0x03u8 => {
+                let (register_num, read_rn) = read_uleb128(reader).chain_err(||{
+                        "could not read `register_num` for the DBG_START_LOCAL instruction"
+                    })?;
+                let (name_id, read_ni) = read_uleb128p1(reader).chain_err(||{
+                            "could not read `name_id` for the DBG_START_LOCAL instruction"
+                        })?;
+                let (type_id, read_ti) = read_uleb128p1(reader).chain_err(||{
+                                "could not read `type_id` for the DBG_START_LOCAL instruction"
+                            })?;
+                read += read_rn + read_ni + read_ti;
+
+                DebugInstruction::StartLocal {
+                    register_num: register_num,
+                    name_id: name_id,
+                    type_id: type_id,
+                }
+            }
+            0x04u8 => {
+                let (register_num, read_rn) = read_uleb128(reader).chain_err(||{
+                        "could not read `register_num` for the DBG_START_LOCAL_EXTENDED instruction"
+                    })?;
+                let (name_id, read_ni) = read_uleb128p1(reader).chain_err(||{
+                        "could not read `name_id` for the DBG_START_LOCAL_EXTENDED instruction"
+                    })?;
+                let (type_id, read_ti) = read_uleb128p1(reader).chain_err(||{
+                        "could not read `type_id` for the DBG_START_LOCAL_EXTENDED instruction"
+                    })?;
+                let (sig_id, read_si) = read_uleb128p1(reader).chain_err(||{
+                        "could not read `sig_id` for the DBG_START_LOCAL_EXTENDED instruction"
+                    })?;
+                read += read_rn + read_ni + read_ti + read_si;
+
+                DebugInstruction::StartLocalExtended {
+                    register_num: register_num,
+                    name_id: name_id,
+                    type_id: type_id,
+                    sig_id: sig_id,
+                }
+            }
+            0x05u8 => {
+                let (register_num, read_rn) = read_uleb128(reader).chain_err(|| {
+                        "could not read `register_num` for the DBG_END_LOCAL instruction"
+                    })?;
+                read += read_rn;
+                DebugInstruction::EndLocal { register_num: register_num }
+            }
+            0x06u8 => {
+                let (register_num, read_rn) = read_uleb128(reader).chain_err(|| {
+                        "could not read `register_num` for the DBG_RESTART_LOCAL instruction"
+                    })?;
+                read += read_rn;
+                DebugInstruction::RestartLocal { register_num: register_num }
+            }
+            0x07u8 => DebugInstruction::SetPrologueEnd,
+            0x08u8 => DebugInstruction::SetEpilogueBegin,
+            0x09u8 => {
+                let (name_id, read_ni) = read_uleb128(reader).chain_err(|| {
+                        "could not read `name_id` for the DBG_SET_FILE instruction"
+                    })?;
+                read += read_ni;
+                DebugInstruction::SetFile { name_id: name_id }
+            }
+            oc @ 0x0au8...0xffu8 => DebugInstruction::SpecialOpcode { opcode: oc },
+            _ => unreachable!(),
+        };
+
+        Ok((instruction, read))
+    }
+}
+
+/// Code Item structure
+#[derive(Debug)]
+pub struct CodeItem {
+    registers_size: u16,
+    ins_size: u16,
+    outs_size: u16,
+    debug_info_offset: u32,
+    insns: Vec<u16>,
+    tries: Vec<TryItem>,
+    handlers: Vec<CatchHandler>,
+}
+
+impl CodeItem {
+    /// Reads a code item from the given reader.
+    pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R,
+                                              offset_map: &mut OffsetMap)
+                                              -> Result<(CodeItem, u32)> {
+        let registers_size = reader.read_u16::<E>().chain_err(|| "could not read registers size")?;
+        let ins_size = reader.read_u16::<E>().chain_err(|| "could not read incoming words size")?;
+        let outs_size = reader.read_u16::<E>().chain_err(|| "could not read outgoing words size")?;
+        let tries_size = reader.read_u16::<E>().chain_err(|| "could not read tries size")?;
+        let debug_info_offset = reader.read_u32::<E>()
+            .chain_err(|| "could not read debug information offset")?;
+        offset_map.insert(debug_info_offset, OffsetType::DebugInfo);
+        let insns_size = reader.read_u32::<E>()
+            .chain_err(|| "could not read the size of the bytecode array")?;
+
+        let mut insns = Vec::with_capacity(insns_size as usize);
+        for _ in 0..insns_size {
+            insns.push(reader.read_u16::<E>().chain_err(|| "could not read bytecode")?);
+        }
+
+        let mut read = 16 + 2 * insns_size;
+
+        if tries_size != 0 && (insns_size & 0b1 != 0) {
+            let mut padding = [0u8; 2];
+            reader.read_exact(&mut padding).chain_err(|| "could not read padding before tries")?;
+            read += 2;
+        }
+
+        let mut tries = Vec::with_capacity(tries_size as usize);
+        for _ in 0..tries_size {
+            tries.push(TryItem::from_reader::<_, E>(reader).chain_err(||{
+                    "could not read try item"
+                })?);
+        }
+
+        read += tries_size as u32 * 8;
+
+        let mut handlers = Vec::new();
+        if tries_size > 0 {
+            let (handlers_size, read_hs) =
+                read_uleb128(reader).chain_err(|| "could not read catch handlers size")?;
+            read += read_hs;
+
+            handlers.reserve_exact(handlers_size as usize);
+            for _ in 0..handlers_size {
+                let (handler, read_h) =
+                    CatchHandler::from_reader(reader).chain_err(|| "could not read catch handler")?;
+                read += read_h;
+                handlers.push(handler);
+            }
+        }
+
+        Ok((CodeItem {
+                registers_size: registers_size,
+                ins_size: ins_size,
+                outs_size: outs_size,
+                debug_info_offset: debug_info_offset,
+                insns: insns,
+                tries: tries,
+                handlers: handlers,
+            },
+            read))
+    }
+}
+
+/// Try item structure.
+#[derive(Debug)]
+struct TryItem {
+    start_address: u32,
+    insn_count: u16,
+    handler_offset: u16,
+}
+
+impl TryItem {
+    /// Creates a try item structure from a reader.
+    fn from_reader<R: Read, E: ByteOrder>(reader: &mut R) -> Result<TryItem> {
+        let start_address = reader.read_u32::<E>().chain_err(|| "could not read start address")?;
+        let insn_count = reader.read_u16::<E>().chain_err(|| "could not read instruction count")?;
+        let handler_offset = reader.read_u16::<E>()
+            .chain_err(|| "could not read catch handler offset")?;
+
+        Ok(TryItem {
+            start_address: start_address,
+            insn_count: insn_count,
+            handler_offset: handler_offset,
+        })
+    }
+}
+
+/// Struct representing a catch handler.
+#[derive(Debug)]
+struct CatchHandler {
+    handlers: Vec<HandlerInfo>,
+    catch_all_addr: Option<u32>,
+}
+
+impl CatchHandler {
+    /// Reads a catch handler from a reader.
+    fn from_reader<R: Read>(reader: &mut R) -> Result<(CatchHandler, u32)> {
+        let (size, mut read) =
+            read_sleb128(reader).chain_err(|| "could not read the catch handler size")?;
+
+        let abs_size = size.abs() as usize;
+        let mut handlers = Vec::with_capacity(abs_size);
+        for _ in 0..abs_size {
+            let (handler_info, read_hi) = HandlerInfo::from_reader(reader).chain_err(|| {
+                    "could not read handler information"
+                })?;
+            handlers.push(handler_info);
+            read += read_hi;
+        }
+
+        let catch_all_addr = if size < 1 {
+            let (addr, read_ca) =
+                read_uleb128(reader).chain_err(|| "could not read the catch all address")?;
+            read += read_ca;
+            Some(addr)
+        } else {
+            None
+        };
+
+        Ok((CatchHandler {
+                handlers: handlers,
+                catch_all_addr: catch_all_addr,
+            },
+            read))
+    }
+}
+
+#[derive(Debug)]
+struct HandlerInfo {
+    type_id: u32,
+    addr: u32,
+}
+
+impl HandlerInfo {
+    fn from_reader<R: Read>(reader: &mut R) -> Result<(HandlerInfo, u32)> {
+        let (type_id, read_t) = read_uleb128(reader).chain_err(|| "could not read type ID")?;
+        let (addr, read_a) = read_uleb128(reader).chain_err(|| "could not read address")?;
+
+        Ok((HandlerInfo {
+                type_id: type_id,
+                addr: addr,
+            },
+            read_t + read_a))
+    }
+}
+
 /// Reads a uleb128 from a reader.
 ///
 /// Returns the u32 represented by the uleb128 and the number of bytes read.
@@ -1216,12 +1527,8 @@ fn read_uleb128<R: Read>(reader: &mut R) -> Result<(u32, u32)> {
         let byte = byte.chain_err(|| format!("could not read byte {}", i))?;
         let payload = (byte & 0b01111111) as u32;
         match i {
-            0 => result |= payload,
-            1 => result |= payload << 7,
-            2 => result |= payload << 14,
-            3 => result |= payload << 21,
-            4 => result |= payload << 28,
-            _ => return Err(ErrorKind::InvalidUleb128.into()),
+            0...4 => result |= payload << i * 7,
+            _ => return Err(ErrorKind::InvalidLeb128.into()),
         }
 
         if byte & 0b10000000 == 0x00 {
@@ -1230,4 +1537,27 @@ fn read_uleb128<R: Read>(reader: &mut R) -> Result<(u32, u32)> {
         }
     }
     Ok((result, read as u32))
+}
+
+/// Reads a uleb128p1 from a reader.
+///
+/// Returns the u32 represented by the uleb128p1 and the number of bytes read.
+fn read_uleb128p1<R: Read>(reader: &mut R) -> Result<(u32, u32)> {
+    let (uleb128, read) = read_uleb128(reader)?;
+    Ok((uleb128.wrapping_sub(1), read))
+}
+
+/// Reads a sleb128 from a reader.
+///
+/// Returns the i32 represented by the sleb128 and the number of bytes read.
+fn read_sleb128<R: Read>(reader: &mut R) -> Result<(i32, u32)> {
+    let (uleb128, read) = read_uleb128(reader)?;
+    let s_bits = read * 7;
+    let mut sleb128 = uleb128 as i32;
+
+    if (sleb128 & 1 << s_bits) != 0 {
+        sleb128 |= -1 << s_bits;
+    }
+
+    Ok((sleb128, read))
 }

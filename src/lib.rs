@@ -25,7 +25,8 @@ use error::*;
 use sizes::*;
 pub use header::Header;
 use types::{PrototypeIdData, FieldIdData, MethodIdData, ClassDefData, MapItem, ItemType,
-            AnnotationItem, Array, AnnotationsDirectory, ClassData, StringReader, DebugInfo};
+            AnnotationItem, Array, AnnotationsDirectory, ClassData, StringReader, DebugInfo,
+            CodeItem};
 use offset_map::{OffsetMap, OffsetType};
 
 #[derive(Debug)]
@@ -90,6 +91,7 @@ impl Dex {
         let mut annotation_set_ref_lists = Vec::new();
         let mut annotation_sets = Vec::new();
         let mut classes = Vec::new();
+        let mut code_segments = Vec::new();
         let mut strings = Vec::new();
         let mut debug_infos = Vec::new();
         let mut annotations = Vec::new();
@@ -103,25 +105,31 @@ impl Dex {
         };
 
         // Read all the file.
-        while offset < read_end {
-            let offset_type = match offset_map.get_offset(offset) {
-                Ok(offset_type) => offset_type,
-                Err(Some((next_offset, offset_type))) => {
-                    if cfg!(feature = "debug") && next_offset >= offset + 4 {
-                        println!("{} unknown bytes were found in the offset {:#010x}.",
-                                 next_offset - offset,
-                                 offset)
+        while offset < read_end || !offset_map.is_empty() {
+            let offset_type = if offset < read_end {
+                match offset_map.get_offset(offset) {
+                    Ok(offset_type) => offset_type,
+                    Err(Some((next_offset, offset_type))) => {
+                        if cfg!(feature = "debug") && next_offset >= offset + 4 {
+                            println!("{} unknown bytes were found in the offset {:#010x}.",
+                                     next_offset - offset,
+                                     offset)
+                        }
+                        let mut unknown_bytes = Vec::with_capacity((next_offset - offset) as usize);
+                        reader.by_ref()
+                            .take((next_offset - offset) as u64)
+                            .read_to_end(&mut unknown_bytes)
+                            .chain_err(|| "could not read unknown bytes")?;
+                        unknown_data.push((offset, unknown_bytes.into_boxed_slice()));
+                        offset = next_offset;
+                        offset_type
                     }
-                    let mut unknown_bytes = Vec::with_capacity((next_offset - offset) as usize);
-                    reader.by_ref()
-                        .take((next_offset - offset) as u64)
-                        .read_to_end(&mut unknown_bytes)
-                        .chain_err(|| "could not read unknown bytes")?;
-                    unknown_data.push((offset, unknown_bytes.into_boxed_slice()));
-                    offset = next_offset;
-                    offset_type
+                    _ => break,
                 }
-                _ => break,
+            } else {
+                println!("{} unused offsets found in offset map:", offset_map.len());
+                break;
+                // unimplemented!()
             };
 
             match offset_type {
@@ -318,11 +326,14 @@ impl Dex {
                 }
                 OffsetType::Code => {
                     // Read code.
-                    println!("Code found at offset {:#010x}", offset);
-                    let mut byte = [0];
-                    reader.read_exact(&mut byte)?;
-                    offset += 1;
-                }//unimplemented!(),
+                    let (code_item, read) =
+                        CodeItem::from_reader::<_, E>(&mut reader, &mut offset_map).chain_err(|| {
+                                format!("could not read code item at offset {:#010x}", offset)
+                            })?;
+                    code_segments.push((offset, code_item));
+
+                    offset += read;
+                }
                 OffsetType::StringData => {
                     // Read string data
                     let (string, read) = StringReader::read_string(&mut reader).chain_err(|| {
@@ -357,8 +368,11 @@ impl Dex {
                     offset += read;
                 }
                 OffsetType::AnnotationsDirectory => {
+                    // Read annotations directory.
+                    // println!("Anotations directory found at offset {:#010x}", offset);
                     let directory =
-                        AnnotationsDirectory::from_reader::<_, E>(&mut reader).chain_err(|| {
+                        AnnotationsDirectory::from_reader::<_, E>(&mut reader, &mut offset_map)
+                            .chain_err(|| {
                                 format!("could not read annotation directory at offset {:#010x}",
                                         offset)
                             })?;

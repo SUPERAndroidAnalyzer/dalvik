@@ -92,7 +92,7 @@ error_chain!{
         }
 
         /// Invalid uleb128.
-        InvalidUleb128 {
+        InvalidLeb128 {
             description("invalid uleb128")
             display("invalid uleb128: an uleb128 with more than 5 bytes was found")
         }

@@ -1,6 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
 /// Structure representing a list of offsets.
+#[derive(Debug)]
 pub struct OffsetMap {
     inner: Vec<(u32, OffsetType)>,
 }
