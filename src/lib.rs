@@ -25,7 +25,7 @@ use error::*;
 use sizes::*;
 pub use header::Header;
 use types::{PrototypeIdData, FieldIdData, MethodIdData, ClassDefData, MapItem, ItemType,
-            AnnotationItem, Array, AnnotationsDirectory, StringReader, DebugInfo};
+            AnnotationItem, Array, AnnotationsDirectory, ClassData, StringReader, DebugInfo};
 use offset_map::{OffsetMap, OffsetType};
 
 #[derive(Debug)]
@@ -42,8 +42,8 @@ pub struct Dex {
 impl Dex {
     /// Reads the Dex data structure from the given path.
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Dex> {
-        let file = fs::File::open(path)?;
-        let file_size = file.metadata()?.len();
+        let file = fs::File::open(path).chain_err(|| "could not open file")?;
+        let file_size = file.metadata().chain_err(|| "could not read file metadata")?.len();
         if file_size < HEADER_SIZE as u64 || file_size > u32::MAX as u64 {
             return Err(ErrorKind::InvalidFileSize(file_size).into());
         }
@@ -89,6 +89,7 @@ impl Dex {
         let mut type_lists = Vec::new();
         let mut annotation_set_ref_lists = Vec::new();
         let mut annotation_sets = Vec::new();
+        let mut classes = Vec::new();
         let mut strings = Vec::new();
         let mut debug_infos = Vec::new();
         let mut annotations = Vec::new();
@@ -106,7 +107,7 @@ impl Dex {
             let offset_type = match offset_map.get_offset(offset) {
                 Ok(offset_type) => offset_type,
                 Err(Some((next_offset, offset_type))) => {
-                    if next_offset >= offset + 4 && cfg!(feature = "debug") {
+                    if cfg!(feature = "debug") && next_offset >= offset + 4 {
                         println!("{} unknown bytes were found in the offset {:#010x}.",
                                  next_offset - offset,
                                  offset)
@@ -114,7 +115,8 @@ impl Dex {
                     let mut unknown_bytes = Vec::with_capacity((next_offset - offset) as usize);
                     reader.by_ref()
                         .take((next_offset - offset) as u64)
-                        .read_to_end(&mut unknown_bytes)?;
+                        .read_to_end(&mut unknown_bytes)
+                        .chain_err(|| "could not read unknown bytes")?;
                     unknown_data.push((offset, unknown_bytes.into_boxed_slice()));
                     offset = next_offset;
                     offset_type
@@ -124,25 +126,37 @@ impl Dex {
 
             match offset_type {
                 OffsetType::StringIdList => {
-                    // Read all string offsets
+                    // Read all string offsets.
                     for _ in 0..header.get_string_ids_size() {
-                        let offset = reader.read_u32::<E>()?;
+                        let offset = reader.read_u32::<E>().chain_err(|| {
+                            format!("could not read string offset from string ID list at offset \
+                                     {:#010x}",
+                                    offset)
+                        })?;
                         offset_map.insert(offset, OffsetType::StringData);
                         string_ids.push((offset, None::<String>));
                     }
                     offset += STRING_ID_ITEM_SIZE * header.get_string_ids_size() as u32;
                 }
                 OffsetType::TypeIdList => {
-                    // Read all type string indexes
+                    // Read all type string indexes.
                     for _ in 0..header.get_type_ids_size() {
-                        type_ids.push(reader.read_u32::<E>()?);
+                        type_ids.push(reader.read_u32::<E>().chain_err(|| {
+                            format!("could not read type ID from type ID list at offset {:#010x}",
+                                    offset)
+                        })?);
                     }
                     offset += TYPE_ID_ITEM_SIZE * header.get_type_ids_size() as u32;
                 }
                 OffsetType::PrototypeIdList => {
-                    // Read all prototype IDs
+                    // Read all prototype IDs.
                     for _ in 0..header.get_prototype_ids_size() {
-                        let prototype_id = PrototypeIdData::from_reader::<_, E>(&mut reader)?;
+                        let prototype_id =
+                            PrototypeIdData::from_reader::<_, E>(&mut reader).chain_err(|| {
+                                    format!("could not read prototype ID from prototype ID list at \
+                                             offset {:#010x}",
+                                            offset)
+                                })?;
                         if let Some(offset) = prototype_id.get_parameters_offset() {
                             offset_map.insert(offset, OffsetType::TypeList);
                         }
@@ -151,23 +165,34 @@ impl Dex {
                     offset += PROTO_ID_ITEM_SIZE * header.get_prototype_ids_size() as u32;
                 }
                 OffsetType::FieldIdList => {
-                    // Read all field IDs
+                    // Read all field IDs.
                     for _ in 0..header.get_field_ids_size() {
-                        field_ids.push(FieldIdData::from_reader::<_, E>(&mut reader)?);
+                        field_ids.push(FieldIdData::from_reader::<_, E>(&mut reader).chain_err(|| {
+                            format!("could not read field ID from field ID list at offset {:#010x}",
+                                    offset)
+                        })?);
                     }
                     offset += FIELD_ID_ITEM_SIZE * header.get_field_ids_size() as u32;
                 }
                 OffsetType::MethodIdList => {
-                    // Read all method IDs
+                    // Read all method IDs.
                     for _ in 0..header.get_method_ids_size() {
-                        method_ids.push(MethodIdData::from_reader::<_, E>(&mut reader)?);
+                        method_ids.push(MethodIdData::from_reader::<_, E>(&mut reader)
+                            .chain_err(|| {
+                                format!("could not read method ID from method ID list at offset \
+                                         {:#010x}", offset)
+                            })?);
                     }
                     offset += METHOD_ID_ITEM_SIZE * header.get_method_ids_size() as u32;
                 }
                 OffsetType::ClassDefList => {
-                    // Read all class definitions
+                    // Read all class definitions.
                     for _ in 0..header.get_class_defs_size() {
-                        let class_def = ClassDefData::from_reader::<_, E>(&mut reader)?;
+                        let class_def = ClassDefData::from_reader::<_, E>(&mut reader)
+                            .chain_err(|| {
+                                format!("could not read class definition data at offset {:#010x}",
+                                        offset)
+                            })?;
                         if let Some(offset) = class_def.get_interfaces_offset() {
                             offset_map.insert(offset, OffsetType::TypeList);
                         }
@@ -185,7 +210,7 @@ impl Dex {
                     offset += CLASS_DEF_ITEM_SIZE * header.get_class_defs_size() as u32;
                 }
                 OffsetType::Map => {
-                    // Read map
+                    // Read map.
                     let map = Map::from_reader::<_, E>(&mut reader, &mut offset_map).chain_err(|| {
                             format!("error reading map at offset {:#010x}", offset)
                         })?;
@@ -210,6 +235,7 @@ impl Dex {
                     offset += 4 + MAP_ITEM_SIZE * map.get_item_list().len() as u32;
                 }
                 OffsetType::TypeList => {
+                    // Read type list.
                     let size = reader.read_u32::<E>()
                         .chain_err(|| {
                             format!("error reading type list size size at offset {:#010x}",
@@ -237,6 +263,7 @@ impl Dex {
                     }
                 }
                 OffsetType::AnnotationSetList => {
+                    // Read anotation set list.
                     let size = reader.read_u32::<E>()
                         .chain_err(|| {
                             format!("error reading anotation set list size at offset {:#010x}",
@@ -245,7 +272,10 @@ impl Dex {
                     let mut annotation_set_list = Vec::with_capacity(size as usize);
 
                     for _ in 0..size {
-                        let annotation_set_offset = reader.read_u32::<E>()?;
+                        let annotation_set_offset = reader.read_u32::<E>().chain_err(|| {
+                            format!("could not read annotation set offset for an anotation set in \
+                                     the anotation set list at offset {:#010x}", offset)
+                        })?;
                         offset_map.insert(annotation_set_offset, OffsetType::AnnotationSet);
                         annotation_set_list.push(annotation_set_offset);
                     }
@@ -254,6 +284,7 @@ impl Dex {
                     offset += 4 + ANNOTATION_SET_REF_SIZE * size;
                 }
                 OffsetType::AnnotationSet => {
+                    // Read annotation set.
                     let size = reader.read_u32::<E>()
                         .chain_err(|| {
                             format!("error reading anotation set size at offset {:#010x}",
@@ -277,23 +308,31 @@ impl Dex {
                     offset += 4 + ANNOTATION_SET_ITEM_SIZE * size;
                 }
                 OffsetType::ClassData => {
-                    let mut byte = [0];
-                    reader.read_exact(&mut byte)?;
-                    offset += 1;
-                }//unimplemented!(),
+                    // Read class data.
+                    let (class_data, read) =
+                        ClassData::from_reader(&mut reader, &mut offset_map).chain_err(|| {
+                                format!("could not read class data at offset {:#010x}", offset)
+                            })?;
+                    classes.push((offset, class_data));
+                    offset += read;
+                }
                 OffsetType::Code => {
+                    // Read code.
+                    println!("Code found at offset {:#010x}", offset);
                     let mut byte = [0];
                     reader.read_exact(&mut byte)?;
                     offset += 1;
                 }//unimplemented!(),
                 OffsetType::StringData => {
+                    // Read string data
                     let (string, read) = StringReader::read_string(&mut reader).chain_err(|| {
-                            format!("error reading string data at offset {:#010x}", offset)
+                            format!("could not read string data at offset {:#010x}", offset)
                         })?;
                     strings.push((offset, string));
                     offset += read;
                 }
                 OffsetType::DebugInfo => {
+                    // Read debug information.
                     let (debug_info, read) = DebugInfo::from_reader(&mut reader).chain_err(|| {
                             format!("could not read debug information at offset {:#010x}",
                                     offset)
@@ -302,17 +341,27 @@ impl Dex {
                     offset += read;
                 }
                 OffsetType::Annotation => {
-                    let (annotation, read) = AnnotationItem::from_reader(&mut reader)?;
+                    // Read anotation.
+                    let (annotation, read) = AnnotationItem::from_reader(&mut reader).chain_err(|| {
+                            format!("could not read annotation at offset {:#010x}", offset)
+                        })?;
                     annotations.push((offset, annotation));
                     offset += read;
                 }
                 OffsetType::EncodedArray => {
-                    let (array, read) = Array::from_reader(&mut reader)?;
+                    // Read encoded array.
+                    let (array, read) = Array::from_reader(&mut reader).chain_err(|| {
+                            format!("could not read encoded array at offset {:#010x}", offset)
+                        })?;
                     arrays.push(array);
                     offset += read;
                 }
                 OffsetType::AnnotationsDirectory => {
-                    let directory = AnnotationsDirectory::from_reader::<_, E>(&mut reader)?;
+                    let directory =
+                        AnnotationsDirectory::from_reader::<_, E>(&mut reader).chain_err(|| {
+                                format!("could not read annotation directory at offset {:#010x}",
+                                        offset)
+                            })?;
                     let read = 4 * 4 + directory.get_field_annotations().len() * 8 +
                                directory.get_method_annotations().len() * 8 +
                                directory.get_parameter_annotations().len() * 8;
@@ -360,11 +409,12 @@ impl Map {
     pub fn from_reader<R: Read, E: ByteOrder>(reader: &mut R,
                                               offset_map: &mut OffsetMap)
                                               -> Result<Map> {
-        let size = reader.read_u32::<E>()?;
+        let size = reader.read_u32::<E>().chain_err(|| "could not read map list size")?;
         let mut map_list = Vec::with_capacity(size as usize);
-        offset_map.reserve_exact(size as usize);
+        offset_map.reserve(size as usize);
         for _ in 0..size {
-            let map_item = MapItem::from_reader::<_, E>(reader)?;
+            let map_item =
+                MapItem::from_reader::<_, E>(reader).chain_err(|| "could not read map item")?;
             match map_item.get_item_type() {
                 ItemType::Header | ItemType::StringId | ItemType::TypeId | ItemType::ProtoId |
                 ItemType::FieldId | ItemType::MethodId | ItemType::ClassDef | ItemType::Map => {}
