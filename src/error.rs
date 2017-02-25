@@ -1,7 +1,6 @@
 use std::u32;
 use sizes::HEADER_SIZE;
 use header::{ENDIAN_CONSTANT, REVERSE_ENDIAN_CONSTANT};
-use types::{VISIBILITY_BUILD, VISIBILITY_RUNTIME, VISIBILITY_SYSTEM};
 
 error_chain!{
     foreign_links {
@@ -72,10 +71,7 @@ error_chain!{
         /// Invalid visibility modifier.
         InvalidVisibility(visibility: u8) {
             description("invalid visibility modifier")
-            display("invalid visibility modifier: {:#04x}, only `VISIBILITY_BUILD` ({:#04x}), \
-                     `VISIBILITY_RUNTIME` ({:#04x}) and `VISIBILITY_SYSTEM` ({:#04x}) are \
-                     permitted", visibility, VISIBILITY_BUILD, VISIBILITY_RUNTIME,
-                    VISIBILITY_SYSTEM)
+            display("invalid visibility modifier: {:#04x}", visibility)
         }
 
         /// Invalid value.
