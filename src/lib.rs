@@ -62,8 +62,8 @@ impl Dex {
             } else {
                 dex_reader.read_data::<BigEndian>()
             }.chain_err(|| "could not read dex file")?;
-        unimplemented!()
-        // Ok(dex_reader.into())
+
+        Ok(dex_reader.into())
     }
 
     // /// Ads the file in the given path to the current Dex data structure.
@@ -81,6 +81,14 @@ impl Dex {
     /// The reader should be positioned at the start of the file.
     pub fn verify_reader<R: Read>(&self, reader: R) -> bool {
         self.header.verify_reader(reader)
+    }
+}
+
+impl<R> From<DexReader<R>> for Dex
+    where R: BufRead
+{
+    fn from(reader: DexReader<R>) -> Dex {
+        unimplemented!()
     }
 }
 

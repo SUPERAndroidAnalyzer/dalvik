@@ -45,11 +45,11 @@ script:
       cargo bench;
       fi
 
-# Send coverage reports and upload docs
+# Send coverage reports and upload docs (travis-cargo --only stable doc)
 after_success:
   - |
       if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-      travis-cargo --only stable doc &&
+      cargo rustdoc --open -- --no-defaults --passes collapse-docs --passes unindent-comments --passes strip-priv-imports &&
       travis-cargo --only stable doc-upload --branch develop;
       fi
   - |
