@@ -67,7 +67,7 @@ after_success:
         sudo make install &&
         cd ../.. &&
         rm -rf kcov-master &&
-        for file in target/debug/dalvik-*; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
+        for file in target/debug/lib-* target/debug/dalvik-*; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
         bash <(curl -s https://codecov.io/bash) &&
         echo "Uploaded code coverage"
       fi
@@ -77,7 +77,7 @@ after_success:
         cargo rustdoc -- --no-defaults --passes collapse-docs --passes unindent-comments --passes strip-priv-imports &&
         echo "<meta http-equiv=refresh content=0;url=dalvik/index.html>" > target/doc/index.html &&
         git clone https://github.com/davisp/ghp-import.git &&
-        ./ghp-import/ghp_import.py -n -p -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
+        ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
         echo "Uploaded documentation"
       fi
 
