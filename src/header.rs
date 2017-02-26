@@ -140,8 +140,8 @@ impl Header {
         let map_offset = reader.read_u32::<E>()
             .chain_err(|| "could not read the map section offset")?;
         if map_offset == 0x00000000 {
-            return Err(ErrorKind::InvalidOffset("`map_offset` was 0x00000000, and it can never be \
-                                                 zero"
+            return Err(ErrorKind::InvalidOffset("`map_offset` was 0x00000000, and it can never \
+                                                 be zero"
                     .to_owned())
                 .into());
         }
@@ -259,8 +259,8 @@ impl Header {
         let data_size = reader.read_u32::<E>()
             .chain_err(|| "could not read the data section size")?;
         if data_size & 0b11 != 0 {
-            return Err(ErrorKind::Header(format!("`data_size` must be a 4-byte multiple, but it \
-                                              was {:#010x}",
+            return Err(ErrorKind::Header(format!("`data_size` must be a 4-byte multiple, but \
+                                                  it was {:#010x}",
                                                  data_size))
                 .into());
         }
@@ -288,9 +288,9 @@ impl Header {
                 .into());
         }
         if link_size == 0 && current_offset != file_size {
-            return Err(ErrorKind::Header(format!("`data` section must end at the EOF if there are \
-                                                  no links in the file. Data end: {:#010x}, \
-                                                  `file_size`: {:#010x}",
+            return Err(ErrorKind::Header(format!("`data` section must end at the EOF if there \
+                                                  are no links in the file. Data end: \
+                                                  {:#010x}, `file_size`: {:#010x}",
                                                  current_offset,
                                                  file_size))
                 .into());

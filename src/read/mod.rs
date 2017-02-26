@@ -244,7 +244,9 @@ impl<R> DexReader<R>
         for i in 0..self.header.get_field_ids_size() {
             self.field_ids.push(FieldIdData::from_reader::<_, E>(&mut self.reader).chain_err(|| {
                     format!("could not read field ID with index {} from field ID list at offset \
-                            {:#010x}", i, offset)
+                            {:#010x}",
+                            i,
+                            offset)
                 })?);
         }
         self.current_offset += FIELD_ID_ITEM_SIZE * self.header.get_field_ids_size() as u32;
@@ -259,7 +261,8 @@ impl<R> DexReader<R>
             self.method_ids.push(MethodIdData::from_reader::<_, E>(&mut self.reader).chain_err(|| {
                     format!("could not read method ID with index {} from method ID list at offset \
                             {:#010x}",
-                            i, offset)
+                            i,
+                            offset)
                 })?);
         }
         self.current_offset += METHOD_ID_ITEM_SIZE * self.header.get_method_ids_size() as u32;
@@ -333,10 +336,14 @@ impl<R> DexReader<R>
 
         let mut type_list = Vec::with_capacity(size as usize);
         for i in 0..size {
-            type_list.push(self.reader.read_u16::<E>().chain_err(|| {
-                format!("error reading type ID for type item with index {} at type list at offset \
-                        {:#010x}", i, self.current_offset)
-            })?);
+            type_list.push(self.reader
+                .read_u16::<E>()
+                .chain_err(|| {
+                    format!("error reading type ID for type item with index {} at type list at \
+                             offset {:#010x}",
+                            i,
+                            self.current_offset)
+                })?);
         }
         self.type_lists.push(type_list.into_boxed_slice());
 

@@ -1281,21 +1281,23 @@ impl DebugInstruction {
         let instruction = match opcode[0] {
             0x00u8 => DebugInstruction::EndSequence,
             0x01u8 => {
-                let (addr_diff, read_ad) = read_uleb128(reader).chain_err(||{
-                        "could not read `addr_diff` for the DBG_ADVANCE_PC instruction"
-                    })?;
+                let (addr_diff, read_ad) =
+                    read_uleb128(reader).chain_err(|| {
+                            "could not read `addr_diff` for the DBG_ADVANCE_PC instruction"
+                        })?;
                 read += read_ad;
                 DebugInstruction::AdvancePc { addr_diff: addr_diff }
             }
             0x02u8 => {
-                let (line_diff, read_ld) = read_sleb128(reader).chain_err(||{
-                        "could not read `line_diff` for the DBG_ADVANCE_LINE instruction"
-                    })?;
+                let (line_diff, read_ld) =
+                    read_sleb128(reader).chain_err(|| {
+                            "could not read `line_diff` for the DBG_ADVANCE_LINE instruction"
+                        })?;
                 read += read_ld;
                 DebugInstruction::AdvanceLine { line_diff: line_diff }
             }
             0x03u8 => {
-                let (register_num, read_rn) = read_uleb128(reader).chain_err(||{
+                let (register_num, read_rn) = read_uleb128(reader).chain_err(|| {
                         "could not read `register_num` for the DBG_START_LOCAL instruction"
                     })?;
                 let (name_id, read_ni) = read_uleb128p1(reader).chain_err(||{
@@ -1313,16 +1315,16 @@ impl DebugInstruction {
                 }
             }
             0x04u8 => {
-                let (register_num, read_rn) = read_uleb128(reader).chain_err(||{
+                let (register_num, read_rn) = read_uleb128(reader).chain_err(|| {
                         "could not read `register_num` for the DBG_START_LOCAL_EXTENDED instruction"
                     })?;
-                let (name_id, read_ni) = read_uleb128p1(reader).chain_err(||{
+                let (name_id, read_ni) = read_uleb128p1(reader).chain_err(|| {
                         "could not read `name_id` for the DBG_START_LOCAL_EXTENDED instruction"
                     })?;
-                let (type_id, read_ti) = read_uleb128p1(reader).chain_err(||{
+                let (type_id, read_ti) = read_uleb128p1(reader).chain_err(|| {
                         "could not read `type_id` for the DBG_START_LOCAL_EXTENDED instruction"
                     })?;
-                let (sig_id, read_si) = read_uleb128p1(reader).chain_err(||{
+                let (sig_id, read_si) = read_uleb128p1(reader).chain_err(|| {
                         "could not read `sig_id` for the DBG_START_LOCAL_EXTENDED instruction"
                     })?;
                 read += read_rn + read_ni + read_ti + read_si;
@@ -1335,9 +1337,10 @@ impl DebugInstruction {
                 }
             }
             0x05u8 => {
-                let (register_num, read_rn) = read_uleb128(reader).chain_err(|| {
-                        "could not read `register_num` for the DBG_END_LOCAL instruction"
-                    })?;
+                let (register_num, read_rn) =
+                    read_uleb128(reader).chain_err(|| {
+                            "could not read `register_num` for the DBG_END_LOCAL instruction"
+                        })?;
                 read += read_rn;
                 DebugInstruction::EndLocal { register_num: register_num }
             }
