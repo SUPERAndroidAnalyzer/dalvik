@@ -613,11 +613,11 @@ fn read_uleb128p1<R: Read>(reader: &mut R) -> Result<(u32, u32)> {
 fn read_sleb128<R: Read>(reader: &mut R) -> Result<(i32, u32)> {
     let (uleb128, read) = read_uleb128(reader)?;
     let s_bits = read * 7;
-    let mut sleb128 = uleb128 as i32;
+    let mut signed = uleb128 as i32;
 
-    if (sleb128 & 1 << s_bits) != 0 {
-        sleb128 |= -1 << s_bits;
+    if (signed & 1 << s_bits) != 0 {
+        signed |= -1 << s_bits;
     }
 
-    Ok((sleb128, read))
+    Ok((signed, read))
 }

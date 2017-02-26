@@ -1,3 +1,25 @@
+
+
+// #![forbid(deprecated, overflowing_literals, stable_features, trivial_casts,
+// unconditional_recursion,
+//     plugin_as_library, unused_allocation, trivial_numeric_casts, unused_features, while_truem,
+//     unused_parens, unused_comparisons, unused_extern_crates, unused_import_braces,
+// unused_results,
+//     improper_ctypes, non_shorthand_field_patterns, private_no_mangle_fns,
+// private_no_mangle_statics,
+//     filter_map, used_underscore_binding, option_map_unwrap_or, option_map_unwrap_or_else,
+//     mutex_integer, mut_mut, mem_forget, print_stdout)]
+// #![deny(unused_qualifications, unused, unused_attributes)]
+#![warn(missing_docs, variant_size_differences, enum_glob_use, if_not_else,
+    invalid_upcast_comparisons, items_after_statements, non_ascii_literal, nonminimal_bool,
+    pub_enum_variant_names, shadow_reuse, shadow_same, shadow_unrelated, similar_names,
+    single_match_else, string_add, string_add_assign, unicode_not_nfc, unseparated_literal_suffix,
+    use_debug, wrong_pub_self_convention)]
+// Allowing these at least for now.
+#![allow(missing_docs_in_private_items, unknown_lints, stutter, option_unwrap_used,
+    result_unwrap_used, integer_arithmetic, cast_possible_truncation, cast_possible_wrap,
+    indexing_slicing, cast_precision_loss, cast_sign_loss)]
+
 // `error_chain!` can recurse deeply
 #![recursion_limit = "1024"]
 

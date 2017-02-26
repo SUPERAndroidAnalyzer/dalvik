@@ -5,3 +5,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/SUPERAndroidAnalyzer/dalvik/badge.svg?branch=develop)](https://coveralls.io/github/SUPERAndroidAnalyzer/dalvik?branch=develop)
 
 Android Dalvik Dex parser in 100% pure Rust, still in development.
+
+[Development documentation](https://superandroidanalyzer.github.io/dalvik)
