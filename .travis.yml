@@ -29,11 +29,11 @@ rust:
 # Load travis-cargo
 before_script:
   - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
         ( cargo install rustfmt || true )
       fi
   - |
-      if [[ "$TRAVIS_RUST_VERSION" == "nightly"]]; then
+      if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
         ( cargo install clippy || true )
       fi
 
@@ -44,7 +44,7 @@ script:
   - cargo test
   - cargo bench
   - |
-      if [[ "$TRAVIS_RUST_VERSION" == "nightly"]]; then
+      if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
         cargo clippy
       fi
   - |
@@ -72,7 +72,7 @@ after_success:
       fi
   # Documentation upload
   - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "develop"]]; then
+      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "develop" ]]; then
         cargo rustdoc -- --no-defaults --passes collapse-docs --passes unindent-comments --passes strip-priv-imports &&
         echo "<meta http-equiv=refresh content=0;url=dalvik/index.html>" > target/doc/index.html &&
         git clone https://github.com/davisp/ghp-import.git &&
