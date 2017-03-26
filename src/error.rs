@@ -1,3 +1,7 @@
+//! Errors module
+
+#![allow(missing_docs)]
+
 use std::u32;
 use sizes::HEADER_SIZE;
 use header::{ENDIAN_CONSTANT, REVERSE_ENDIAN_CONSTANT};
@@ -54,6 +58,36 @@ error_chain!{
             description("mismatched offsets")
             display("mismatched `{}` offsets: expected {:#010x}, current offset {:#010x}",
                     offset_name, expected_offset, current_offset)
+        }
+
+        /// Unknown string index.
+        UnknownStringIndex(index: u32) {
+            description("unknown string index")
+            display("there is no string with index {}", index)
+        }
+
+        /// Unknown type index.
+        UnknownTypeIndex(index: u16) {
+            description("unknown type index")
+            display("there is no type with index {}", index)
+        }
+
+        /// Invalid type descriptor.
+        InvalidTypeDescriptor(descriptor: String) {
+            description("invalid type descriptor")
+            display("invalid type descriptor: `{}`", descriptor)
+        }
+
+        /// Invalid shorty type.
+        InvalidShortyType(shorty_type: char) {
+            description("invalid shorty type")
+            display("invalid shorty type: `{}`", shorty_type)
+        }
+
+        // Invalid shorty descriptor.
+        InvalidShortyDescriptor(descriptor: String) {
+            description("invalid shorty descriptor")
+            display("invalid shorty descriptor: `{}`", descriptor)
         }
 
         /// Invalid access flags.

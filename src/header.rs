@@ -1,3 +1,5 @@
+//! Module containing the Dex file header.
+
 use std::path::Path;
 use std::{fmt, fs, u32};
 use std::io::{BufReader, Read};
@@ -6,9 +8,10 @@ use byteorder::{LittleEndian, BigEndian, ByteOrder, ReadBytesExt};
 
 use error::*;
 use sizes::*;
-use offset_map::{OffsetMap, OffsetType};
 
+/// Endianness constant representing little endian file.
 pub const ENDIAN_CONSTANT: u32 = 0x12345678;
+/// Endianness constant representing big endian file.
 pub const REVERSE_ENDIAN_CONSTANT: u32 = 0x78563412;
 
 /// Dex header representantion structure.
@@ -19,7 +22,7 @@ pub struct Header {
     file_size: u32,
     header_size: u32,
     endian_tag: u32,
-    link_size: Option<u32>,
+    link_size: u32,
     link_offset: Option<u32>,
     map_offset: u32,
     string_ids_size: u32,
@@ -42,25 +45,27 @@ impl Header {
     /// Obtains the header from a Dex file.
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Header> {
         let f = fs::File::open(path).chain_err(|| "could not open file")?;
-        let file_size = f.metadata().chain_err(|| "could not read file metadata")?.len();
+        let file_size = f.metadata()
+            .chain_err(|| "could not read file metadata")?
+            .len();
         if file_size < HEADER_SIZE as u64 || file_size > (u32::MAX as u64) {
             return Err(ErrorKind::InvalidFileSize(file_size).into());
         }
         let header = Header::from_reader(BufReader::new(f)).chain_err(|| {
-                ErrorKind::Header("there was an error reading the header of the dex file"
-                    .to_owned())
-            })?;
-        if file_size != header.get_file_size() as u64 {
-            Err(ErrorKind::HeaderFileSizeMismatch(file_size, header.get_file_size()).into())
-        } else {
+                           ErrorKind::Header("there was an error reading the header of the dex file"
+                                                 .to_owned())
+                       })?;
+        if file_size == header.get_file_size() as u64 {
             Ok(header)
+        } else {
+            Err(ErrorKind::HeaderFileSizeMismatch(file_size, header.get_file_size()).into())
         }
     }
 
     /// Obtains the header from a Dex file reader.
     pub fn from_reader<R: Read>(mut reader: R) -> Result<Header> {
         // Magic number
-        let mut magic = [0u8; 8];
+        let mut magic = [0_u8; 8];
         reader.read_exact(&mut magic).chain_err(|| "could not read dex magic number")?;
         if !Header::is_magic_valid(&magic) {
             return Err(ErrorKind::IncorrectMagic(magic).into());
@@ -69,9 +74,8 @@ impl Header {
         let mut checksum = reader.read_u32::<LittleEndian>()
             .chain_err(|| "could not read file checksum")?;
         // Signature
-        let mut signature = [0u8; 20];
-        reader.read_exact(&mut signature)
-            .chain_err(|| "could not read file signature")?;
+        let mut signature = [0_u8; 20];
+        reader.read_exact(&mut signature).chain_err(|| "could not read file signature")?;
         // File size
         let mut file_size = reader.read_u32::<LittleEndian>()
             .chain_err(|| "could not read file size")?;
@@ -124,11 +128,15 @@ impl Header {
                                         header_size: u32,
                                         endian_tag: u32)
                                         -> Result<Header> {
+        #[inline]
+        fn some_if(x: u32, b: bool) -> Option<u32> {
+            if b { Some(x) } else { None }
+        }
         let mut current_offset = HEADER_SIZE;
 
         // Link size
-        let link_size = reader.read_u32::<E>()
-            .chain_err(|| "could not read the link section size")?;
+        let link_size =
+            reader.read_u32::<E>().chain_err(|| "could not read the link section size")?;
         // Link offset
         let link_offset = reader.read_u32::<E>()
             .chain_err(|| "could not read the link section offset")?;
@@ -142,8 +150,8 @@ impl Header {
         if map_offset == 0x00000000 {
             return Err(ErrorKind::InvalidOffset("`map_offset` was 0x00000000, and it can never \
                                                  be zero"
-                    .to_owned())
-                .into());
+                                                        .to_owned())
+                               .into());
         }
 
         // String IDs size
@@ -156,11 +164,11 @@ impl Header {
             return Err(ErrorKind::MismatchedOffsets("string_ids_offset",
                                                     string_ids_offset,
                                                     HEADER_SIZE)
-                .into());
+                               .into());
         }
         if string_ids_size == 0 && string_ids_offset != 0 {
             return Err(ErrorKind::MismatchedOffsets("string_ids_offset", string_ids_offset, 0)
-                .into());
+                           .into());
         }
         current_offset += string_ids_size * STRING_ID_ITEM_SIZE;
 
@@ -174,7 +182,7 @@ impl Header {
             return Err(ErrorKind::MismatchedOffsets("type_ids_offset",
                                                     type_ids_offset,
                                                     current_offset)
-                .into());
+                               .into());
         }
         if type_ids_size == 0 && type_ids_offset != 0 {
             return Err(ErrorKind::MismatchedOffsets("type_ids_offset", type_ids_offset, 0).into());
@@ -185,19 +193,19 @@ impl Header {
         let prototype_ids_size = reader.read_u32::<E>()
             .chain_err(|| "could not read the prototype IDs list size")?;
         // Prototype IDs offset
-        let prototype_ids_offset = reader.read_u32::<E>()
-            .chain_err(|| "could not read the prototype IDs list offset")?;
+        let prototype_ids_offset =
+            reader.read_u32::<E>().chain_err(|| "could not read the prototype IDs list offset")?;
         if prototype_ids_size > 0 && prototype_ids_offset != current_offset {
             return Err(ErrorKind::MismatchedOffsets("prototype_ids_offset",
                                                     prototype_ids_offset,
                                                     current_offset)
-                .into());
+                               .into());
         }
         if prototype_ids_size == 0 && prototype_ids_offset != 0 {
             return Err(ErrorKind::MismatchedOffsets("prototype_ids_offset",
                                                     prototype_ids_offset,
                                                     0)
-                .into());
+                               .into());
         }
         current_offset += prototype_ids_size * PROTO_ID_ITEM_SIZE;
 
@@ -211,11 +219,11 @@ impl Header {
             return Err(ErrorKind::MismatchedOffsets("field_ids_offset",
                                                     field_ids_offset,
                                                     current_offset)
-                .into());
+                               .into());
         }
         if field_ids_size == 0 && field_ids_offset != 0 {
             return Err(ErrorKind::MismatchedOffsets("field_ids_offset", field_ids_offset, 0)
-                .into());
+                           .into());
         }
         current_offset += field_ids_size * FIELD_ID_ITEM_SIZE;
 
@@ -229,11 +237,11 @@ impl Header {
             return Err(ErrorKind::MismatchedOffsets("method_ids_offset",
                                                     method_ids_offset,
                                                     current_offset)
-                .into());
+                               .into());
         }
         if method_ids_size == 0 && method_ids_offset != 0 {
             return Err(ErrorKind::MismatchedOffsets("method_ids_offset", method_ids_offset, 0)
-                .into());
+                           .into());
         }
         current_offset += method_ids_size * METHOD_ID_ITEM_SIZE;
 
@@ -247,22 +255,22 @@ impl Header {
             return Err(ErrorKind::MismatchedOffsets("class_defs_offset",
                                                     class_defs_offset,
                                                     current_offset)
-                .into());
+                               .into());
         }
         if class_defs_size == 0 && class_defs_offset != 0 {
             return Err(ErrorKind::MismatchedOffsets("class_defs_offset", class_defs_offset, 0)
-                .into());
+                           .into());
         }
         current_offset += class_defs_size * CLASS_DEF_ITEM_SIZE;
 
         // Data size
-        let data_size = reader.read_u32::<E>()
-            .chain_err(|| "could not read the data section size")?;
+        let data_size =
+            reader.read_u32::<E>().chain_err(|| "could not read the data section size")?;
         if data_size & 0b11 != 0 {
             return Err(ErrorKind::Header(format!("`data_size` must be a 4-byte multiple, but \
                                                   it was {:#010x}",
                                                  data_size))
-                .into());
+                               .into());
         }
 
         // Data offset
@@ -285,7 +293,7 @@ impl Header {
                                                         data_offset,
                                                         current_offset,
                                                         map_offset))
-                .into());
+                               .into());
         }
         if link_size == 0 && current_offset != file_size {
             return Err(ErrorKind::Header(format!("`data` section must end at the EOF if there \
@@ -293,7 +301,7 @@ impl Header {
                                                   {:#010x}, `file_size`: {:#010x}",
                                                  current_offset,
                                                  file_size))
-                .into());
+                               .into());
 
         }
         if link_size != 0 && link_offset == 0 {
@@ -304,46 +312,41 @@ impl Header {
                 return Err(ErrorKind::MismatchedOffsets("link_offset",
                                                         link_offset,
                                                         current_offset)
-                    .into());
+                                   .into());
             }
             if link_offset + link_size != file_size {
                 return Err(ErrorKind::Header("`link_data` section must end at the end \
                                                        of file"
-                        .to_owned())
-                    .into());
+                                                     .to_owned())
+                                   .into());
             }
         }
 
-        #[inline]
-        fn some_if(x: u32, b: bool) -> Option<u32> {
-            if b { Some(x) } else { None }
-        }
-
         Ok(Header {
-            magic: magic,
-            checksum: checksum,
-            signature: signature,
-            file_size: file_size,
-            header_size: header_size,
-            endian_tag: endian_tag,
-            link_size: some_if(link_size, link_size != 0),
-            link_offset: some_if(link_offset, link_offset != 0),
-            map_offset: map_offset,
-            string_ids_size: string_ids_size,
-            string_ids_offset: some_if(string_ids_offset, string_ids_offset > 0),
-            type_ids_size: type_ids_size,
-            type_ids_offset: some_if(type_ids_offset, type_ids_offset > 0),
-            prototype_ids_size: prototype_ids_size,
-            prototype_ids_offset: some_if(prototype_ids_offset, prototype_ids_size > 0),
-            field_ids_size: field_ids_size,
-            field_ids_offset: some_if(field_ids_offset, field_ids_size > 0),
-            method_ids_size: method_ids_size,
-            method_ids_offset: some_if(method_ids_offset, method_ids_size > 0),
-            class_defs_size: class_defs_size,
-            class_defs_offset: some_if(class_defs_offset, class_defs_size > 0),
-            data_size: data_size,
-            data_offset: data_offset,
-        })
+               magic: magic,
+               checksum: checksum,
+               signature: signature,
+               file_size: file_size,
+               header_size: header_size,
+               endian_tag: endian_tag,
+               link_size: link_size,
+               link_offset: some_if(link_offset, link_offset != 0),
+               map_offset: map_offset,
+               string_ids_size: string_ids_size,
+               string_ids_offset: some_if(string_ids_offset, string_ids_offset > 0),
+               type_ids_size: type_ids_size,
+               type_ids_offset: some_if(type_ids_offset, type_ids_offset > 0),
+               prototype_ids_size: prototype_ids_size,
+               prototype_ids_offset: some_if(prototype_ids_offset, prototype_ids_size > 0),
+               field_ids_size: field_ids_size,
+               field_ids_offset: some_if(field_ids_offset, field_ids_size > 0),
+               method_ids_size: method_ids_size,
+               method_ids_offset: some_if(method_ids_offset, method_ids_size > 0),
+               class_defs_size: class_defs_size,
+               class_defs_offset: some_if(class_defs_offset, class_defs_size > 0),
+               data_size: data_size,
+               data_offset: data_offset,
+           })
     }
 
     /// Checks if the dex magic number given is valid.
@@ -403,11 +406,8 @@ impl Header {
     }
 
     /// Gets the link section size
-    pub fn get_link_size(&self) -> Option<usize> {
-        match self.link_size {
-            Some(s) => Some(s as usize),
-            None => None,
-        }
+    pub fn get_link_size(&self) -> u32 {
+        self.link_size
     }
 
     /// Gets the link section offset.
@@ -421,8 +421,8 @@ impl Header {
     }
 
     /// Gets the string IDs list size.
-    pub fn get_string_ids_size(&self) -> usize {
-        self.string_ids_size as usize
+    pub fn get_string_ids_size(&self) -> u32 {
+        self.string_ids_size
     }
 
     /// Gets the string IDs list offset.
@@ -431,8 +431,8 @@ impl Header {
     }
 
     /// Gets the type IDs list size.
-    pub fn get_type_ids_size(&self) -> usize {
-        self.type_ids_size as usize
+    pub fn get_type_ids_size(&self) -> u32 {
+        self.type_ids_size
     }
 
     /// Gets the type IDs list offset.
@@ -441,8 +441,8 @@ impl Header {
     }
 
     /// Gets the prototype IDs list size.
-    pub fn get_prototype_ids_size(&self) -> usize {
-        self.prototype_ids_size as usize
+    pub fn get_prototype_ids_size(&self) -> u32 {
+        self.prototype_ids_size
     }
 
     /// Gets the prototype IDs list offset.
@@ -451,8 +451,8 @@ impl Header {
     }
 
     /// Gets the field IDs list size.
-    pub fn get_field_ids_size(&self) -> usize {
-        self.field_ids_size as usize
+    pub fn get_field_ids_size(&self) -> u32 {
+        self.field_ids_size
     }
 
     /// Gets the field IDs list offset.
@@ -461,8 +461,8 @@ impl Header {
     }
 
     /// Gets the method IDs list size.
-    pub fn get_method_ids_size(&self) -> usize {
-        self.method_ids_size as usize
+    pub fn get_method_ids_size(&self) -> u32 {
+        self.method_ids_size
     }
 
     /// Gets the method IDs list offset.
@@ -471,8 +471,8 @@ impl Header {
     }
 
     /// Gets the class definition list size.
-    pub fn get_class_defs_size(&self) -> usize {
-        self.class_defs_size as usize
+    pub fn get_class_defs_size(&self) -> u32 {
+        self.class_defs_size
     }
 
     /// Gets the class definition list offset.
@@ -481,8 +481,8 @@ impl Header {
     }
 
     /// Gets the data section size.
-    pub fn get_data_size(&self) -> usize {
-        self.data_size as usize
+    pub fn get_data_size(&self) -> u32 {
+        self.data_size
     }
 
     /// Gets the data secrion offset.
@@ -490,44 +490,17 @@ impl Header {
         self.data_offset
     }
 
-    pub fn generate_offset_map(&self) -> OffsetMap {
-        let mut offset_map = OffsetMap::with_capacity(7 + self.string_ids_size as usize +
-                                                      self.prototype_ids_size as usize +
-                                                      self.class_defs_size as usize * 4);
-        if let Some(offset) = self.string_ids_offset {
-            offset_map.insert(offset, OffsetType::StringIdList);
-        }
-        if let Some(offset) = self.type_ids_offset {
-            offset_map.insert(offset, OffsetType::TypeIdList);
-        }
-        if let Some(offset) = self.prototype_ids_offset {
-            offset_map.insert(offset, OffsetType::PrototypeIdList);
-        }
-        if let Some(offset) = self.field_ids_offset {
-            offset_map.insert(offset, OffsetType::FieldIdList);
-        }
-        if let Some(offset) = self.method_ids_offset {
-            offset_map.insert(offset, OffsetType::MethodIdList);
-        }
-        if let Some(offset) = self.class_defs_offset {
-            offset_map.insert(offset, OffsetType::ClassDefList);
-        }
-        offset_map.insert(self.map_offset, OffsetType::Map);
-
-        offset_map
-    }
-
-    /// Verifies the file at the given path.
-    pub fn verify_file<P: AsRef<Path>>(&self, path: P) -> bool {
-        unimplemented!()
-    }
-
-    /// Verifies the file in the given reader.
-    ///
-    /// The reader should be positioned at the start of the file.
-    pub fn verify_reader<R: Read>(&self, mut reader: R) -> bool {
-        unimplemented!()
-    }
+    // /// Verifies the file at the given path.
+    // pub fn verify_file<P: AsRef<Path>>(&self, path: P) -> bool {
+    //     unimplemented!() // TODO
+    // }
+    //
+    // /// Verifies the file in the given reader.
+    // ///
+    // /// The reader should be positioned at the start of the file.
+    // pub fn verify_reader<R: Read>(&self, mut reader: R) -> bool {
+    //     unimplemented!() // TODO
+    // }
 }
 
 impl fmt::Debug for Header {
@@ -561,53 +534,53 @@ impl fmt::Debug for Header {
                } else {
                    "big"
                },
-               if self.link_size.is_some() {
+               if let Some(off) = self.link_offset {
                    format!("link_size: {} bytes, link_offset: {:#x}",
-                           self.link_size.unwrap(),
-                           self.link_offset.unwrap())
+                           self.link_size,
+                           off)
                } else {
                    String::from("no link section")
                },
                self.map_offset,
-               if self.string_ids_size > 0 {
+               if let Some(off) = self.string_ids_offset {
                    format!("string_ids_size: {} strings, string_ids_offset: {:#x}",
                            self.string_ids_size,
-                           self.string_ids_offset.unwrap())
+                           off)
                } else {
                    String::from("no strings")
                },
-               if self.type_ids_size > 0 {
+               if let Some(off) = self.type_ids_offset {
                    format!("type_ids_size: {} types, type_ids_offset: {:#x}",
                            self.type_ids_size,
-                           self.type_ids_offset.unwrap())
+                           off)
                } else {
                    String::from("no types")
                },
-               if self.prototype_ids_size > 0 {
+               if let Some(off) = self.prototype_ids_offset {
                    format!("prototype_ids_size: {} types, prototype_ids_offset: {:#x}",
                            self.prototype_ids_size,
-                           self.prototype_ids_offset.unwrap())
+                           off)
                } else {
                    String::from("no prototypes")
                },
-               if self.field_ids_size > 0 {
+               if let Some(off) = self.field_ids_offset {
                    format!("field_ids_size: {} types, field_ids_offset: {:#x}",
                            self.field_ids_size,
-                           self.field_ids_offset.unwrap())
+                           off)
                } else {
                    String::from("no fields")
                },
-               if self.method_ids_size > 0 {
+               if let Some(off) = self.method_ids_offset {
                    format!("method_ids_size: {} types, method_ids_offset: {:#x}",
                            self.method_ids_size,
-                           self.method_ids_offset.unwrap())
+                           off)
                } else {
                    String::from("no methods")
                },
-               if self.class_defs_size > 0 {
-                   format!("class_defs_size: {} types, class_defs_offset: {:#x}",
+               if let Some(off) = self.class_defs_offset {
+                   format!("class_defs_size: {} classes, class_defs_offset: {:#x}",
                            self.class_defs_size,
-                           self.class_defs_offset.unwrap())
+                           off)
                } else {
                    String::from("no classes")
                },

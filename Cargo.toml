@@ -13,9 +13,9 @@ keywords = ["dalvik", "parser", "android", "dex"]
 categories = ["parser-implementations"]
 
 [dependencies]
-byteorder = "^1.0"
-bitflags = "^0.8"
-error-chain = "^0.9"
+byteorder = "1.0"
+bitflags = "0.8"
+error-chain = "0.10"
 
 [features]
 default = []
