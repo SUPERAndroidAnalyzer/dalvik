@@ -12,6 +12,10 @@ Dalvik parser in pure Rust.
 keywords = ["dalvik", "parser", "android", "dex"]
 categories = ["parser-implementations"]
 
+[badges]
+travis-ci = { repository = "SUPERAndroidAnalyzer/dalvik", branch = "master" }
+appveyor = { repository = "Razican/dalvik", branch = "master", service = "github" }
+
 [dependencies]
 byteorder = "1.0"
 bitflags = "0.8"

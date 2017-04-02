@@ -58,7 +58,8 @@ impl DexReader {
         } else {
             Vec::new()
         };
-        file.read_to_end(&mut file_contents).chain_err(|| "could not read dex file contents")?;
+        file.read_to_end(&mut file_contents)
+            .chain_err(|| "could not read dex file contents")?;
         let mut cursor = Cursor::new(file_contents.into_boxed_slice());
         let header =
             Header::from_reader(&mut cursor).chain_err(|| "could not read dex file header")?;
@@ -99,27 +100,33 @@ impl DexReader {
     fn read_endian_data<B: ByteOrder>(&mut self) -> Result<()> {
         if let Some(offset) = self.header.get_string_ids_offset() {
             self.file_cursor.set_position(offset as u64);
-            self.read_string_list::<B>().chain_err(|| "could not read string list")?;
+            self.read_string_list::<B>()
+                .chain_err(|| "could not read string list")?;
         }
         if let Some(offset) = self.header.get_type_ids_offset() {
             self.file_cursor.set_position(offset as u64);
-            self.read_all_types::<B>().chain_err(|| "could not read type list")?;
+            self.read_all_types::<B>()
+                .chain_err(|| "could not read type list")?;
         }
         if let Some(offset) = self.header.get_prototype_ids_offset() {
             self.file_cursor.set_position(offset as u64);
-            self.read_prototype_list::<B>().chain_err(|| "could not read prototype list")?;
+            self.read_prototype_list::<B>()
+                .chain_err(|| "could not read prototype list")?;
         }
         if let Some(offset) = self.header.get_field_ids_offset() {
             self.file_cursor.set_position(offset as u64);
-            self.read_field_id_list::<B>().chain_err(|| "could not read field ID list")?;
+            self.read_field_id_list::<B>()
+                .chain_err(|| "could not read field ID list")?;
         }
         if let Some(offset) = self.header.get_method_ids_offset() {
             self.file_cursor.set_position(offset as u64);
-            self.read_method_id_list::<B>().chain_err(|| "could not read method ID list")?;
+            self.read_method_id_list::<B>()
+                .chain_err(|| "could not read method ID list")?;
         }
         if let Some(offset) = self.header.get_class_defs_offset() {
             self.file_cursor.set_position(offset as u64);
-            self.read_class_list::<B>().chain_err(|| "could not read class list")?;
+            self.read_class_list::<B>()
+                .chain_err(|| "could not read class list")?;
         }
 
         Ok(())
@@ -193,8 +200,7 @@ impl DexReader {
     fn read_prototype_list<B: ByteOrder>(&mut self) -> Result<()> {
         for _ in 0..self.header.get_prototype_ids_size() {
             let current_offset = self.file_cursor.position();
-            let prototype_id =
-                PrototypeIdData::from_reader::<_, B>(&mut self.file_cursor).chain_err(|| {
+            let prototype_id = PrototypeIdData::from_reader::<_, B>(&mut self.file_cursor).chain_err(|| {
                                format!("could not read prototype ID at offset {:#010x}",
                                        current_offset)
                            })?;
@@ -226,7 +232,8 @@ impl DexReader {
                             })?
                 .clone();
 
-            self.prototypes.push(Prototype::new(shorty_descriptor, return_type, parameters));
+            self.prototypes
+                .push(Prototype::new(shorty_descriptor, return_type, parameters));
         }
         Ok(())
     }
@@ -322,7 +329,8 @@ impl DexReader {
                 Some(ClassData::from_reader(&mut self.file_cursor).chain_err(|| {
                                         format!("could not read class data at offset {:#010x} for \
                                                  class at offset {:#010x}",
-                                                offset, class_offset)
+                                                offset,
+                                                class_offset)
                                     })?)
             } else {
                 None
@@ -338,14 +346,15 @@ impl DexReader {
             };
             self.file_cursor.set_position(new_offset);
 
-            self.classes.push(Class::new(class_def.class_index(),
-                                         class_def.access_flags(),
-                                         class_def.superclass_index(),
-                                         interfaces,
-                                         class_def.source_file_index(),
-                                         annotations,
-                                         class_data,
-                                         static_values));
+            self.classes
+                .push(Class::new(class_def.class_index(),
+                                 class_def.access_flags(),
+                                 class_def.superclass_index(),
+                                 interfaces,
+                                 class_def.source_file_index(),
+                                 annotations,
+                                 class_data,
+                                 static_values));
         }
 
         Ok(())
@@ -361,7 +370,8 @@ impl DexReader {
 
         let class_annotations = if let Some(off) = read.class_annotations_offset() {
             self.file_cursor.set_position(off as u64);
-            self.read_annotation_set::<B>().chain_err(|| "could not read class annotations set")?
+            self.read_annotation_set::<B>()
+                .chain_err(|| "could not read class annotations set")?
         } else {
             Vec::new().into_boxed_slice()
         };

@@ -66,7 +66,8 @@ impl Header {
     pub fn from_reader<R: Read>(mut reader: R) -> Result<Header> {
         // Magic number
         let mut magic = [0_u8; 8];
-        reader.read_exact(&mut magic).chain_err(|| "could not read dex magic number")?;
+        reader.read_exact(&mut magic)
+            .chain_err(|| "could not read dex magic number")?;
         if !Header::is_magic_valid(&magic) {
             return Err(ErrorKind::IncorrectMagic(magic).into());
         }
@@ -75,7 +76,8 @@ impl Header {
             .chain_err(|| "could not read file checksum")?;
         // Signature
         let mut signature = [0_u8; 20];
-        reader.read_exact(&mut signature).chain_err(|| "could not read file signature")?;
+        reader.read_exact(&mut signature)
+            .chain_err(|| "could not read file signature")?;
         // File size
         let mut file_size = reader.read_u32::<LittleEndian>()
             .chain_err(|| "could not read file size")?;
@@ -135,8 +137,8 @@ impl Header {
         let mut current_offset = HEADER_SIZE;
 
         // Link size
-        let link_size =
-            reader.read_u32::<E>().chain_err(|| "could not read the link section size")?;
+        let link_size = reader.read_u32::<E>()
+            .chain_err(|| "could not read the link section size")?;
         // Link offset
         let link_offset = reader.read_u32::<E>()
             .chain_err(|| "could not read the link section offset")?;
@@ -194,7 +196,8 @@ impl Header {
             .chain_err(|| "could not read the prototype IDs list size")?;
         // Prototype IDs offset
         let prototype_ids_offset =
-            reader.read_u32::<E>().chain_err(|| "could not read the prototype IDs list offset")?;
+            reader.read_u32::<E>()
+                .chain_err(|| "could not read the prototype IDs list offset")?;
         if prototype_ids_size > 0 && prototype_ids_offset != current_offset {
             return Err(ErrorKind::MismatchedOffsets("prototype_ids_offset",
                                                     prototype_ids_offset,
@@ -249,8 +252,9 @@ impl Header {
         let class_defs_size = reader.read_u32::<E>()
             .chain_err(|| "could not read the class definitions list size")?;
         // Class defs offset
-        let class_defs_offset = reader.read_u32::<E>()
-            .chain_err(|| "could not read the class definitions list offset")?;
+        let class_defs_offset =
+            reader.read_u32::<E>()
+                .chain_err(|| "could not read the class definitions list offset")?;
         if class_defs_size > 0 && class_defs_offset != current_offset {
             return Err(ErrorKind::MismatchedOffsets("class_defs_offset",
                                                     class_defs_offset,
@@ -264,8 +268,8 @@ impl Header {
         current_offset += class_defs_size * CLASS_DEF_ITEM_SIZE;
 
         // Data size
-        let data_size =
-            reader.read_u32::<E>().chain_err(|| "could not read the data section size")?;
+        let data_size = reader.read_u32::<E>()
+            .chain_err(|| "could not read the data section size")?;
         if data_size & 0b11 != 0 {
             return Err(ErrorKind::Header(format!("`data_size` must be a 4-byte multiple, but \
                                                   it was {:#010x}",
