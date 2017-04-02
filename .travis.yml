@@ -30,7 +30,7 @@ rust:
 before_script:
   - |
       if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
-        ( cargo install rustfmt || true );
+        ( cargo install rustfmt --force || true );
       fi
   - |
       if [[ "$TRAVIS_RUST_VERSION" == "nightly" ]]; then
