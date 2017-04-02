@@ -274,24 +274,24 @@ impl Visibility {
     }
 }
 
-const VALUE_BYTE: u8 = 0x00;
-const VALUE_SHORT: u8 = 0x02;
-const VALUE_CHAR: u8 = 0x03;
-const VALUE_INT: u8 = 0x04;
-const VALUE_LONG: u8 = 0x06;
-const VALUE_FLOAT: u8 = 0x10;
-const VALUE_DOUBLE: u8 = 0x11;
-const VALUE_METHOD_TYPE: u8 = 0x15;
-const VALUE_METHOD_HANDLE: u8 = 0x16;
-const VALUE_STRING: u8 = 0x17;
-const VALUE_TYPE: u8 = 0x18;
-const VALUE_FIELD: u8 = 0x19;
-const VALUE_METHOD: u8 = 0x1a;
-const VALUE_ENUM: u8 = 0x1b;
-const VALUE_ARRAY: u8 = 0x1c;
-const VALUE_ANNOTATION: u8 = 0x1d;
-const VALUE_NULL: u8 = 0x1e;
-const VALUE_BOOLEAN: u8 = 0x1f;
+pub const VALUE_BYTE: u8 = 0x00;
+pub const VALUE_SHORT: u8 = 0x02;
+pub const VALUE_CHAR: u8 = 0x03;
+pub const VALUE_INT: u8 = 0x04;
+pub const VALUE_LONG: u8 = 0x06;
+pub const VALUE_FLOAT: u8 = 0x10;
+pub const VALUE_DOUBLE: u8 = 0x11;
+pub const VALUE_METHOD_TYPE: u8 = 0x15;
+pub const VALUE_METHOD_HANDLE: u8 = 0x16;
+pub const VALUE_STRING: u8 = 0x17;
+pub const VALUE_TYPE: u8 = 0x18;
+pub const VALUE_FIELD: u8 = 0x19;
+pub const VALUE_METHOD: u8 = 0x1a;
+pub const VALUE_ENUM: u8 = 0x1b;
+pub const VALUE_ARRAY: u8 = 0x1c;
+pub const VALUE_ANNOTATION: u8 = 0x1d;
+pub const VALUE_NULL: u8 = 0x1e;
+pub const VALUE_BOOLEAN: u8 = 0x1f;
 
 impl Value {
     fn from_reader<R: Read>(reader: &mut R) -> Result<Value> {
