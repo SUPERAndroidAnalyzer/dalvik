@@ -1241,3 +1241,273 @@ impl HandlerInfo {
             read_t + read_a))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+    use types::Value;
+
+    #[test]
+    fn it_returns_error_if_value_type_is_not_valid() {
+        let raw = [0x01];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        assert!(value_result.is_err());
+        assert_eq!("invalid value", value_result.err().unwrap().description());
+    }
+
+    #[test]
+    fn it_can_decoder_a_byte_value() {
+        let raw = [VALUE_BYTE, 255];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Byte(res) => assert_eq!(res, -1),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_not_decode_a_byte_value_if_arg_is_not_zero() {
+        let raw = [VALUE_BYTE | 1 << 6, 45];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        assert!(value_result.is_err());
+        assert_eq!("invalid value", value_result.err().unwrap().description());
+    }
+
+    #[test]
+    fn it_can_decode_a_short_value_one_byte() {
+        let raw = [VALUE_SHORT, 255];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Short(res) => assert_eq!(res, -1),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_short_value_two_byte() {
+        let raw = [VALUE_SHORT | 1 << 5, 255, 45];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Short(res) => assert_eq!(res, 11775),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_not_decode_a_short_value_if_arg_is_more_than_1() {
+        let raw = [VALUE_SHORT | 1 << 6, 45, 67];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        assert!(value_result.is_err());
+        assert_eq!("invalid value", value_result.err().unwrap().description());
+    }
+
+    #[test]
+    fn it_can_decode_a_char_value_one_byte() {
+        let raw = [VALUE_CHAR, 255];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Char(res) => assert_eq!(res, 255),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_char_value_two_byte() {
+        let raw = [VALUE_CHAR | 1 << 5, 255, 45];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Char(res) => assert_eq!(res, 11775),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_not_decode_a_char_value_if_arg_is_more_than_1() {
+        let raw = [VALUE_CHAR | 1 << 6, 45, 67];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        assert!(value_result.is_err());
+        assert_eq!("invalid value", value_result.err().unwrap().description());
+    }
+
+    #[test]
+    fn it_can_decode_a_int_value_one_byte() {
+        let raw = [VALUE_INT, 127];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Int(res) => assert_eq!(res, 127),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_int_value_two_bytes() {
+        let raw = [VALUE_INT | 1 << 5, 254, 255];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Int(res) => assert_eq!(res, -2),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_int_value_three_bytes() {
+        let raw = [VALUE_INT | 2 << 5, 255, 45, 23];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Int(res) => assert_eq!(res, 1519103),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_int_value_four_byte() {
+        let raw = [VALUE_INT | 3 << 5, 255, 45, 255, 34];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Int(res) => assert_eq!(res, 587148799),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_not_decode_a_int_value_if_arg_is_more_than_3() {
+        let raw = [VALUE_INT | 4 << 5, 45, 67];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        assert!(value_result.is_err());
+        assert_eq!("invalid value", value_result.err().unwrap().description());
+    }
+
+    #[test]
+    fn it_can_decode_a_long_value_one_byte() {
+        let raw = [VALUE_LONG, 128];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Long(res) => assert_eq!(res, -128),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_long_value_two_bytes() {
+        let raw = [VALUE_LONG | 1 << 5, 254, 255];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Long(res) => assert_eq!(res, -2),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_long_value_three_bytes() {
+        let raw = [VALUE_LONG | 2 << 5, 1, 1, 1];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Long(res) => assert_eq!(res, 65793),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_long_value_four_byte() {
+        let raw = [VALUE_LONG | 3 << 5, 1, 2, 3, 4];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Long(res) => assert_eq!(res, 67305985),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_long_value_five_byte() {
+        let raw = [VALUE_LONG | 4 << 5, 255, 254, 253, 252, 251];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Long(res) => assert_eq!(res, -17230332161),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_long_value_six_byte() {
+        let raw = [VALUE_LONG | 5 << 5, 255, 1, 254, 2, 253, 3];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Long(res) => assert_eq!(res, 4385211810303),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_long_value_seven_byte() {
+        let raw = [VALUE_LONG | 6 << 5, 255, 0, 0, 0, 0, 0, 0];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Long(res) => assert_eq!(res, 255),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_long_value_eight_byte() {
+        let raw = [VALUE_LONG | 7 << 5, 0, 0, 0, 0, 1, 1, 1, 1];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Long(res) => assert_eq!(res, 72340172821233664),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_decode_a_float_value() {
+        let raw = [VALUE_FLOAT, 0, 0, 0, 0];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Float(res) => assert_eq!(res, 0.0),
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn it_can_not_decode_a_float_value_if_arg_is_more_than_4() {
+        let raw = [VALUE_FLOAT | 5 << 5, 0, 0, 0, 0];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        assert!(value_result.is_err());
+        assert_eq!("invalid value", value_result.err().unwrap().description());
+    }
+
+    #[test]
+    fn it_can_decode_a_double_value() {
+        let raw = [VALUE_DOUBLE | 7 << 5, 0, 0, 0, 0, 0, 0, 0, 0];
+        let value_result = Value::from_reader(&mut Cursor::new(raw));
+
+        match value_result.unwrap() {
+            Value::Double(res) => assert_eq!(res, 0.0),
+            _ => unreachable!(),
+        }
+    }
+}
