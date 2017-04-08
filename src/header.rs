@@ -51,7 +51,8 @@ impl Header {
         if file_size < HEADER_SIZE as u64 || file_size > (u32::MAX as u64) {
             return Err(ErrorKind::InvalidFileSize(file_size).into());
         }
-        let header = Header::from_reader(BufReader::new(f)).chain_err(|| {
+        let header = Header::from_reader(BufReader::new(f))
+            .chain_err(|| {
                            ErrorKind::Header("there was an error reading the header of the dex file"
                                                  .to_owned())
                        })?;
@@ -66,26 +67,32 @@ impl Header {
     pub fn from_reader<R: Read>(mut reader: R) -> Result<Header> {
         // Magic number
         let mut magic = [0_u8; 8];
-        reader.read_exact(&mut magic)
+        reader
+            .read_exact(&mut magic)
             .chain_err(|| "could not read dex magic number")?;
         if !Header::is_magic_valid(&magic) {
             return Err(ErrorKind::IncorrectMagic(magic).into());
         }
         // Checksum
-        let mut checksum = reader.read_u32::<LittleEndian>()
+        let mut checksum = reader
+            .read_u32::<LittleEndian>()
             .chain_err(|| "could not read file checksum")?;
         // Signature
         let mut signature = [0_u8; 20];
-        reader.read_exact(&mut signature)
+        reader
+            .read_exact(&mut signature)
             .chain_err(|| "could not read file signature")?;
         // File size
-        let mut file_size = reader.read_u32::<LittleEndian>()
+        let mut file_size = reader
+            .read_u32::<LittleEndian>()
             .chain_err(|| "could not read file size")?;
         // Header size
-        let mut header_size = reader.read_u32::<LittleEndian>()
+        let mut header_size = reader
+            .read_u32::<LittleEndian>()
             .chain_err(|| "could not read header size")?;
         // Endian tag
-        let endian_tag = reader.read_u32::<LittleEndian>()
+        let endian_tag = reader
+            .read_u32::<LittleEndian>()
             .chain_err(|| "could not read endian tag")?;
 
         // Check endianness
@@ -137,17 +144,20 @@ impl Header {
         let mut current_offset = HEADER_SIZE;
 
         // Link size
-        let link_size = reader.read_u32::<E>()
+        let link_size = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the link section size")?;
         // Link offset
-        let link_offset = reader.read_u32::<E>()
+        let link_offset = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the link section offset")?;
         if link_size == 0 && link_offset != 0 {
             return Err(ErrorKind::MismatchedOffsets("link_offset", link_offset, 0).into());
         }
 
         // Map offset
-        let map_offset = reader.read_u32::<E>()
+        let map_offset = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the map section offset")?;
         if map_offset == 0x00000000 {
             return Err(ErrorKind::InvalidOffset("`map_offset` was 0x00000000, and it can never \
@@ -157,10 +167,12 @@ impl Header {
         }
 
         // String IDs size
-        let string_ids_size = reader.read_u32::<E>()
+        let string_ids_size = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the string IDs list size")?;
         // String IDs offset
-        let string_ids_offset = reader.read_u32::<E>()
+        let string_ids_offset = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the string IDs list offset")?;
         if string_ids_size > 0 && string_ids_offset != current_offset {
             return Err(ErrorKind::MismatchedOffsets("string_ids_offset",
@@ -175,10 +187,12 @@ impl Header {
         current_offset += string_ids_size * STRING_ID_ITEM_SIZE;
 
         // Types IDs size
-        let type_ids_size = reader.read_u32::<E>()
+        let type_ids_size = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the type IDs list size")?;
         // Types IDs offset
-        let type_ids_offset = reader.read_u32::<E>()
+        let type_ids_offset = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the type IDs list offset")?;
         if type_ids_size > 0 && type_ids_offset != current_offset {
             return Err(ErrorKind::MismatchedOffsets("type_ids_offset",
@@ -192,11 +206,13 @@ impl Header {
         current_offset += type_ids_size * TYPE_ID_ITEM_SIZE;
 
         // Prototype IDs size
-        let prototype_ids_size = reader.read_u32::<E>()
+        let prototype_ids_size = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the prototype IDs list size")?;
         // Prototype IDs offset
         let prototype_ids_offset =
-            reader.read_u32::<E>()
+            reader
+                .read_u32::<E>()
                 .chain_err(|| "could not read the prototype IDs list offset")?;
         if prototype_ids_size > 0 && prototype_ids_offset != current_offset {
             return Err(ErrorKind::MismatchedOffsets("prototype_ids_offset",
@@ -213,10 +229,12 @@ impl Header {
         current_offset += prototype_ids_size * PROTO_ID_ITEM_SIZE;
 
         // Field IDs size
-        let field_ids_size = reader.read_u32::<E>()
+        let field_ids_size = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the field IDs list size")?;
         // Field IDs offset
-        let field_ids_offset = reader.read_u32::<E>()
+        let field_ids_offset = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the field IDs list offset")?;
         if field_ids_size > 0 && field_ids_offset != current_offset {
             return Err(ErrorKind::MismatchedOffsets("field_ids_offset",
@@ -231,10 +249,12 @@ impl Header {
         current_offset += field_ids_size * FIELD_ID_ITEM_SIZE;
 
         // Method IDs size
-        let method_ids_size = reader.read_u32::<E>()
+        let method_ids_size = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the method IDs list size")?;
         // Method IDs offset
-        let method_ids_offset = reader.read_u32::<E>()
+        let method_ids_offset = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the method IDs list offset")?;
         if method_ids_size > 0 && method_ids_offset != current_offset {
             return Err(ErrorKind::MismatchedOffsets("method_ids_offset",
@@ -249,11 +269,13 @@ impl Header {
         current_offset += method_ids_size * METHOD_ID_ITEM_SIZE;
 
         // Class defs size
-        let class_defs_size = reader.read_u32::<E>()
+        let class_defs_size = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the class definitions list size")?;
         // Class defs offset
         let class_defs_offset =
-            reader.read_u32::<E>()
+            reader
+                .read_u32::<E>()
                 .chain_err(|| "could not read the class definitions list offset")?;
         if class_defs_size > 0 && class_defs_offset != current_offset {
             return Err(ErrorKind::MismatchedOffsets("class_defs_offset",
@@ -268,7 +290,8 @@ impl Header {
         current_offset += class_defs_size * CLASS_DEF_ITEM_SIZE;
 
         // Data size
-        let data_size = reader.read_u32::<E>()
+        let data_size = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the data section size")?;
         if data_size & 0b11 != 0 {
             return Err(ErrorKind::Header(format!("`data_size` must be a 4-byte multiple, but \
@@ -278,7 +301,8 @@ impl Header {
         }
 
         // Data offset
-        let data_offset = reader.read_u32::<E>()
+        let data_offset = reader
+            .read_u32::<E>()
             .chain_err(|| "could not read the data section offset")?;
         if data_offset != current_offset {
             // return Err(Error::mismatched_offsets("data_offset", data_offset, current_offset));

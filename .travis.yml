@@ -48,11 +48,10 @@ script:
       if [[ "$TRAVIS_RUST_VERSION" == "nightly" && $CLIPPY ]]; then
         cargo clippy
       fi
-  # Removing format check for upstream issues.
-  # - |
-  #   if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
-  #     cargo fmt -- --write-mode=diff
-  #   fi
+  - |
+      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
+        cargo fmt -- --write-mode=diff
+      fi
 
 after_success:
   # Coverage report

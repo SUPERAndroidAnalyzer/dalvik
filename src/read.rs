@@ -61,8 +61,8 @@ impl DexReader {
         file.read_to_end(&mut file_contents)
             .chain_err(|| "could not read dex file contents")?;
         let mut cursor = Cursor::new(file_contents.into_boxed_slice());
-        let header =
-            Header::from_reader(&mut cursor).chain_err(|| "could not read dex file header")?;
+        let header = Header::from_reader(&mut cursor)
+            .chain_err(|| "could not read dex file header")?;
         let strings = Vec::with_capacity(header.get_string_ids_size() as usize);
         let types = Vec::with_capacity(header.get_type_ids_size() as usize);
         let prototypes = Vec::with_capacity(header.get_prototype_ids_size() as usize);
@@ -154,15 +154,16 @@ impl DexReader {
 
     /// Reads an actual string.
     fn read_string(&mut self) -> Result<String> {
-        let (size, _) =
-            read_uleb128(&mut self.file_cursor).chain_err(|| "could not read string size")?;
+        let (size, _) = read_uleb128(&mut self.file_cursor)
+            .chain_err(|| "could not read string size")?;
         let mut data = Vec::with_capacity(size as usize);
         if size > 0 {
             self.file_cursor.read_until(0, &mut data)?;
             data.pop();
         }
 
-        let string = String::from_utf8(data).chain_err(|| "error decoding UTF-8 from string data")?;
+        let string = String::from_utf8(data)
+            .chain_err(|| "error decoding UTF-8 from string data")?;
         let char_count = string.chars().count();
         if char_count == size as usize {
             Ok(string)
@@ -200,7 +201,8 @@ impl DexReader {
     fn read_prototype_list<B: ByteOrder>(&mut self) -> Result<()> {
         for _ in 0..self.header.get_prototype_ids_size() {
             let current_offset = self.file_cursor.position();
-            let prototype_id = PrototypeIdData::from_reader::<_, B>(&mut self.file_cursor).chain_err(|| {
+            let prototype_id = PrototypeIdData::from_reader::<_, B>(&mut self.file_cursor)
+                .chain_err(|| {
                                format!("could not read prototype ID at offset {:#010x}",
                                        current_offset)
                            })?;
@@ -271,7 +273,8 @@ impl DexReader {
         for _ in 0..self.header.get_field_ids_size() {
             let current_offset = self.file_cursor.position();
             self.field_ids
-                .push(FieldIdData::from_reader::<_, B>(&mut self.file_cursor).chain_err(|| {
+                .push(FieldIdData::from_reader::<_, B>(&mut self.file_cursor)
+                          .chain_err(|| {
                                          format!("could not read field ID at offset {:#010x}",
                                                  current_offset)
                                      })?);
@@ -285,7 +288,8 @@ impl DexReader {
         for _ in 0..self.header.get_method_ids_size() {
             let current_offset = self.file_cursor.position();
             self.method_ids
-                .push(MethodIdData::from_reader::<_, B>(&mut self.file_cursor).chain_err(|| {
+                .push(MethodIdData::from_reader::<_, B>(&mut self.file_cursor)
+                          .chain_err(|| {
                                          format!("could not read method ID at offset {:#010x}",
                                                  current_offset)
                                      })?);
@@ -298,7 +302,8 @@ impl DexReader {
     fn read_class_list<B: ByteOrder>(&mut self) -> Result<()> {
         for _ in 0..self.header.get_class_defs_size() {
             let class_offset = self.file_cursor.position();
-            let class_def = ClassDefData::from_reader::<_, B>(&mut self.file_cursor).chain_err(|| {
+            let class_def = ClassDefData::from_reader::<_, B>(&mut self.file_cursor)
+                .chain_err(|| {
                                format!("could not read class definition data at offset {:#010x}",
                                        class_offset)
                            })?;
@@ -326,7 +331,8 @@ impl DexReader {
             };
             let class_data = if let Some(offset) = class_def.class_data_offset() {
                 self.file_cursor.set_position(offset as u64);
-                Some(ClassData::from_reader(&mut self.file_cursor).chain_err(|| {
+                Some(ClassData::from_reader(&mut self.file_cursor)
+                         .chain_err(|| {
                                         format!("could not read class data at offset {:#010x} for \
                                                  class at offset {:#010x}",
                                                 offset,
@@ -337,7 +343,8 @@ impl DexReader {
             };
             let static_values = if let Some(offset) = class_def.static_values_offset() {
                 self.file_cursor.set_position(offset as u64);
-                Some(Array::from_reader(&mut self.file_cursor).chain_err(|| {
+                Some(Array::from_reader(&mut self.file_cursor)
+                         .chain_err(|| {
                                         format!("could not read encoded array at offset {:#010x}",
                                                 offset)
                                     })?)
@@ -363,7 +370,8 @@ impl DexReader {
     /// Reads an annotations directory.
     fn read_annotations_directory<B: ByteOrder>(&mut self) -> Result<AnnotationsDirectory> {
         let current_offset = self.file_cursor.position();
-        let read = AnnotationsDirectoryOffsets::from_reader::<_, B>(&mut self.file_cursor).chain_err(|| {
+        let read = AnnotationsDirectoryOffsets::from_reader::<_, B>(&mut self.file_cursor)
+            .chain_err(|| {
                            format!("could not read annotation directory at offset {:#010x}",
                                    current_offset)
                        })?;
@@ -434,7 +442,8 @@ impl DexReader {
     /// Reads an annotation.
     fn read_annotation(&mut self) -> Result<Annotation> {
         let current_offset = self.file_cursor.position();
-        let annotation = Annotation::from_reader(&mut self.file_cursor).chain_err(|| {
+        let annotation = Annotation::from_reader(&mut self.file_cursor)
+            .chain_err(|| {
                            format!("could not read annotation at offset {:#010x}", {
                     current_offset
                 })
