@@ -38,6 +38,7 @@ use std::io::BufReader;
 pub mod error;
 pub mod header;
 pub mod types;
+pub mod bytecode;
 
 mod sizes;
 mod read;
