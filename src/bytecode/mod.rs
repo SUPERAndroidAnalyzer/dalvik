@@ -5,35 +5,27 @@ use error::*;
 use std::fmt::Debug;
 
 #[derive(Debug)]
-pub enum OpCode {
+pub enum ByteCode {
     Nop,
+    Move(u8, u8),
+    MoveFrom16(u8, u16),
     ReturnVoid,
-
-    Unknown,
 }
 
-impl From<u8> for OpCode {
-    fn from(opcode: u8) -> Self {
-        match opcode {
-            0x00 => OpCode::Nop,
-            0x0e => OpCode::ReturnVoid,
-            _ => OpCode::Unknown,
+impl ToString for ByteCode {
+    fn to_string(&self) -> String {
+        match *self {
+            ByteCode::Nop => format!("nop"),
+            ByteCode::ReturnVoid => format!("return-void"),
+            ByteCode::Move(dest, source) => {
+                format!("move v{}, v{}", dest, source)
+            },
+            ByteCode::MoveFrom16(dest, source) => {
+                format!("move/from16 v{}, v{}", dest, source)
+            }
         }
     }
 }
-
-#[derive(Debug)]
-pub struct ByteCode {
-    opcode: OpCode,
-    format: Box<Format>,
-}
-
-trait Format: Debug {}
-
-// 10x
-#[derive(Debug)]
-struct Format10x;
-impl Format for Format10x {}
 
 pub struct ByteCodeDecoder<R: Read> {
     cursor: R,
@@ -46,18 +38,27 @@ impl<R: Read> ByteCodeDecoder<R> {
         }
     }
 
-    fn decode_instruction(&mut self, opcode: u8) -> Result<ByteCode> {
-        match opcode {
-            a @ 0x00 | a @ 0x0e => {
-                let oc = OpCode::from(a);
+    fn format10x(&mut self) -> Result<()> {
+        let current_byte = self.cursor.read_u8()?;
 
-                Ok(ByteCode {
-                    opcode: oc,
-                    format: Box::new(Format10x),
-                })
-            },
-            _ => Err("Opcode not registered".into()),
-        }
+        Ok(())
+    }
+
+    fn format12x(&mut self) -> Result<(u8, u8)> {
+        let current_byte = self.cursor.read_u8()?;
+
+        let high = (current_byte & 0xF0) >> 4;
+        let low = current_byte & 0xF;
+
+        Ok((high, low))
+    }
+
+    fn format22x(&mut self) -> Result<(u8, u16)> {
+        let dest = self.cursor.read_u8()?;
+        // TODO: Make byteorder generic
+        let source = self.cursor.read_u16::<LittleEndian>()?;
+
+        Ok((dest, source))
     }
 }
 
@@ -68,9 +69,18 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
         let byte = self.cursor.read_u8();
 
         match byte {
-            Ok(b) => {
-                self.decode_instruction(b).ok()
-            }
+            Ok(0x00) => {
+                self.format10x().ok().map(|_| ByteCode::Nop)
+            },
+            Ok(0x01) => {
+                self.format12x().ok().map(|(d, s)| ByteCode::Move(d, s))
+            },
+            Ok(0x02) => {
+                self.format22x().ok().map(|(d, s)| ByteCode::MoveFrom16(d, s))
+            },
+            Ok(0x0e) => {
+                self.format10x().ok().map(|_| ByteCode::ReturnVoid)
+            },
             _ => None,
         }
     }
@@ -85,9 +95,42 @@ mod tests {
         let raw_opcode:&[u8] = &[0x00, 0x00];
         let mut d = ByteCodeDecoder::new(raw_opcode);
 
-        let opcode = d.nth(0);
-        println!("{:?}", opcode);
+        let opcode = d.nth(0).unwrap();
 
-        panic!("AAA");
+        matches!(opcode, ByteCode::Nop);
+        assert_eq!("nop", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_return_void() {
+        let raw_opcode:&[u8] = &[0x0e, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        matches!(opcode, ByteCode::Nop);
+        assert_eq!("return-void", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_move() {
+        let raw_opcode:&[u8] = &[0x01, 0x3B];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        matches!(opcode, ByteCode::Move(d, s) if d == 0xB && s == 0x3);
+        assert_eq!("move v3, v11", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_move_from_16() {
+        let raw_opcode:&[u8] = &[0x02, 0xAA, 0x12, 0x34];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        matches!(opcode, ByteCode::MoveFrom16(d, s) if d == 0xAA && s == 0x3412);
+        assert_eq!("move/from16 v170, v13330", opcode.to_string());
     }
 }

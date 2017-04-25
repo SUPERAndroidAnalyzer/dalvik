@@ -29,6 +29,10 @@ extern crate bitflags;
 #[macro_use]
 extern crate error_chain;
 
+#[cfg(test)]
+#[macro_use] extern crate matches;
+
+
 use std::path::Path;
 use std::{fs, u32};
 use std::io::prelude::*;
