@@ -16,6 +16,10 @@ pub enum ByteCode {
     MoveObject(u8, u8),
     MoveObjectFrom16(u8, u16),
     MoveObject16(u16, u16),
+    MoveResult(u8),
+    MoveResultWide(u8),
+    MoveResultObject(u8),
+    MoveException(u8),
     ReturnVoid,
 }
 
@@ -51,6 +55,18 @@ impl ToString for ByteCode {
             ByteCode::MoveObject16(dest, source) => {
                 format!("move-object/16 v{}, v{}", dest, source)
             },
+            ByteCode::MoveResult(dest) => {
+                format!("move-result v{}", dest)
+            },
+            ByteCode::MoveResultWide(dest) => {
+                format!("move-result-wide v{}", dest)
+            },
+            ByteCode::MoveResultObject(dest) => {
+                format!("move-result-object v{}", dest)
+            },
+            ByteCode::MoveException(dest) => {
+                format!("move-exception v{}", dest)
+            },
         }
     }
 }
@@ -79,6 +95,10 @@ impl<R: Read> ByteCodeDecoder<R> {
         let low = current_byte & 0xF;
 
         Ok((high, low))
+    }
+
+    fn format11x(&mut self) -> Result<u8> {
+        Ok(self.cursor.read_u8()?)
     }
 
     fn format22x(&mut self) -> Result<(u8, u16)> {
@@ -135,7 +155,19 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             Ok(0x09) => {
                 self.format32x().ok().map(|(d, s)| ByteCode::MoveObject16(d, s))
             },
-            Ok(0x0e) => {
+            Ok(0x0A) => {
+                self.format11x().ok().map(|d| ByteCode::MoveResult(d))
+            },
+            Ok(0x0B) => {
+                self.format11x().ok().map(|d| ByteCode::MoveResultWide(d))
+            },
+            Ok(0x0C) => {
+                self.format11x().ok().map(|d| ByteCode::MoveResultObject(d))
+            },
+            Ok(0x0D) => {
+                self.format11x().ok().map(|d| ByteCode::MoveException(d))
+            },
+            Ok(0x0E) => {
                 self.format10x().ok().map(|_| ByteCode::ReturnVoid)
             },
             _ => None,
@@ -154,7 +186,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::Nop);
+        assert!(matches!(opcode, ByteCode::Nop));
         assert_eq!("nop", opcode.to_string());
     }
 
@@ -165,7 +197,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::Nop);
+        assert!(matches!(opcode, ByteCode::ReturnVoid));
         assert_eq!("return-void", opcode.to_string());
     }
 
@@ -176,7 +208,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::Move(d, s) if d == 0xB && s == 0x3);
+        assert!(matches!(opcode, ByteCode::Move(d, s) if d == 0x3 && s == 0xB));
         assert_eq!("move v3, v11", opcode.to_string());
     }
 
@@ -187,7 +219,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::MoveFrom16(d, s) if d == 0xAA && s == 0x3412);
+        assert!(matches!(opcode, ByteCode::MoveFrom16(d, s) if d == 0xAA && s == 0x3412));
         assert_eq!("move/from16 v170, v13330", opcode.to_string());
     }
 
@@ -198,7 +230,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::Move16(d, s) if d == 0x01AA && s == 0x3412);
+        assert!(matches!(opcode, ByteCode::Move16(d, s) if d == 0x01AA && s == 0x3412));
         assert_eq!("move/16 v426, v13330", opcode.to_string());
     }
 
@@ -209,7 +241,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::MoveWide(d, s) if d == 0xB && s == 0x3);
+        assert!(matches!(opcode, ByteCode::MoveWide(d, s) if d == 0x3 && s == 0xB));
         assert_eq!("move-wide v3, v11", opcode.to_string());
     }
 
@@ -220,7 +252,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::MoveWideFrom16(d, s) if d == 0xAA && s == 0x3412);
+        assert!(matches!(opcode, ByteCode::MoveWideFrom16(d, s) if d == 0xAA && s == 0x3412));
         assert_eq!("move-wide/from16 v170, v13330", opcode.to_string());
     }
 
@@ -231,7 +263,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::MoveWide16(d, s) if d == 0x01AA && s == 0x3412);
+        assert!(matches!(opcode, ByteCode::MoveWide16(d, s) if d == 0x01AA && s == 0x3412));
         assert_eq!("move-wide/16 v426, v13330", opcode.to_string());
     }
 
@@ -242,7 +274,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::MoveObject(d, s) if d == 0xB && s == 0x3);
+        assert!(matches!(opcode, ByteCode::MoveObject(d, s) if d == 0x3 && s == 0xB));
         assert_eq!("move-object v3, v11", opcode.to_string());
     }
 
@@ -253,7 +285,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::MoveObjectFrom16(d, s) if d == 0xAA && s == 0x3412);
+        assert!(matches!(opcode, ByteCode::MoveObjectFrom16(d, s) if d == 0xAA && s == 0x3412));
         assert_eq!("move-object/from16 v170, v13330", opcode.to_string());
     }
 
@@ -264,7 +296,51 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        matches!(opcode, ByteCode::MoveObject16(d, s) if d == 0x01AA && s == 0x3412);
+        assert!(matches!(opcode, ByteCode::MoveObject16(d, s) if d == 0x01AA && s == 0x3412));
         assert_eq!("move-object/16 v426, v13330", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_move_result() {
+        let raw_opcode:&[u8] = &[0x0A, 0x3B];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::MoveResult(d) if d == 0x3B));
+        assert_eq!("move-result v59", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_move_result_wide() {
+        let raw_opcode:&[u8] = &[0x0B, 0x12];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::MoveResultWide(d) if d == 0x12));
+        assert_eq!("move-result-wide v18", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_move_result_object() {
+        let raw_opcode:&[u8] = &[0x0C, 0xFF];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::MoveResultObject(d) if d == 0xFF));
+        assert_eq!("move-result-object v255", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_move_exception() {
+        let raw_opcode:&[u8] = &[0x0D, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::MoveException(d) if d == 0x00));
+        assert_eq!("move-exception v0", opcode.to_string());
     }
 }
