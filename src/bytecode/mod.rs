@@ -25,6 +25,7 @@ pub enum ByteCode {
     ReturnWide(u8),
     ReturnObject(u8),
     Const4(u8, i8),
+    Const16(u8, i16),
 }
 
 impl ToString for ByteCode {
@@ -82,7 +83,10 @@ impl ToString for ByteCode {
             },
             ByteCode::Const4(dest, literal) => {
                 format!("const/4 v{}, #{}", dest, literal)
-            }
+            },
+            ByteCode::Const16(dest, literal) => {
+                format!("const/16 v{}, #{}", dest, literal)
+            },
         }
     }
 }
@@ -104,15 +108,6 @@ impl<R: Read> ByteCodeDecoder<R> {
         Ok(())
     }
 
-    fn format12x(&mut self) -> Result<(u8, u8)> {
-        let current_byte = self.cursor.read_u8()?;
-
-        let source = (current_byte & 0xF0) >> 4;
-        let dest = current_byte & 0xF;
-
-        Ok((dest, source))
-    }
-
     fn format11x(&mut self) -> Result<u8> {
         Ok(self.cursor.read_u8()?)
     }
@@ -124,6 +119,23 @@ impl<R: Read> ByteCodeDecoder<R> {
         let register = current_byte & 0xF;
 
         Ok((register, literal))
+    }
+
+    fn format12x(&mut self) -> Result<(u8, u8)> {
+        let current_byte = self.cursor.read_u8()?;
+
+        let source = (current_byte & 0xF0) >> 4;
+        let dest = current_byte & 0xF;
+
+        Ok((dest, source))
+    }
+
+    fn format21s(&mut self) -> Result<(u8, i16)> {
+        let dest = self.cursor.read_u8()?;
+        // TODO: Make byteorder generic
+        let literal = self.cursor.read_i16::<LittleEndian>()?;
+
+        Ok((dest, literal))
     }
 
     fn format22x(&mut self) -> Result<(u8, u16)> {
@@ -206,6 +218,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x12) => {
                 self.format11n().ok().map(|(reg, lit)| ByteCode::Const4(reg, lit))
+            },
+            Ok(0x13) => {
+                self.format21s().ok().map(|(reg, lit)| ByteCode::Const16(reg, lit))
             },
             _ => None,
         }
@@ -434,5 +449,16 @@ mod tests {
 
         assert!(matches!(opcode, ByteCode::Const4(r, i) if r == 0x1 && i == 7));
         assert_eq!("const/4 v1, #7", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_const_16_neg() {
+        let raw_opcode:&[u8] = &[0x13, 0xF1, 0xFA, 0xFB];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::Const16(r, i) if r == 0xF1 && i == 0xFBFA));
+        assert_eq!("const/16 v241, #-1030", opcode.to_string());
     }
 }
