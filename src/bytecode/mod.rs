@@ -24,8 +24,9 @@ pub enum ByteCode {
     Return(u8),
     ReturnWide(u8),
     ReturnObject(u8),
-    Const4(u8, i8),
-    Const16(u8, i16),
+    Const4(u8, i32),
+    Const16(u8, i32),
+
 }
 
 impl ToString for ByteCode {
@@ -112,10 +113,10 @@ impl<R: Read> ByteCodeDecoder<R> {
         Ok(self.cursor.read_u8()?)
     }
 
-    fn format11n(&mut self) -> Result<(u8, i8)> {
+    fn format11n(&mut self) -> Result<(u8, i32)> {
         let current_byte = self.cursor.read_u8()?;
 
-        let literal = ((current_byte & 0xF0) as i8 >> 4) as i8;
+        let literal = ((current_byte & 0xF0) as i8 >> 4) as i32;
         let register = current_byte & 0xF;
 
         Ok((register, literal))
@@ -130,12 +131,12 @@ impl<R: Read> ByteCodeDecoder<R> {
         Ok((dest, source))
     }
 
-    fn format21s(&mut self) -> Result<(u8, i16)> {
+    fn format21s(&mut self) -> Result<(u8, i32)> {
         let dest = self.cursor.read_u8()?;
         // TODO: Make byteorder generic
         let literal = self.cursor.read_i16::<LittleEndian>()?;
 
-        Ok((dest, literal))
+        Ok((dest, literal as i32))
     }
 
     fn format22x(&mut self) -> Result<(u8, u16)> {
@@ -458,7 +459,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert!(matches!(opcode, ByteCode::Const16(r, i) if r == 0xF1 && i == 0xFBFA));
         assert_eq!("const/16 v241, #-1030", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Const16(r, i) if r == 0xF1 && i == -1030));
     }
 }
