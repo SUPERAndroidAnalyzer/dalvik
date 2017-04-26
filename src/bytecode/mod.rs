@@ -26,7 +26,8 @@ pub enum ByteCode {
     ReturnObject(u8),
     Const4(u8, i32),
     Const16(u8, i32),
-
+    Const(u8, i32),
+    ConstHigh16(u8, i32),
 }
 
 impl ToString for ByteCode {
@@ -88,6 +89,12 @@ impl ToString for ByteCode {
             ByteCode::Const16(dest, literal) => {
                 format!("const/16 v{}, #{}", dest, literal)
             },
+            ByteCode::Const(dest, literal) => {
+                format!("const v{}, #{}", dest, literal)
+            },
+            ByteCode::ConstHigh16(dest, literal) => {
+                format!("const/high16 v{}, #{}", dest, literal)
+            },
         }
     }
 }
@@ -139,12 +146,27 @@ impl<R: Read> ByteCodeDecoder<R> {
         Ok((dest, literal as i32))
     }
 
+    fn format21h(&mut self) -> Result<(u8, i32)> {
+        let dest = self.cursor.read_u8()?;
+        // TODO: Make byteorder generic
+        let literal = (self.cursor.read_i16::<LittleEndian>()? as i32) << 16;
+
+        Ok((dest, literal))
+    }
+
     fn format22x(&mut self) -> Result<(u8, u16)> {
         let dest = self.cursor.read_u8()?;
         // TODO: Make byteorder generic
         let source = self.cursor.read_u16::<LittleEndian>()?;
 
         Ok((dest, source))
+    }
+
+    fn format31i(&mut self) -> Result<(u8, i32)> {
+        let dest = self.cursor.read_u8()?;
+        let literal = self.cursor.read_i32::<LittleEndian>()?;
+
+        Ok((dest, literal))
     }
 
     fn format32x(&mut self) -> Result<(u16, u16)> {
@@ -222,6 +244,12 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x13) => {
                 self.format21s().ok().map(|(reg, lit)| ByteCode::Const16(reg, lit))
+            },
+            Ok(0x14) => {
+                self.format31i().ok().map(|(reg, lit)| ByteCode::Const(reg, lit))
+            },
+            Ok(0x15) => {
+                self.format21h().ok().map(|(reg, lit)| ByteCode::ConstHigh16(reg, lit))
             },
             _ => None,
         }
@@ -461,5 +489,27 @@ mod tests {
 
         assert_eq!("const/16 v241, #-1030", opcode.to_string());
         assert!(matches!(opcode, ByteCode::Const16(r, i) if r == 0xF1 && i == -1030));
+    }
+
+    #[test]
+    fn it_can_decode_const() {
+        let raw_opcode:&[u8] = &[0x14, 0x44, 0xFA, 0xFB, 0x00, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("const v68, #64506", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Const(r, i) if r == 0x44 && i == 64506));
+    }
+
+    #[test]
+    fn it_can_decode_const_high_16() {
+        let raw_opcode:&[u8] = &[0x15, 0x44, 0xFF, 0xFF];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("const/high16 v68, #-65536", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::ConstHigh16(r, i) if r == 0x44 && i == -65536));
     }
 }
