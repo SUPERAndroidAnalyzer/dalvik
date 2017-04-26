@@ -24,6 +24,7 @@ pub enum ByteCode {
     Return(u8),
     ReturnWide(u8),
     ReturnObject(u8),
+    Const4(u8, i8),
 }
 
 impl ToString for ByteCode {
@@ -79,6 +80,9 @@ impl ToString for ByteCode {
             ByteCode::ReturnObject(dest) => {
                 format!("return-object v{}", dest)
             },
+            ByteCode::Const4(dest, literal) => {
+                format!("const/4 v{}, #{}", dest, literal)
+            }
         }
     }
 }
@@ -106,11 +110,21 @@ impl<R: Read> ByteCodeDecoder<R> {
         let high = (current_byte & 0xF0) >> 4;
         let low = current_byte & 0xF;
 
+        // TODO: Invert order on the callees
         Ok((high, low))
     }
 
     fn format11x(&mut self) -> Result<u8> {
         Ok(self.cursor.read_u8()?)
+    }
+
+    fn format11n(&mut self) -> Result<(u8, i8)> {
+        let current_byte = self.cursor.read_u8()?;
+
+        let literal = ((current_byte & 0xF0) as i8 >> 4) as i8;
+        let register = current_byte & 0xF;
+
+        Ok((register, literal))
     }
 
     fn format22x(&mut self) -> Result<(u8, u16)> {
@@ -190,6 +204,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x11) => {
                 self.format11x().ok().map(|d| ByteCode::ReturnObject(d))
+            },
+            Ok(0x12) => {
+                self.format11n().ok().map(|(reg, lit)| ByteCode::Const4(reg, lit))
             },
             _ => None,
         }
@@ -396,5 +413,27 @@ mod tests {
 
         assert!(matches!(opcode, ByteCode::ReturnObject(d) if d == 0x23));
         assert_eq!("return-object v35", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_const_4_neg() {
+        let raw_opcode:&[u8] = &[0x12, 0xF1];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::Const4(r, i) if r == 0x1 && i == -1));
+        assert_eq!("const/4 v1, #-1", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_const_4_pos() {
+        let raw_opcode:&[u8] = &[0x12, 0x71];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::Const4(r, i) if r == 0x1 && i == 7));
+        assert_eq!("const/4 v1, #7", opcode.to_string());
     }
 }
