@@ -21,13 +21,15 @@ pub enum ByteCode {
     MoveResultObject(u8),
     MoveException(u8),
     ReturnVoid,
+    Return(u8),
+    ReturnWide(u8),
+    ReturnObject(u8),
 }
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
         match *self {
             ByteCode::Nop => format!("nop"),
-            ByteCode::ReturnVoid => format!("return-void"),
             ByteCode::Move(dest, source) => {
                 format!("move v{}, v{}", dest, source)
             },
@@ -66,6 +68,16 @@ impl ToString for ByteCode {
             },
             ByteCode::MoveException(dest) => {
                 format!("move-exception v{}", dest)
+            },
+            ByteCode::ReturnVoid => format!("return-void"),
+            ByteCode::Return(dest) => {
+                format!("return v{}", dest)
+            },
+            ByteCode::ReturnWide(dest) => {
+                format!("return-wide v{}", dest)
+            },
+            ByteCode::ReturnObject(dest) => {
+                format!("return-object v{}", dest)
             },
         }
     }
@@ -169,6 +181,15 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x0E) => {
                 self.format10x().ok().map(|_| ByteCode::ReturnVoid)
+            },
+            Ok(0x0F) => {
+                self.format11x().ok().map(|d| ByteCode::Return(d))
+            },
+            Ok(0x10) => {
+                self.format11x().ok().map(|d| ByteCode::ReturnWide(d))
+            },
+            Ok(0x11) => {
+                self.format11x().ok().map(|d| ByteCode::ReturnObject(d))
             },
             _ => None,
         }
@@ -342,5 +363,38 @@ mod tests {
 
         assert!(matches!(opcode, ByteCode::MoveException(d) if d == 0x00));
         assert_eq!("move-exception v0", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_return() {
+        let raw_opcode:&[u8] = &[0x0F, 0x23];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::Return(d) if d == 0x23));
+        assert_eq!("return v35", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_return_wide() {
+        let raw_opcode:&[u8] = &[0x10, 0x23];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::ReturnWide(d) if d == 0x23));
+        assert_eq!("return-wide v35", opcode.to_string());
+    }
+
+    #[test]
+    fn it_can_decode_return_object() {
+        let raw_opcode:&[u8] = &[0x11, 0x23];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert!(matches!(opcode, ByteCode::ReturnObject(d) if d == 0x23));
+        assert_eq!("return-object v35", opcode.to_string());
     }
 }
