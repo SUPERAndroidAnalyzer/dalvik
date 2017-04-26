@@ -107,11 +107,10 @@ impl<R: Read> ByteCodeDecoder<R> {
     fn format12x(&mut self) -> Result<(u8, u8)> {
         let current_byte = self.cursor.read_u8()?;
 
-        let high = (current_byte & 0xF0) >> 4;
-        let low = current_byte & 0xF;
+        let source = (current_byte & 0xF0) >> 4;
+        let dest = current_byte & 0xF;
 
-        // TODO: Invert order on the callees
-        Ok((high, low))
+        Ok((dest, source))
     }
 
     fn format11x(&mut self) -> Result<u8> {
@@ -246,8 +245,8 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert!(matches!(opcode, ByteCode::Move(d, s) if d == 0x3 && s == 0xB));
-        assert_eq!("move v3, v11", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Move(d, s) if d == 0xB && s == 0x3));
+        assert_eq!("move v11, v3", opcode.to_string());
     }
 
     #[test]
@@ -279,8 +278,8 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert!(matches!(opcode, ByteCode::MoveWide(d, s) if d == 0x3 && s == 0xB));
-        assert_eq!("move-wide v3, v11", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::MoveWide(d, s) if d == 0xB && s == 0x3));
+        assert_eq!("move-wide v11, v3", opcode.to_string());
     }
 
     #[test]
@@ -312,8 +311,8 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert!(matches!(opcode, ByteCode::MoveObject(d, s) if d == 0x3 && s == 0xB));
-        assert_eq!("move-object v3, v11", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::MoveObject(d, s) if d == 0xB && s == 0x3));
+        assert_eq!("move-object v11, v3", opcode.to_string());
     }
 
     #[test]
