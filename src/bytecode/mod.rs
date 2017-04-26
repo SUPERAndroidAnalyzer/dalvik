@@ -29,6 +29,7 @@ pub enum ByteCode {
     Const(u8, i32),
     ConstHigh16(u8, i32),
     ConstWide16(u8, i64),
+    ConstWide32(u8, i64),
 }
 
 impl ToString for ByteCode {
@@ -98,6 +99,9 @@ impl ToString for ByteCode {
             },
             ByteCode::ConstWide16(dest, literal) => {
                 format!("const-wide/16 v{}, #{}", dest, literal)
+            },
+            ByteCode::ConstWide32(dest, literal) => {
+                format!("const-wide/32 v{}, #{}", dest, literal)
             },
         }
     }
@@ -257,6 +261,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x16) => {
                 self.format21s().ok().map(|(reg, lit)| ByteCode::ConstWide16(reg, lit as i64))
+            },
+            Ok(0x17) => {
+                self.format31i().ok().map(|(reg, lit)| ByteCode::ConstWide32(reg, lit as i64))
             },
             _ => None,
         }
@@ -529,5 +536,16 @@ mod tests {
 
         assert_eq!("const-wide/16 v68, #-1", opcode.to_string());
         assert!(matches!(opcode, ByteCode::ConstWide16(r, i) if r == 0x44 && i == -1));
+    }
+
+    #[test]
+    fn it_can_decode_const_wide_32() {
+        let raw_opcode:&[u8] = &[0x17, 0x44, 0xFF, 0xFF, 0x00, 0x11];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("const-wide/32 v68, #285278207", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::ConstWide32(r, i) if r == 0x44 && i == 285278207));
     }
 }
