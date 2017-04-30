@@ -33,9 +33,10 @@ pub enum ByteCode {
     ConstWide(u8, i64),
     ConstWideHigh16(u8, i64),
     ConstString(u8, StringReference),
+    ConstStringJumbo(u8, StringReference),
 }
 
-pub type StringReference = u16;
+pub type StringReference = u32;
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
@@ -116,7 +117,10 @@ impl ToString for ByteCode {
             },
             ByteCode::ConstString(dest, reference) => {
                 format!("const-string v{}, string@{}", dest, reference)
-            }
+            },
+            ByteCode::ConstStringJumbo(dest, reference) => {
+                format!("const-string/jumbo v{}, string@{}", dest, reference)
+            },
         }
     }
 }
@@ -205,6 +209,13 @@ impl<R: Read> ByteCodeDecoder<R> {
         let literal = self.cursor.read_i32::<LittleEndian>()?;
 
         Ok((dest, literal))
+    }
+
+    fn format31c(&mut self) -> Result<(u8, u32)> {
+        let dest = self.cursor.read_u8()?;
+        let reference = self.cursor.read_u32::<LittleEndian>()?;
+
+        Ok((dest, reference))
     }
 
     fn format32x(&mut self) -> Result<(u16, u16)> {
@@ -311,6 +322,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x1A) => {
                 self.format21c().ok().map(|(reg, reference)| ByteCode::ConstString(reg, reference as StringReference))
+            },
+            Ok(0x1B) => {
+                self.format31c().ok().map(|(reg, reference)| ByteCode::ConstStringJumbo(reg, reference as StringReference))
             },
             _ => None,
         }
@@ -627,5 +641,16 @@ mod tests {
 
         assert_eq!("const-string v1, string@65535", opcode.to_string());
         assert!(matches!(opcode, ByteCode::ConstString(r, i) if r == 1 && i == 65535 as StringReference));
+    }
+
+    #[test]
+    fn it_can_decode_const_string_jumbo() {
+        let raw_opcode:&[u8] = &[0x1B, 0x01, 0xFF, 0xFF, 0x00, 0x10];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("const-string/jumbo v1, string@268500991", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::ConstStringJumbo(r, i) if r == 1 && i == 268500991 as StringReference));
     }
 }
