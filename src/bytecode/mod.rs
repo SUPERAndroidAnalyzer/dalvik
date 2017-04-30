@@ -37,10 +37,12 @@ pub enum ByteCode {
     ConstClass(u8, ClassReference),
     MonitorEnter(u8),
     MonitorExit(u8),
+    CheckCast(u8, TypeReference),
 }
 
 pub type StringReference = u32;
 pub type ClassReference = u32;
+pub type TypeReference = u32;
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
@@ -133,6 +135,9 @@ impl ToString for ByteCode {
             },
             ByteCode::MonitorExit(reg) => {
                 format!("monitor-exit v{}", reg)
+            },
+            ByteCode::CheckCast(reg, reference) => {
+                format!("check-cast v{}, type@{}", reg, reference)
             },
         }
     }
@@ -347,6 +352,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x1E) => {
                 self.format11x().ok().map(|reg| ByteCode::MonitorExit(reg))
+            },
+            Ok(0x1F) => {
+                self.format21c().ok().map(|(reg, reference)| ByteCode::CheckCast(reg, reference as TypeReference))
             },
             _ => None,
         }
@@ -707,5 +715,16 @@ mod tests {
 
         assert_eq!("monitor-exit v9", opcode.to_string());
         assert!(matches!(opcode, ByteCode::MonitorExit(r) if r == 9));
+    }
+
+    #[test]
+    fn it_can_decode_check_cast() {
+        let raw_opcode:&[u8] = &[0x1F, 0x01, 0x11, 0x11];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("check-cast v1, type@4369", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::CheckCast(r, i) if r == 1 && i == 4369 as TypeReference));
     }
 }
