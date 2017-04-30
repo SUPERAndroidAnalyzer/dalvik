@@ -32,7 +32,10 @@ pub enum ByteCode {
     ConstWide32(u8, i64),
     ConstWide(u8, i64),
     ConstWideHigh16(u8, i64),
+    ConstString(u8, StringReference),
 }
+
+pub type StringReference = u16;
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
@@ -111,6 +114,9 @@ impl ToString for ByteCode {
             ByteCode::ConstWideHigh16(dest, literal) => {
                 format!("const-wide/high16 v{}, #{}", dest, literal)
             },
+            ByteCode::ConstString(dest, reference) => {
+                format!("const-string v{}, string@{}", dest, reference)
+            }
         }
     }
 }
@@ -174,6 +180,14 @@ impl<R: Read> ByteCodeDecoder<R> {
         let dest = self.cursor.read_u8()?;
         // TODO: Make byteorder generic
         let literal = (self.cursor.read_i16::<LittleEndian>()? as i64) << 48;
+
+        Ok((dest, literal))
+    }
+
+    fn format21c(&mut self) -> Result<(u8, u16)> {
+        let dest = self.cursor.read_u8()?;
+        // TODO: Make byteorder generic
+        let literal = self.cursor.read_u16::<LittleEndian>()?;
 
         Ok((dest, literal))
     }
@@ -294,6 +308,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x19) => {
                 self.format21hd().ok().map(|(reg, lit)| ByteCode::ConstWideHigh16(reg, lit))
+            },
+            Ok(0x1A) => {
+                self.format21c().ok().map(|(reg, reference)| ByteCode::ConstString(reg, reference as StringReference))
             },
             _ => None,
         }
@@ -599,5 +616,16 @@ mod tests {
 
         assert_eq!("const-wide/high16 v1, #-281474976710656", opcode.to_string());
         assert!(matches!(opcode, ByteCode::ConstWideHigh16(r, i) if r == 1 && i == -281474976710656));
+    }
+
+    #[test]
+    fn it_can_decode_const_string() {
+        let raw_opcode:&[u8] = &[0x1A, 0x01, 0xFF, 0xFF];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("const-string v1, string@65535", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::ConstString(r, i) if r == 1 && i == 65535 as StringReference));
     }
 }
