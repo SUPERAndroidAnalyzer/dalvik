@@ -35,6 +35,8 @@ pub enum ByteCode {
     ConstString(u8, StringReference),
     ConstStringJumbo(u8, StringReference),
     ConstClass(u8, ClassReference),
+    MonitorEnter(u8),
+    MonitorExit(u8),
 }
 
 pub type StringReference = u32;
@@ -125,6 +127,12 @@ impl ToString for ByteCode {
             },
             ByteCode::ConstClass(dest, reference) => {
                 format!("const-class v{}, class@{}", dest, reference)
+            },
+            ByteCode::MonitorEnter(reg) => {
+                format!("monitor-enter v{}", reg)
+            },
+            ByteCode::MonitorExit(reg) => {
+                format!("monitor-exit v{}", reg)
             },
         }
     }
@@ -333,6 +341,12 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x1C) => {
                 self.format21c().ok().map(|(reg, reference)| ByteCode::ConstClass(reg, reference as ClassReference))
+            },
+            Ok(0x1D) => {
+                self.format11x().ok().map(|reg| ByteCode::MonitorEnter(reg))
+            },
+            Ok(0x1E) => {
+                self.format11x().ok().map(|reg| ByteCode::MonitorExit(reg))
             },
             _ => None,
         }
@@ -671,5 +685,27 @@ mod tests {
 
         assert_eq!("const-class v1, class@4369", opcode.to_string());
         assert!(matches!(opcode, ByteCode::ConstClass(r, i) if r == 1 && i == 4369 as ClassReference));
+    }
+
+    #[test]
+    fn it_can_decode_monitor_enter() {
+        let raw_opcode:&[u8] = &[0x1D, 0x01];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("monitor-enter v1", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::MonitorEnter(r) if r == 1));
+    }
+
+    #[test]
+    fn it_can_decode_monitor_exit() {
+        let raw_opcode:&[u8] = &[0x1E, 0x9];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("monitor-exit v9", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::MonitorExit(r) if r == 9));
     }
 }
