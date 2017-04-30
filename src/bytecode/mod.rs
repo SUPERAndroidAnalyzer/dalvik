@@ -31,6 +31,7 @@ pub enum ByteCode {
     ConstWide16(u8, i64),
     ConstWide32(u8, i64),
     ConstWide(u8, i64),
+    ConstWideHigh16(u8, i64),
 }
 
 impl ToString for ByteCode {
@@ -107,6 +108,9 @@ impl ToString for ByteCode {
             ByteCode::ConstWide(dest, literal) => {
                 format!("const-wide v{}, #{}", dest, literal)
             },
+            ByteCode::ConstWideHigh16(dest, literal) => {
+                format!("const-wide/high16 v{}, #{}", dest, literal)
+            },
         }
     }
 }
@@ -158,10 +162,18 @@ impl<R: Read> ByteCodeDecoder<R> {
         Ok((dest, literal as i32))
     }
 
-    fn format21h(&mut self) -> Result<(u8, i32)> {
+    fn format21hw(&mut self) -> Result<(u8, i32)> {
         let dest = self.cursor.read_u8()?;
         // TODO: Make byteorder generic
         let literal = (self.cursor.read_i16::<LittleEndian>()? as i32) << 16;
+
+        Ok((dest, literal))
+    }
+
+    fn format21hd(&mut self) -> Result<(u8, i64)> {
+        let dest = self.cursor.read_u8()?;
+        // TODO: Make byteorder generic
+        let literal = (self.cursor.read_i16::<LittleEndian>()? as i64) << 48;
 
         Ok((dest, literal))
     }
@@ -269,7 +281,7 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                 self.format31i().ok().map(|(reg, lit)| ByteCode::Const(reg, lit))
             },
             Ok(0x15) => {
-                self.format21h().ok().map(|(reg, lit)| ByteCode::ConstHigh16(reg, lit))
+                self.format21hw().ok().map(|(reg, lit)| ByteCode::ConstHigh16(reg, lit))
             },
             Ok(0x16) => {
                 self.format21s().ok().map(|(reg, lit)| ByteCode::ConstWide16(reg, lit as i64))
@@ -279,6 +291,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x18) => {
                 self.format51l().ok().map(|(reg, lit)| ByteCode::ConstWide(reg, lit))
+            },
+            Ok(0x19) => {
+                self.format21hd().ok().map(|(reg, lit)| ByteCode::ConstWideHigh16(reg, lit))
             },
             _ => None,
         }
@@ -573,5 +588,16 @@ mod tests {
 
         assert_eq!("const-wide v1, #72056786600853316", opcode.to_string());
         assert!(matches!(opcode, ByteCode::ConstWide(r, i) if r == 1 && i == 72056786600853316));
+    }
+
+    #[test]
+    fn it_can_decode_const_wide_high16() {
+        let raw_opcode:&[u8] = &[0x19, 0x01, 0xFF, 0xFF];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("const-wide/high16 v1, #-281474976710656", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::ConstWideHigh16(r, i) if r == 1 && i == -281474976710656));
     }
 }
