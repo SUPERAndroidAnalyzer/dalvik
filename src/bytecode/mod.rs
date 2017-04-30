@@ -41,6 +41,7 @@ pub enum ByteCode {
     InstanceOf(u8, u8, TypeReference),
     ArrayLength(u8, u8),
     NewInstance(u8, TypeReference),
+    NewArray(u8, u8, TypeReference),
 }
 
 pub type StringReference = u32;
@@ -150,6 +151,9 @@ impl ToString for ByteCode {
             },
             ByteCode::NewInstance(dest, reference) => {
                 format!("new-instance v{}, type@{}", dest, reference)
+            },
+            ByteCode::NewArray(dest, src, reference) => {
+                format!("new-array v{}, v{}, type@{}", dest, src, reference)
             },
         }
     }
@@ -388,6 +392,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x22) => {
                 self.format21c().ok().map(|(dest, reference)| ByteCode::NewInstance(dest, reference as TypeReference))
+            },
+            Ok(0x23) => {
+                self.format22c().ok().map(|(dest, size, reference)| ByteCode::NewArray(dest, size, reference as TypeReference))
             },
             _ => None,
         }
@@ -792,5 +799,16 @@ mod tests {
 
         assert_eq!("new-instance v0, type@32", opcode.to_string());
         assert!(matches!(opcode, ByteCode::NewInstance(d, reference) if d == 0 && reference == 32));
+    }
+
+    #[test]
+    fn it_can_decode_new_array() {
+        let raw_opcode:&[u8] = &[0x23, 0xA9, 0x20, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("new-array v9, v10, type@32", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::NewArray(d, s, reference) if d == 9 && s == 10 && reference == 32));
     }
 }
