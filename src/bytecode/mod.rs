@@ -30,6 +30,7 @@ pub enum ByteCode {
     ConstHigh16(u8, i32),
     ConstWide16(u8, i64),
     ConstWide32(u8, i64),
+    ConstWide(u8, i64),
 }
 
 impl ToString for ByteCode {
@@ -102,6 +103,9 @@ impl ToString for ByteCode {
             },
             ByteCode::ConstWide32(dest, literal) => {
                 format!("const-wide/32 v{}, #{}", dest, literal)
+            },
+            ByteCode::ConstWide(dest, literal) => {
+                format!("const-wide v{}, #{}", dest, literal)
             },
         }
     }
@@ -181,6 +185,14 @@ impl<R: Read> ByteCodeDecoder<R> {
         // TODO: Make byteorder generic
         let dest = self.cursor.read_u16::<LittleEndian>()?;
         let source = self.cursor.read_u16::<LittleEndian>()?;
+
+        Ok((dest, source))
+    }
+
+    fn format51l(&mut self) -> Result<(u8, i64)> {
+        // TODO: Make byteorder generic
+        let dest = self.cursor.read_u8()?;
+        let source = self.cursor.read_i64::<LittleEndian>()?;
 
         Ok((dest, source))
     }
@@ -264,6 +276,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x17) => {
                 self.format31i().ok().map(|(reg, lit)| ByteCode::ConstWide32(reg, lit as i64))
+            },
+            Ok(0x18) => {
+                self.format51l().ok().map(|(reg, lit)| ByteCode::ConstWide(reg, lit))
             },
             _ => None,
         }
@@ -547,5 +562,16 @@ mod tests {
 
         assert_eq!("const-wide/32 v68, #285278207", opcode.to_string());
         assert!(matches!(opcode, ByteCode::ConstWide32(r, i) if r == 0x44 && i == 285278207));
+    }
+
+    #[test]
+    fn it_can_decode_const_wide() {
+        let raw_opcode:&[u8] = &[0x18, 0x01, 0x44, 0xFF, 0xFF, 0x00, 0x44, 0xFF, 0xFF, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("const-wide v1, #72056786600853316", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::ConstWide(r, i) if r == 1 && i == 72056786600853316));
     }
 }
