@@ -38,6 +38,7 @@ pub enum ByteCode {
     MonitorEnter(u8),
     MonitorExit(u8),
     CheckCast(u8, TypeReference),
+    InstanceOf(u8, u8, TypeReference),
 }
 
 pub type StringReference = u32;
@@ -139,6 +140,9 @@ impl ToString for ByteCode {
             ByteCode::CheckCast(reg, reference) => {
                 format!("check-cast v{}, type@{}", reg, reference)
             },
+            ByteCode::InstanceOf(dest, src, reference) => {
+                format!("instance-of v{}, v{}, type@{}", dest, src, reference)
+            },
         }
     }
 }
@@ -212,6 +216,18 @@ impl<R: Read> ByteCodeDecoder<R> {
         let literal = self.cursor.read_u16::<LittleEndian>()?;
 
         Ok((dest, literal))
+    }
+
+    fn format22c(&mut self) -> Result<(u8, u8, u16)> {
+        let current_byte = self.cursor.read_u8()?;
+
+        let source = ((current_byte & 0xF0) as u8 >> 4) as u8;
+        let dest = current_byte & 0xF;
+
+        // TODO: Make byteorder generic
+        let reference = self.cursor.read_u16::<LittleEndian>()?;
+
+        Ok((dest, source, reference))
     }
 
     fn format22x(&mut self) -> Result<(u8, u16)> {
@@ -355,6 +371,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x1F) => {
                 self.format21c().ok().map(|(reg, reference)| ByteCode::CheckCast(reg, reference as TypeReference))
+            },
+            Ok(0x20) => {
+                self.format22c().ok().map(|(dest, src, reference)| ByteCode::InstanceOf(dest, src, reference as TypeReference))
             },
             _ => None,
         }
@@ -726,5 +745,16 @@ mod tests {
 
         assert_eq!("check-cast v1, type@4369", opcode.to_string());
         assert!(matches!(opcode, ByteCode::CheckCast(r, i) if r == 1 && i == 4369 as TypeReference));
+    }
+
+    #[test]
+    fn it_can_decode_instance_of() {
+        let raw_opcode:&[u8] = &[0x20, 0xA2, 0x11, 0x11];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("instance-of v2, v10, type@4369", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::InstanceOf(d, s, i) if d == 2 && s == 10 && i == 4369 as TypeReference));
     }
 }
