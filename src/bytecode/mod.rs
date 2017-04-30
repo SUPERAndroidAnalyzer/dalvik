@@ -34,9 +34,11 @@ pub enum ByteCode {
     ConstWideHigh16(u8, i64),
     ConstString(u8, StringReference),
     ConstStringJumbo(u8, StringReference),
+    ConstClass(u8, ClassReference),
 }
 
 pub type StringReference = u32;
+pub type ClassReference = u32;
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
@@ -120,6 +122,9 @@ impl ToString for ByteCode {
             },
             ByteCode::ConstStringJumbo(dest, reference) => {
                 format!("const-string/jumbo v{}, string@{}", dest, reference)
+            },
+            ByteCode::ConstClass(dest, reference) => {
+                format!("const-class v{}, class@{}", dest, reference)
             },
         }
     }
@@ -325,6 +330,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x1B) => {
                 self.format31c().ok().map(|(reg, reference)| ByteCode::ConstStringJumbo(reg, reference as StringReference))
+            },
+            Ok(0x1C) => {
+                self.format21c().ok().map(|(reg, reference)| ByteCode::ConstClass(reg, reference as ClassReference))
             },
             _ => None,
         }
@@ -652,5 +660,16 @@ mod tests {
 
         assert_eq!("const-string/jumbo v1, string@268500991", opcode.to_string());
         assert!(matches!(opcode, ByteCode::ConstStringJumbo(r, i) if r == 1 && i == 268500991 as StringReference));
+    }
+
+    #[test]
+    fn it_can_decode_const_class() {
+        let raw_opcode:&[u8] = &[0x1C, 0x01, 0x11, 0x11];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("const-class v1, class@4369", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::ConstClass(r, i) if r == 1 && i == 4369 as ClassReference));
     }
 }
