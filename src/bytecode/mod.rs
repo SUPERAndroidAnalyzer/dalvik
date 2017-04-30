@@ -39,6 +39,7 @@ pub enum ByteCode {
     MonitorExit(u8),
     CheckCast(u8, TypeReference),
     InstanceOf(u8, u8, TypeReference),
+    ArrayLength(u8, u8),
 }
 
 pub type StringReference = u32;
@@ -142,6 +143,9 @@ impl ToString for ByteCode {
             },
             ByteCode::InstanceOf(dest, src, reference) => {
                 format!("instance-of v{}, v{}, type@{}", dest, src, reference)
+            },
+            ByteCode::ArrayLength(dest, src) => {
+                format!("array-length v{}, v{}", dest, src)
             },
         }
     }
@@ -374,6 +378,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x20) => {
                 self.format22c().ok().map(|(dest, src, reference)| ByteCode::InstanceOf(dest, src, reference as TypeReference))
+            },
+            Ok(0x21) => {
+                self.format12x().ok().map(|(dest, src)| ByteCode::ArrayLength(dest, src))
             },
             _ => None,
         }
@@ -756,5 +763,16 @@ mod tests {
 
         assert_eq!("instance-of v2, v10, type@4369", opcode.to_string());
         assert!(matches!(opcode, ByteCode::InstanceOf(d, s, i) if d == 2 && s == 10 && i == 4369 as TypeReference));
+    }
+
+    #[test]
+    fn it_can_decode_array_length() {
+        let raw_opcode:&[u8] = &[0x21, 0x2A];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("array-length v10, v2", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::ArrayLength(d, s) if d == 10 && s == 2));
     }
 }
