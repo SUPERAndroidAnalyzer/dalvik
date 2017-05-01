@@ -44,7 +44,8 @@ pub enum ByteCode {
     NewArray(u8, u8, TypeReference),
     FilledNewArray(Vec<u8>, TypeReference),
     FilledNewArrayRange(u16, u8, TypeReference),
-    FillArrayData(u8, i32)
+    FillArrayData(u8, i32),
+    Throw(u8),
 }
 
 pub type StringReference = u32;
@@ -168,6 +169,9 @@ impl ToString for ByteCode {
             },
             ByteCode::FillArrayData(reg, offset) => {
                 format!("fill-array-data v{} {}", reg, offset)
+            },
+            ByteCode::Throw(reg) => {
+                format!("throw v{}", reg)
             },
         }
     }
@@ -475,6 +479,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x26) => {
                 self.format31t().ok().map(|(reg, offset)| ByteCode::FillArrayData(reg, offset))
+            },
+            Ok(0x27) => {
+                self.format11x().ok().map(|reg| ByteCode::Throw(reg))
             },
             _ => None,
         }
@@ -956,5 +963,16 @@ mod tests {
 
         assert_eq!("fill-array-data v18 -13426159", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FillArrayData(reg, offset) if reg == 18 && offset == -13426159));
+    }
+
+    #[test]
+    fn it_can_decode_throw() {
+        let raw_opcode:&[u8] = &[0x27, 0x12];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("throw v18", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Throw(reg) if reg == 18));
     }
 }
