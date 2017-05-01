@@ -44,6 +44,7 @@ pub enum ByteCode {
     NewArray(u8, u8, TypeReference),
     FilledNewArray(Vec<u8>, TypeReference),
     FilledNewArrayRange(u16, u8, TypeReference),
+    FillArrayData(u8, i32)
 }
 
 pub type StringReference = u32;
@@ -165,6 +166,9 @@ impl ToString for ByteCode {
                 let str_register: Vec<String> = (first_reg..(amount + 1) as u16).map(|r| format!("v{}", r)).collect();
                 format!("filled-new-array/range {{{}}} type@{}", str_register.join(", "), reference)
             },
+            ByteCode::FillArrayData(reg, offset) => {
+                format!("fill-array-data v{} {}", reg, offset)
+            },
         }
     }
 }
@@ -261,6 +265,13 @@ impl<R: Read> ByteCodeDecoder<R> {
     }
 
     fn format31i(&mut self) -> Result<(u8, i32)> {
+        let dest = self.cursor.read_u8()?;
+        let literal = self.cursor.read_i32::<LittleEndian>()?;
+
+        Ok((dest, literal))
+    }
+
+    fn format31t(&mut self) -> Result<(u8, i32)> {
         let dest = self.cursor.read_u8()?;
         let literal = self.cursor.read_i32::<LittleEndian>()?;
 
@@ -461,6 +472,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                     .map(|(first, amount, reference)| {
                         ByteCode::FilledNewArrayRange(first, amount, reference as TypeReference)
                     })
+            },
+            Ok(0x26) => {
+                self.format31t().ok().map(|(reg, offset)| ByteCode::FillArrayData(reg, offset))
             },
             _ => None,
         }
@@ -931,5 +945,16 @@ mod tests {
 
         assert_eq!("filled-new-array/range {v1, v2} type@8738", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FilledNewArrayRange(start, amount, reference) if start == 1 && amount == 2 && reference == 8738));
+    }
+
+    #[test]
+    fn it_can_decode_fill_array_data() {
+        let raw_opcode:&[u8] = &[0x26, 0x12, 0x11, 0x22, 0x33, 0xFF];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("fill-array-data v18 -13426159", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::FillArrayData(reg, offset) if reg == 18 && offset == -13426159));
     }
 }
