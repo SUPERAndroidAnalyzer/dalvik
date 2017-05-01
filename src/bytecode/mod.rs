@@ -48,6 +48,7 @@ pub enum ByteCode {
     Throw(u8),
     Goto(i8),
     Goto16(i16),
+    Goto32(i32),
 }
 
 pub type StringReference = u32;
@@ -181,6 +182,9 @@ impl ToString for ByteCode {
             ByteCode::Goto16(offset) => {
                 format!("goto/16 {}", offset)
             },
+            ByteCode::Goto32(offset) => {
+                format!("goto/32 {}", offset)
+            },
         }
     }
 }
@@ -286,6 +290,13 @@ impl<R: Read> ByteCodeDecoder<R> {
         let source = self.cursor.read_u16::<LittleEndian>()?;
 
         Ok((dest, source))
+    }
+
+    fn format30t(&mut self) -> Result<i32> {
+        let _ = self.cursor.read_u8()?;
+        let literal = self.cursor.read_i32::<LittleEndian>()?;
+
+        Ok(literal)
     }
 
     fn format31i(&mut self) -> Result<(u8, i32)> {
@@ -508,6 +519,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x29) => {
                 self.format20t().ok().map(|offset| ByteCode::Goto16(offset))
+            },
+            Ok(0x30) => {
+                self.format30t().ok().map(|offset| ByteCode::Goto32(offset))
             },
             _ => None,
         }
@@ -1022,5 +1036,16 @@ mod tests {
 
         assert_eq!("goto/16 1027", opcode.to_string());
         assert!(matches!(opcode, ByteCode::Goto16(offset) if offset == 1027));
+    }
+
+    #[test]
+    fn it_can_decode_goto32() {
+        let raw_opcode:&[u8] = &[0x30, 0x00, 0x03, 0x04, 0x05, 0x06];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("goto/32 100992003", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Goto32(offset) if offset == 100992003));
     }
 }
