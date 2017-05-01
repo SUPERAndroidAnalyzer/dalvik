@@ -53,6 +53,7 @@ pub enum ByteCode {
     SparseSwitch(u8, i32),
     Compare(CompareType, u8, u8, u8),
     If(TestType, u8, u8, i16),
+    If0(TestType, u8, i16),
 }
 
 #[derive(Debug)]
@@ -105,12 +106,12 @@ pub enum TestType {
 impl From<u8> for TestType {
     fn from(opcode: u8) -> Self {
         match opcode {
-            0x32 => TestType::Equal,
-            0x33 => TestType::NonEqual,
-            0x34 => TestType::LittleThan,
-            0x35 => TestType::GreaterThanOrEqual,
-            0x36 => TestType::GreaterThan,
-            0x37 => TestType::LittleThanOrEqual,
+            0x32 | 0x38 => TestType::Equal,
+            0x33 | 0x39 => TestType::NonEqual,
+            0x34 | 0x3A => TestType::LittleThan,
+            0x35 | 0x3B => TestType::GreaterThanOrEqual,
+            0x36 | 0x3C => TestType::GreaterThan,
+            0x37 | 0x3D => TestType::LittleThanOrEqual,
             _ => TestType::Unknown,
         }
     }
@@ -276,6 +277,9 @@ impl ToString for ByteCode {
             ByteCode::If(ref tt, dest, src, offset) => {
                 format!("{} v{}, v{}, {}", tt.to_string(), dest, src, offset)
             },
+            ByteCode::If0(ref tt, dest, offset) => {
+                format!("{}z v{}, {}", tt.to_string(), dest, offset)
+            },
         }
     }
 }
@@ -329,6 +333,14 @@ impl<R: Read> ByteCodeDecoder<R> {
         let literal = self.cursor.read_i16::<LittleEndian>()?;
 
         Ok(literal)
+    }
+
+    fn format21t(&mut self) -> Result<(u8, i16)> {
+        let dest = self.cursor.read_u8()?;
+        // TODO: Make byteorder generic
+        let offset = self.cursor.read_i16::<LittleEndian>()?;
+
+        Ok((dest, offset))
     }
 
     fn format21s(&mut self) -> Result<(u8, i32)> {
@@ -645,6 +657,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(a @ 0x32 ... 0x37) => {
                 self.format22t().ok().map(|(dest, src, offset)| ByteCode::If(TestType::from(a), dest, src, offset))
+            },
+            Ok(a @ 0x38 ... 0x3D) => {
+                self.format21t().ok().map(|(dest, offset)| ByteCode::If0(TestType::from(a), dest, offset))
             },
             _ => None,
         }
@@ -1214,5 +1229,16 @@ mod tests {
 
         assert_eq!("if-ne v4, v2, 515", opcode.to_string());
         assert!(matches!(opcode, ByteCode::If(_, dest, op1, offset) if dest == 4 && op1 == 2 && offset == 515));
+    }
+
+    #[test]
+    fn it_can_decode_if0_ge() {
+        let raw_opcode:&[u8] = &[0x3B, 0x04, 0x03, 0x02];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("if-gez v4, 515", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::If0(_, dest, offset) if dest == 4 && offset == 515));
     }
 }
