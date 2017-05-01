@@ -50,6 +50,7 @@ pub enum ByteCode {
     Goto16(i16),
     Goto32(i32),
     PackedSwitch(u8, i32),
+    SparseSwitch(u8, i32),
 }
 
 pub type StringReference = u32;
@@ -188,7 +189,10 @@ impl ToString for ByteCode {
             },
             ByteCode::PackedSwitch(reg, offset) => {
                 format!("packed-switch v{}, {}", reg, offset)
-            }
+            },
+            ByteCode::SparseSwitch(reg, offset) => {
+                format!("sparse-switch v{}, {}", reg, offset)
+            },
         }
     }
 }
@@ -529,6 +533,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x2B) => {
                 self.format31t().ok().map(|(reg, offset)| ByteCode::PackedSwitch(reg, offset))
+            },
+            Ok(0x2C) => {
+                self.format31t().ok().map(|(reg, offset)| ByteCode::SparseSwitch(reg, offset))
             },
             _ => None,
         }
@@ -1065,5 +1072,16 @@ mod tests {
 
         assert_eq!("packed-switch v4, 100992003", opcode.to_string());
         assert!(matches!(opcode, ByteCode::PackedSwitch(reg, offset) if reg == 4 && offset == 100992003));
+    }
+
+    #[test]
+    fn it_can_decode_sparse_switch() {
+        let raw_opcode:&[u8] = &[0x2C, 0x04, 0x03, 0x04, 0x05, 0x06];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("sparse-switch v4, 100992003", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::SparseSwitch(reg, offset) if reg == 4 && offset == 100992003));
     }
 }
