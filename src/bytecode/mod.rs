@@ -43,6 +43,7 @@ pub enum ByteCode {
     NewInstance(u8, TypeReference),
     NewArray(u8, u8, TypeReference),
     FilledNewArray(Vec<u8>, TypeReference),
+    FilledNewArrayRange(u16, u8, TypeReference),
 }
 
 pub type StringReference = u32;
@@ -159,6 +160,10 @@ impl ToString for ByteCode {
             ByteCode::FilledNewArray(ref registers, reference) => {
                 let str_register: Vec<String> = registers.iter().map(|r| format!("v{}", r)).collect();
                 format!("filled-new-array {{{}}} type@{}", str_register.join(", "), reference)
+            },
+            ByteCode::FilledNewArrayRange(first_reg, amount, reference) => {
+                let str_register: Vec<String> = (first_reg..(amount + 1) as u16).map(|r| format!("v{}", r)).collect();
+                format!("filled-new-array/range {{{}}} type@{}", str_register.join(", "), reference)
             },
         }
     }
@@ -293,6 +298,14 @@ impl<R: Read> ByteCodeDecoder<R> {
         let final_arguments = arguments.into_iter().rev().take(count as usize).collect();
 
         Ok((final_arguments, reference))
+    }
+
+    fn format3rc(&mut self) -> Result<(u16, u8, u16)> {
+        let amount = self.cursor.read_u8()?;
+        let reference = self.cursor.read_u16::<LittleEndian>()?;
+        let first = self.cursor.read_u16::<LittleEndian>()?;
+
+        Ok((first, amount - 1, reference))
     }
 
     fn format51l(&mut self) -> Result<(u8, i64)> {
@@ -440,6 +453,13 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                     .ok()
                     .map(|(registers, reference)| {
                         ByteCode::FilledNewArray(registers, reference as TypeReference)
+                    })
+            },
+            Ok(0x25) => {
+                self.format3rc()
+                    .ok()
+                    .map(|(first, amount, reference)| {
+                        ByteCode::FilledNewArrayRange(first, amount, reference as TypeReference)
                     })
             },
             _ => None,
@@ -900,5 +920,16 @@ mod tests {
 
         assert_eq!("filled-new-array {v1, v2, v3, v4, v5} type@32", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FilledNewArray(ref registers, reference) if registers.as_ref() == [1, 2, 3, 4, 5] && reference == 32));
+    }
+
+    #[test]
+    fn it_can_decode_filled_new_array_range() {
+        let raw_opcode:&[u8] = &[0x25, 0x03, 0x22, 0x22, 0x01, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("filled-new-array/range {v1, v2} type@8738", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::FilledNewArrayRange(start, amount, reference) if start == 1 && amount == 2 && reference == 8738));
     }
 }
