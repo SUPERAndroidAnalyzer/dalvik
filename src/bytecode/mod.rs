@@ -51,6 +51,43 @@ pub enum ByteCode {
     Goto32(i32),
     PackedSwitch(u8, i32),
     SparseSwitch(u8, i32),
+    Compare(CompareType, u8, u8, u8),
+}
+
+#[derive(Debug)]
+pub enum CompareType {
+    LittleThanFloat,
+    GreaterThanFloat,
+    LittleThanDouble,
+    GreaterThanDouble,
+    Long,
+    Unknown,
+}
+
+impl From<u8> for CompareType {
+    fn from(opcode: u8) -> Self {
+        match opcode {
+            0x2D => CompareType::LittleThanFloat,
+            0x2E => CompareType::GreaterThanFloat,
+            0x2F => CompareType::LittleThanDouble,
+            0x30 => CompareType::GreaterThanDouble,
+            0x31 => CompareType::Long,
+            _ => CompareType::Unknown,
+        }
+    }
+}
+
+impl ToString for CompareType {
+    fn to_string(&self) -> String {
+        match *self {
+            CompareType::LittleThanFloat => "cmpl-float".to_string(),
+            CompareType::GreaterThanFloat => "cmpg-float".to_string(),
+            CompareType::LittleThanDouble => "cmpl-double".to_string(),
+            CompareType::GreaterThanDouble => "cmpg-double".to_string(),
+            CompareType::Long => "cmp-long".to_string(),
+            CompareType::Unknown => "unknown".to_string(),
+        }
+    }
 }
 
 pub type StringReference = u32;
@@ -193,6 +230,9 @@ impl ToString for ByteCode {
             ByteCode::SparseSwitch(reg, offset) => {
                 format!("sparse-switch v{}, {}", reg, offset)
             },
+            ByteCode::Compare(ref ct, dest, op1, op2) => {
+                format!("{} v{}, v{}, v{}", ct.to_string(), dest, op1, op2)
+            }
         }
     }
 }
@@ -298,6 +338,15 @@ impl<R: Read> ByteCodeDecoder<R> {
         let source = self.cursor.read_u16::<LittleEndian>()?;
 
         Ok((dest, source))
+    }
+
+    fn format23x(&mut self) -> Result<(u8, u8, u8)> {
+        let dest = self.cursor.read_u8()?;
+        // TODO: Make byteorder generic
+        let operand1 = self.cursor.read_u8()?;
+        let operand2 = self.cursor.read_u8()?;
+
+        Ok((dest, operand1, operand2))
     }
 
     fn format30t(&mut self) -> Result<i32> {
@@ -537,6 +586,21 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             Ok(0x2C) => {
                 self.format31t().ok().map(|(reg, offset)| ByteCode::SparseSwitch(reg, offset))
             },
+            Ok(a @ 0x2D ... 0x31) => {
+                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::Compare(CompareType::from(a), dest, op1, op2))
+            },
+            /*Ok(0x2E) => {
+                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::CmpGreaterThanFloat(dest, op1, op2))
+            },
+            Ok(0x2F) => {
+                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::CmpLittleThanDouble(dest, op1, op2))
+            },
+            Ok(0x30) => {
+                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::CmpGreaterThanDouble(dest, op1, op2))
+            },
+            Ok(0x31) => {
+                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::CmpLong(dest, op1, op2))
+            },*/
             _ => None,
         }
     }
@@ -1083,5 +1147,16 @@ mod tests {
 
         assert_eq!("sparse-switch v4, 100992003", opcode.to_string());
         assert!(matches!(opcode, ByteCode::SparseSwitch(reg, offset) if reg == 4 && offset == 100992003));
+    }
+
+    #[test]
+    fn it_can_decode_cmp_little_than_float() {
+        let raw_opcode:&[u8] = &[0x2D, 0x04, 0x03, 0x02];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("cmpl-float v4, v3, v2", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Compare(_, dest, op1, op2) if dest == 4 && op1 == 3 && op2 == 2));
     }
 }
