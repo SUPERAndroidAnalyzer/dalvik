@@ -46,7 +46,8 @@ pub enum ByteCode {
     FilledNewArrayRange(u16, u8, TypeReference),
     FillArrayData(u8, i32),
     Throw(u8),
-    Goto(u8),
+    Goto(i8),
+    Goto16(i16),
 }
 
 pub type StringReference = u32;
@@ -177,6 +178,9 @@ impl ToString for ByteCode {
             ByteCode::Goto(offset) => {
                 format!("goto {}", offset)
             },
+            ByteCode::Goto16(offset) => {
+                format!("goto/16 {}", offset)
+            },
         }
     }
 }
@@ -198,8 +202,8 @@ impl<R: Read> ByteCodeDecoder<R> {
         Ok(())
     }
 
-    fn format10t(&mut self) -> Result<u8> {
-        Ok(self.cursor.read_u8()?)
+    fn format10t(&mut self) -> Result<i8> {
+        Ok(self.cursor.read_i8()?)
     }
 
     fn format11x(&mut self) -> Result<u8> {
@@ -222,6 +226,14 @@ impl<R: Read> ByteCodeDecoder<R> {
         let dest = current_byte & 0xF;
 
         Ok((dest, source))
+    }
+
+    fn format20t(&mut self) -> Result<i16> {
+        let _ = self.cursor.read_u8()?;
+        // TODO: Make byteorder generic
+        let literal = self.cursor.read_i16::<LittleEndian>()?;
+
+        Ok(literal)
     }
 
     fn format21s(&mut self) -> Result<(u8, i32)> {
@@ -493,6 +505,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x28) => {
                 self.format10t().ok().map(|offset| ByteCode::Goto(offset))
+            },
+            Ok(0x29) => {
+                self.format20t().ok().map(|offset| ByteCode::Goto16(offset))
             },
             _ => None,
         }
@@ -996,5 +1011,16 @@ mod tests {
 
         assert_eq!("goto 3", opcode.to_string());
         assert!(matches!(opcode, ByteCode::Goto(offset) if offset == 3));
+    }
+
+    #[test]
+    fn it_can_decode_goto16() {
+        let raw_opcode:&[u8] = &[0x29, 0x00, 0x03, 0x04];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("goto/16 1027", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Goto16(offset) if offset == 1027));
     }
 }
