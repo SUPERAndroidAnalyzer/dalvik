@@ -52,6 +52,7 @@ pub enum ByteCode {
     PackedSwitch(u8, i32),
     SparseSwitch(u8, i32),
     Compare(CompareType, u8, u8, u8),
+    If(TestType, u8, u8, i16),
 }
 
 #[derive(Debug)]
@@ -86,6 +87,45 @@ impl ToString for CompareType {
             CompareType::GreaterThanDouble => "cmpg-double".to_string(),
             CompareType::Long => "cmp-long".to_string(),
             CompareType::Unknown => "unknown".to_string(),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum TestType {
+    Equal,
+    NonEqual,
+    LittleThan,
+    GreaterThanOrEqual,
+    GreaterThan,
+    LittleThanOrEqual,
+    Unknown,
+}
+
+impl From<u8> for TestType {
+    fn from(opcode: u8) -> Self {
+        match opcode {
+            0x32 => TestType::Equal,
+            0x33 => TestType::NonEqual,
+            0x34 => TestType::LittleThan,
+            0x35 => TestType::GreaterThanOrEqual,
+            0x36 => TestType::GreaterThan,
+            0x37 => TestType::LittleThanOrEqual,
+            _ => TestType::Unknown,
+        }
+    }
+}
+
+impl ToString for TestType {
+    fn to_string(&self) -> String {
+        match *self {
+            TestType::Equal => "if-eq".to_string(),
+            TestType::NonEqual => "if-ne".to_string(),
+            TestType::LittleThan => "if-lt".to_string(),
+            TestType::GreaterThanOrEqual => "if-ge".to_string(),
+            TestType::GreaterThan => "if-gt".to_string(),
+            TestType::LittleThanOrEqual => "if-le".to_string(),
+            TestType::Unknown => "unknown".to_string(),
         }
     }
 }
@@ -232,7 +272,10 @@ impl ToString for ByteCode {
             },
             ByteCode::Compare(ref ct, dest, op1, op2) => {
                 format!("{} v{}, v{}, v{}", ct.to_string(), dest, op1, op2)
-            }
+            },
+            ByteCode::If(ref tt, dest, src, offset) => {
+                format!("{} v{}, v{}, {}", tt.to_string(), dest, src, offset)
+            },
         }
     }
 }
@@ -338,6 +381,17 @@ impl<R: Read> ByteCodeDecoder<R> {
         let source = self.cursor.read_u16::<LittleEndian>()?;
 
         Ok((dest, source))
+    }
+
+    fn format22t(&mut self) -> Result<(u8, u8, i16)> {
+        let current_byte = self.cursor.read_u8()?;
+
+        let source = ((current_byte & 0xF0) as u8 >> 4) as u8;
+        let dest = current_byte & 0xF;
+        // TODO: Make byteorder generic
+        let offset = self.cursor.read_i16::<LittleEndian>()?;
+
+        Ok((dest, source, offset))
     }
 
     fn format23x(&mut self) -> Result<(u8, u8, u8)> {
@@ -589,18 +643,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             Ok(a @ 0x2D ... 0x31) => {
                 self.format23x().ok().map(|(dest, op1, op2)| ByteCode::Compare(CompareType::from(a), dest, op1, op2))
             },
-            /*Ok(0x2E) => {
-                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::CmpGreaterThanFloat(dest, op1, op2))
+            Ok(a @ 0x32 ... 0x37) => {
+                self.format22t().ok().map(|(dest, src, offset)| ByteCode::If(TestType::from(a), dest, src, offset))
             },
-            Ok(0x2F) => {
-                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::CmpLittleThanDouble(dest, op1, op2))
-            },
-            Ok(0x30) => {
-                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::CmpGreaterThanDouble(dest, op1, op2))
-            },
-            Ok(0x31) => {
-                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::CmpLong(dest, op1, op2))
-            },*/
             _ => None,
         }
     }
@@ -1158,5 +1203,16 @@ mod tests {
 
         assert_eq!("cmpl-float v4, v3, v2", opcode.to_string());
         assert!(matches!(opcode, ByteCode::Compare(_, dest, op1, op2) if dest == 4 && op1 == 3 && op2 == 2));
+    }
+
+    #[test]
+    fn it_can_decode_if_ne() {
+        let raw_opcode:&[u8] = &[0x33, 0x24, 0x03, 0x02];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("if-ne v4, v2, 515", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::If(_, dest, op1, offset) if dest == 4 && op1 == 2 && offset == 515));
     }
 }
