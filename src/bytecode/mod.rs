@@ -42,6 +42,7 @@ pub enum ByteCode {
     ArrayLength(u8, u8),
     NewInstance(u8, TypeReference),
     NewArray(u8, u8, TypeReference),
+    FilledNewArray(Vec<u8>, TypeReference),
 }
 
 pub type StringReference = u32;
@@ -154,6 +155,10 @@ impl ToString for ByteCode {
             },
             ByteCode::NewArray(dest, src, reference) => {
                 format!("new-array v{}, v{}, type@{}", dest, src, reference)
+            },
+            ByteCode::FilledNewArray(ref registers, reference) => {
+                let str_register: Vec<String> = registers.iter().map(|r| format!("v{}", r)).collect();
+                format!("filled-new-array {{{}}} type@{}", str_register.join(", "), reference)
             },
         }
     }
@@ -272,12 +277,46 @@ impl<R: Read> ByteCodeDecoder<R> {
         Ok((dest, source))
     }
 
+    fn format35c(&mut self) -> Result<(Vec<u8>, u16)> {
+        let mut arguments = Vec::new();
+        let first_byte = self.cursor.read_u8()?;
+
+        let count = (first_byte & 0xF0) >> 4;
+        let last_register = first_byte & 0xF;
+        arguments.push(last_register);
+
+        let reference = self.cursor.read_u16::<LittleEndian>()?;
+
+        let reg_array = self.read_4bit_array(4)?;
+        arguments.extend(reg_array);
+
+        let final_arguments = arguments.into_iter().rev().take(count as usize).collect();
+
+        Ok((final_arguments, reference))
+    }
+
     fn format51l(&mut self) -> Result<(u8, i64)> {
         // TODO: Make byteorder generic
         let dest = self.cursor.read_u8()?;
         let source = self.cursor.read_i64::<LittleEndian>()?;
 
         Ok((dest, source))
+    }
+
+    fn read_4bit_array(&mut self, amount: u8) -> Result<Vec<u8>> {
+        let mut values = Vec::new();
+
+        for _ in 0..(amount/2) {
+            let current = self.cursor.read_u8()?;
+
+            let high = (current & 0xF0) >> 4;
+            let low = current & 0xF;
+
+            values.push(high);
+            values.push(low);
+        }
+
+        Ok(values)
     }
 }
 
@@ -395,6 +434,13 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x23) => {
                 self.format22c().ok().map(|(dest, size, reference)| ByteCode::NewArray(dest, size, reference as TypeReference))
+            },
+            Ok(0x24) => {
+                self.format35c()
+                    .ok()
+                    .map(|(registers, reference)| {
+                        ByteCode::FilledNewArray(registers, reference as TypeReference)
+                    })
             },
             _ => None,
         }
@@ -810,5 +856,49 @@ mod tests {
 
         assert_eq!("new-array v9, v10, type@32", opcode.to_string());
         assert!(matches!(opcode, ByteCode::NewArray(d, s, reference) if d == 9 && s == 10 && reference == 32));
+    }
+
+    #[test]
+    fn it_can_decode_filled_new_array() {
+        let raw_opcode:&[u8] = &[0x24, 0x04, 0x20, 0x00, 0x12, 0x34];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("filled-new-array {} type@32", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::FilledNewArray(ref registers, reference) if registers.len() == 0 && reference == 32));
+    }
+
+    #[test]
+    fn it_can_decode_filled_new_array_three_elements() {
+        let raw_opcode:&[u8] = &[0x24, 0x35, 0x20, 0x00, 0x43, 0x21];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("filled-new-array {v1, v2, v3} type@32", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::FilledNewArray(ref registers, reference) if registers.as_ref() == [1, 2, 3] && reference == 32));
+    }
+
+    #[test]
+    fn it_can_decode_filled_new_array_five_elements() {
+        let raw_opcode:&[u8] = &[0x24, 0x55, 0x20, 0x00, 0x43, 0x21];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("filled-new-array {v1, v2, v3, v4, v5} type@32", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::FilledNewArray(ref registers, reference) if registers.as_ref() == [1, 2, 3, 4, 5] && reference == 32));
+    }
+
+    #[test]
+    fn it_can_decode_filled_new_array_more_than_five_elements() {
+        let raw_opcode:&[u8] = &[0x24, 0x85, 0x20, 0x00, 0x43, 0x21];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("filled-new-array {v1, v2, v3, v4, v5} type@32", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::FilledNewArray(ref registers, reference) if registers.as_ref() == [1, 2, 3, 4, 5] && reference == 32));
     }
 }
