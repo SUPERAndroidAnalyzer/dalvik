@@ -165,14 +165,14 @@ impl ToString for ByteCode {
             },
             ByteCode::FilledNewArray(ref registers, reference) => {
                 let str_register: Vec<String> = registers.iter().map(|r| format!("v{}", r)).collect();
-                format!("filled-new-array {{{}}} type@{}", str_register.join(", "), reference)
+                format!("filled-new-array {{{}}}, type@{}", str_register.join(", "), reference)
             },
             ByteCode::FilledNewArrayRange(first_reg, amount, reference) => {
                 let str_register: Vec<String> = (first_reg..(amount + 1) as u16).map(|r| format!("v{}", r)).collect();
-                format!("filled-new-array/range {{{}}} type@{}", str_register.join(", "), reference)
+                format!("filled-new-array/range {{{}}}, type@{}", str_register.join(", "), reference)
             },
             ByteCode::FillArrayData(reg, offset) => {
-                format!("fill-array-data v{} {}", reg, offset)
+                format!("fill-array-data v{}, {}", reg, offset)
             },
             ByteCode::Throw(reg) => {
                 format!("throw v{}", reg)
@@ -953,7 +953,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert_eq!("filled-new-array {} type@32", opcode.to_string());
+        assert_eq!("filled-new-array {}, type@32", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FilledNewArray(ref registers, reference) if registers.len() == 0 && reference == 32));
     }
 
@@ -964,7 +964,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert_eq!("filled-new-array {v1, v2, v3} type@32", opcode.to_string());
+        assert_eq!("filled-new-array {v1, v2, v3}, type@32", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FilledNewArray(ref registers, reference) if registers.as_ref() == [1, 2, 3] && reference == 32));
     }
 
@@ -975,7 +975,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert_eq!("filled-new-array {v1, v2, v3, v4, v5} type@32", opcode.to_string());
+        assert_eq!("filled-new-array {v1, v2, v3, v4, v5}, type@32", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FilledNewArray(ref registers, reference) if registers.as_ref() == [1, 2, 3, 4, 5] && reference == 32));
     }
 
@@ -986,7 +986,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert_eq!("filled-new-array {v1, v2, v3, v4, v5} type@32", opcode.to_string());
+        assert_eq!("filled-new-array {v1, v2, v3, v4, v5}, type@32", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FilledNewArray(ref registers, reference) if registers.as_ref() == [1, 2, 3, 4, 5] && reference == 32));
     }
 
@@ -997,7 +997,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert_eq!("filled-new-array/range {v1, v2} type@8738", opcode.to_string());
+        assert_eq!("filled-new-array/range {v1, v2}, type@8738", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FilledNewArrayRange(start, amount, reference) if start == 1 && amount == 2 && reference == 8738));
     }
 
@@ -1008,7 +1008,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert_eq!("fill-array-data v18 -13426159", opcode.to_string());
+        assert_eq!("fill-array-data v18, -13426159", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FillArrayData(reg, offset) if reg == 18 && offset == -13426159));
     }
 
