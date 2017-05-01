@@ -46,6 +46,7 @@ pub enum ByteCode {
     FilledNewArrayRange(u16, u8, TypeReference),
     FillArrayData(u8, i32),
     Throw(u8),
+    Goto(u8),
 }
 
 pub type StringReference = u32;
@@ -173,6 +174,9 @@ impl ToString for ByteCode {
             ByteCode::Throw(reg) => {
                 format!("throw v{}", reg)
             },
+            ByteCode::Goto(offset) => {
+                format!("goto {}", offset)
+            },
         }
     }
 }
@@ -192,6 +196,10 @@ impl<R: Read> ByteCodeDecoder<R> {
         let current_byte = self.cursor.read_u8()?;
 
         Ok(())
+    }
+
+    fn format10t(&mut self) -> Result<u8> {
+        Ok(self.cursor.read_u8()?)
     }
 
     fn format11x(&mut self) -> Result<u8> {
@@ -482,6 +490,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(0x27) => {
                 self.format11x().ok().map(|reg| ByteCode::Throw(reg))
+            },
+            Ok(0x28) => {
+                self.format10t().ok().map(|offset| ByteCode::Goto(offset))
             },
             _ => None,
         }
@@ -974,5 +985,16 @@ mod tests {
 
         assert_eq!("throw v18", opcode.to_string());
         assert!(matches!(opcode, ByteCode::Throw(reg) if reg == 18));
+    }
+
+    #[test]
+    fn it_can_decode_goto() {
+        let raw_opcode:&[u8] = &[0x28, 0x03];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("goto 3", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Goto(offset) if offset == 3));
     }
 }
