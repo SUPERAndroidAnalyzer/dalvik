@@ -54,6 +54,7 @@ pub enum ByteCode {
     Compare(CompareType, u8, u8, u8),
     If(TestType, u8, u8, i16),
     If0(TestType, u8, i16),
+    Array(ArrayOperation, u8, u8, u8),
 }
 
 #[derive(Debug)]
@@ -127,6 +128,69 @@ impl ToString for TestType {
             TestType::GreaterThan => "if-gt".to_string(),
             TestType::LittleThanOrEqual => "if-le".to_string(),
             TestType::Unknown => "unknown".to_string(),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum ArrayOperation {
+    Get,
+    GetWide,
+    GetObject,
+    GetBoolean,
+    GetByte,
+    GetChar,
+    GetShort,
+    Put,
+    PutWide,
+    PutObject,
+    PutBoolean,
+    PutByte,
+    PutChar,
+    PutShort,
+    Unknown,
+}
+
+impl From<u8> for ArrayOperation {
+    fn from(opcode: u8) -> Self {
+        match opcode {
+            0x44 => ArrayOperation::Get,
+            0x45 => ArrayOperation::GetWide,
+            0x46 => ArrayOperation::GetObject,
+            0x47 => ArrayOperation::GetBoolean,
+            0x48 => ArrayOperation::GetByte,
+            0x49 => ArrayOperation::GetChar,
+            0x4A => ArrayOperation::GetShort,
+            0x4B => ArrayOperation::Put,
+            0x4C => ArrayOperation::PutWide,
+            0x4D => ArrayOperation::PutObject,
+            0x4E => ArrayOperation::PutBoolean,
+            0x4F => ArrayOperation::PutByte,
+            0x50 => ArrayOperation::PutChar,
+            0x51 => ArrayOperation::PutShort,
+            _ => ArrayOperation::Unknown,
+        }
+    }
+}
+
+impl ToString for ArrayOperation {
+    fn to_string(&self) -> String {
+        match *self {
+            ArrayOperation::Get => "aget".to_string(),
+            ArrayOperation::GetWide => "aget-wide".to_string(),
+            ArrayOperation::GetObject => "aget-object".to_string(),
+            ArrayOperation::GetBoolean => "aget-boolean".to_string(),
+            ArrayOperation::GetByte => "aget-byte".to_string(),
+            ArrayOperation::GetChar => "aget-char".to_string(),
+            ArrayOperation::GetShort => "aget-short".to_string(),
+            ArrayOperation::Put => "aput".to_string(),
+            ArrayOperation::PutWide => "aput-wide".to_string(),
+            ArrayOperation::PutObject => "aput-object".to_string(),
+            ArrayOperation::PutBoolean => "aput-boolean".to_string(),
+            ArrayOperation::PutByte => "aput-byte".to_string(),
+            ArrayOperation::PutChar => "aput-char".to_string(),
+            ArrayOperation::PutShort => "aput-short".to_string(),
+            ArrayOperation::Unknown => "unknown".to_string(),
         }
     }
 }
@@ -279,6 +343,9 @@ impl ToString for ByteCode {
             },
             ByteCode::If0(ref tt, dest, offset) => {
                 format!("{}z v{}, {}", tt.to_string(), dest, offset)
+            },
+            ByteCode::Array(ref ao, dest, op1, op2) => {
+                format!("{} v{}, v{}, v{}", ao.to_string(), dest, op1, op2)
             },
         }
     }
@@ -660,6 +727,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(a @ 0x38 ... 0x3D) => {
                 self.format21t().ok().map(|(dest, offset)| ByteCode::If0(TestType::from(a), dest, offset))
+            },
+            Ok(a @ 0x44 ... 0x51) => {
+                self.format23x().ok().map(|(dest, op1, op2)| ByteCode::Array(ArrayOperation::from(a), dest, op1, op2))
             },
             _ => None,
         }
@@ -1240,5 +1310,16 @@ mod tests {
 
         assert_eq!("if-gez v4, 515", opcode.to_string());
         assert!(matches!(opcode, ByteCode::If0(_, dest, offset) if dest == 4 && offset == 515));
+    }
+
+    #[test]
+    fn it_can_decode_array_operation() {
+        let raw_opcode:&[u8] = &[0x4D, 0x04, 0x03, 0x02];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("aput-object v4, v3, v2", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Array(_, dest, op1, op2) if dest == 4 && op1 == 3 && op2 == 2));
     }
 }
