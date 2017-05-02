@@ -218,8 +218,8 @@ impl Prototype {
                                               parameters: TA)
                                               -> Prototype {
         Prototype {
-            descriptor,
-            return_type,
+            descriptor: descriptor,
+            return_type: return_type,
             parameters: parameters.into(),
         }
     }
@@ -360,9 +360,9 @@ impl AnnotationsDirectory {
                                             -> AnnotationsDirectory {
         AnnotationsDirectory {
             class_annotations: class_annotations.into(),
-            field_annotations,
-            method_annotations,
-            parameter_annotations,
+            field_annotations: field_annotations,
+            method_annotations: method_annotations,
+            parameter_annotations: parameter_annotations,
         }
     }
 
@@ -398,8 +398,8 @@ impl FieldAnnotations {
     /// Creates a new list of field annotations.
     pub fn new(field_id: u32, annotations: Box<[Annotation]>) -> FieldAnnotations {
         FieldAnnotations {
-            field_id,
-            annotations,
+            field_id: field_id,
+            annotations: annotations,
         }
     }
 
@@ -425,8 +425,8 @@ impl MethodAnnotations {
     /// Creates a new list of method annotations.
     pub fn new(method_id: u32, annotations: Box<[Annotation]>) -> MethodAnnotations {
         MethodAnnotations {
-            method_id,
-            annotations,
+            method_id: method_id,
+            annotations: annotations,
         }
     }
 
@@ -452,8 +452,8 @@ impl ParameterAnnotations {
     /// Creates a new list of method annotations.
     pub fn new(method_id: u32, annotations: Box<[Annotation]>) -> ParameterAnnotations {
         ParameterAnnotations {
-            method_id,
-            annotations,
+            method_id: method_id,
+            annotations: annotations,
         }
     }
 
@@ -537,14 +537,14 @@ impl Class {
                static_values: Option<Array>)
                -> Class {
         Class {
-            class_index,
-            access_flags,
-            superclass_index,
-            interfaces,
-            source_file_index,
-            annotations,
-            class_data,
-            static_values,
+            class_index: class_index,
+            access_flags: access_flags,
+            superclass_index: superclass_index,
+            interfaces: interfaces,
+            source_file_index: source_file_index,
+            annotations: annotations,
+            class_data: class_data,
+            static_values: static_values,
         }
     }
 
