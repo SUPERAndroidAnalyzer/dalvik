@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Value` enum in crate `dalvik`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Value">
+
+    <title>dalvik::types::Value - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc enum">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>dalvik</a>::<wbr><a href='index.html'>types</a></p><script>window.sidebarCurrent = {name: 'Value', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Enum <a href='../index.html'>dalvik</a>::<wbr><a href='index.html'>types</a>::<wbr><a class="enum" href=''>Value</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/dalvik/types/mod.rs.html#241-274' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum Value {
+    Byte(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>),
+    Short(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>),
+    Char(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>),
+    Int(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>),
+    Long(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>),
+    Float(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>),
+    Double(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>),
+    String(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    Type(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    Field(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    Method(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    Enum(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>),
+    Array(<a class="struct" href="../../dalvik/types/struct.Array.html" title="struct dalvik::types::Array">Array</a>),
+    Annotation(<a class="struct" href="../../dalvik/types/struct.EncodedAnnotation.html" title="struct dalvik::types::EncodedAnnotation">EncodedAnnotation</a>),
+    Null,
+    Boolean(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>),
+}</pre><div class='docblock'><p>Value of a variable.</p>
+</div><h2 class='variants'>Variants</h2>
+<span id='variant.Byte' class='variant'><span id='Byte.v' class='invisible'><code>Byte(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i8.html">i8</a>)</code></span></span><div class='docblock'><p>Byte.</p>
+</div><span id='variant.Short' class='variant'><span id='Short.v' class='invisible'><code>Short(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i16.html">i16</a>)</code></span></span><div class='docblock'><p>Short (16 bits).</p>
+</div><span id='variant.Char' class='variant'><span id='Char.v' class='invisible'><code>Char(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>)</code></span></span><div class='docblock'><p>Char (16 bts).</p>
+</div><span id='variant.Int' class='variant'><span id='Int.v' class='invisible'><code>Int(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>)</code></span></span><div class='docblock'><p>Int (32 bits).</p>
+</div><span id='variant.Long' class='variant'><span id='Long.v' class='invisible'><code>Long(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>)</code></span></span><div class='docblock'><p>Long (64 bits).</p>
+</div><span id='variant.Float' class='variant'><span id='Float.v' class='invisible'><code>Float(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a>)</code></span></span><div class='docblock'><p>Float (32 bits).</p>
+</div><span id='variant.Double' class='variant'><span id='Double.v' class='invisible'><code>Double(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f64.html">f64</a>)</code></span></span><div class='docblock'><p>Double (64 bits).</p>
+</div><span id='variant.String' class='variant'><span id='String.v' class='invisible'><code>String(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)</code></span></span><div class='docblock'><p>String, with the index into the string IDs list.</p>
+</div><span id='variant.Type' class='variant'><span id='Type.v' class='invisible'><code>Type(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)</code></span></span><div class='docblock'><p>Type, with the index into the type IDs list.</p>
+</div><span id='variant.Field' class='variant'><span id='Field.v' class='invisible'><code>Field(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)</code></span></span><div class='docblock'><p>Field, with the index into the field IDs list.</p>
+</div><span id='variant.Method' class='variant'><span id='Method.v' class='invisible'><code>Method(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)</code></span></span><div class='docblock'><p>Method with the index into the prototype IDs list.</p>
+</div><span id='variant.Enum' class='variant'><span id='Enum.v' class='invisible'><code>Enum(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)</code></span></span><div class='docblock'><p>Enum with the index into the fiels IDs list.</p>
+</div><span id='variant.Array' class='variant'><span id='Array.v' class='invisible'><code>Array(<a class="struct" href="../../dalvik/types/struct.Array.html" title="struct dalvik::types::Array">Array</a>)</code></span></span><div class='docblock'><p>An array of values.</p>
+</div><span id='variant.Annotation' class='variant'><span id='Annotation.v' class='invisible'><code>Annotation(<a class="struct" href="../../dalvik/types/struct.EncodedAnnotation.html" title="struct dalvik::types::EncodedAnnotation">EncodedAnnotation</a>)</code></span></span><div class='docblock'><p>Annotation.</p>
+</div><span id='variant.Null' class='variant'><span id='Null.v' class='invisible'><code>Null</code></span></span><div class='docblock'><p>Null.</p>
+</div><span id='variant.Boolean' class='variant'><span id='Boolean.v' class='invisible'><code>Boolean(<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)</code></span></span><div class='docblock'><p>Boolean.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class="enum" href="../../dalvik/types/enum.Value.html" title="enum dalvik::types::Value">Value</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/dalvik/types/read.rs.html#314-565' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from_reader' class="method"><span id='from_reader.v' class='invisible'><code>fn <a href='#method.from_reader' class='fnname'>from_reader</a>&lt;R:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html" title="trait std::io::Read">Read</a>&gt;(reader: &amp;mut R) -&gt; <a class="type" href="../../dalvik/error/type.Result.html" title="type dalvik::error::Result">Result</a>&lt;<a class="enum" href="../../dalvik/types/enum.Value.html" title="enum dalvik::types::Value">Value</a>&gt;</code></span></h4>
+<h4 id='method.read_u32' class="method"><span id='read_u32.v' class='invisible'><code>fn <a href='#method.read_u32' class='fnname'>read_u32</a>&lt;R:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html" title="trait std::io::Read">Read</a>&gt;(reader: &amp;mut R, arg: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="type" href="../../dalvik/error/type.Result.html" title="type dalvik::error::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;</code></span></h4>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="enum" href="../../dalvik/types/enum.Value.html" title="enum dalvik::types::Value">Value</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/dalvik/types/mod.rs.html#240' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class="method"><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "dalvik";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

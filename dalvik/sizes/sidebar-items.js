@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["CLASS_DEF_ITEM_SIZE",""],["FIELD_ID_ITEM_SIZE",""],["HEADER_SIZE",""],["METHOD_ID_ITEM_SIZE",""],["PROTO_ID_ITEM_SIZE",""],["STRING_ID_ITEM_SIZE",""],["TYPE_ID_ITEM_SIZE",""]]});

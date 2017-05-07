@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Class` struct in crate `dalvik`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Class">
+
+    <title>dalvik::types::Class - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>dalvik</a>::<wbr><a href='index.html'>types</a></p><script>window.sidebarCurrent = {name: 'Class', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>dalvik</a>::<wbr><a href='index.html'>types</a>::<wbr><a class="struct" href=''>Class</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/dalvik/types/mod.rs.html#517-526' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Class {
+    class_index: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+    access_flags: <a class="struct" href="../../dalvik/types/struct.AccessFlags.html" title="struct dalvik::types::AccessFlags">AccessFlags</a>,
+    superclass_index: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
+    interfaces: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">[</a><a class="enum" href="../../dalvik/types/enum.Type.html" title="enum dalvik::types::Type">Type</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>&gt;,
+    source_file_index: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,
+    annotations: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../dalvik/types/struct.AnnotationsDirectory.html" title="struct dalvik::types::AnnotationsDirectory">AnnotationsDirectory</a>&gt;,
+    class_data: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../dalvik/types/read/struct.ClassData.html" title="struct dalvik::types::read::ClassData">ClassData</a>&gt;,
+    static_values: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../dalvik/types/struct.Array.html" title="struct dalvik::types::Array">Array</a>&gt;,
+}</pre><div class='docblock'><p>Structure representing a class.</p>
+</div><h2 class='fields'>Fields</h2><span id='structfield.class_index' class="structfield">
+                           <span id='class_index.v' class='invisible'>
+                           <code>class_index: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a></code>
+                           </span></span><span id='structfield.access_flags' class="structfield">
+                           <span id='access_flags.v' class='invisible'>
+                           <code>access_flags: <a class="struct" href="../../dalvik/types/struct.AccessFlags.html" title="struct dalvik::types::AccessFlags">AccessFlags</a></code>
+                           </span></span><span id='structfield.superclass_index' class="structfield">
+                           <span id='superclass_index.v' class='invisible'>
+                           <code>superclass_index: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;</code>
+                           </span></span><span id='structfield.interfaces' class="structfield">
+                           <span id='interfaces.v' class='invisible'>
+                           <code>interfaces: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">[</a><a class="enum" href="../../dalvik/types/enum.Type.html" title="enum dalvik::types::Type">Type</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>&gt;</code>
+                           </span></span><span id='structfield.source_file_index' class="structfield">
+                           <span id='source_file_index.v' class='invisible'>
+                           <code>source_file_index: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;</code>
+                           </span></span><span id='structfield.annotations' class="structfield">
+                           <span id='annotations.v' class='invisible'>
+                           <code>annotations: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../dalvik/types/struct.AnnotationsDirectory.html" title="struct dalvik::types::AnnotationsDirectory">AnnotationsDirectory</a>&gt;</code>
+                           </span></span><span id='structfield.class_data' class="structfield">
+                           <span id='class_data.v' class='invisible'>
+                           <code>class_data: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../dalvik/types/read/struct.ClassData.html" title="struct dalvik::types::read::ClassData">ClassData</a>&gt;</code>
+                           </span></span><span id='structfield.static_values' class="structfield">
+                           <span id='static_values.v' class='invisible'>
+                           <code>static_values: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../dalvik/types/struct.Array.html" title="struct dalvik::types::Array">Array</a>&gt;</code>
+                           </span></span><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class="struct" href="../../dalvik/types/struct.Class.html" title="struct dalvik::types::Class">Class</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/dalvik/types/mod.rs.html#528-596' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class="method"><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>(class_index: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; access_flags: <a class="struct" href="../../dalvik/types/struct.AccessFlags.html" title="struct dalvik::types::AccessFlags">AccessFlags</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; superclass_index: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; interfaces: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">[</a><a class="enum" href="../../dalvik/types/enum.Type.html" title="enum dalvik::types::Type">Type</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; source_file_index: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; annotations: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../dalvik/types/struct.AnnotationsDirectory.html" title="struct dalvik::types::AnnotationsDirectory">AnnotationsDirectory</a>&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; class_data: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../dalvik/types/read/struct.ClassData.html" title="struct dalvik::types::read::ClassData">ClassData</a>&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; static_values: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../dalvik/types/struct.Array.html" title="struct dalvik::types::Array">Array</a>&gt;)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -&gt; <a class="struct" href="../../dalvik/types/struct.Class.html" title="struct dalvik::types::Class">Class</a></code></span></h4>
+<div class='docblock'><p>Creates a new class.</p>
+</div><h4 id='method.class_index' class="method"><span id='class_index.v-1' class='invisible'><code>fn <a href='#method.class_index' class='fnname'>class_index</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a></code></span></h4>
+<div class='docblock'><p>Gets the index of the class in the type IDs list.</p>
+</div><h4 id='method.access_flags' class="method"><span id='access_flags.v-1' class='invisible'><code>fn <a href='#method.access_flags' class='fnname'>access_flags</a>(&amp;self) -&gt; <a class="struct" href="../../dalvik/types/struct.AccessFlags.html" title="struct dalvik::types::AccessFlags">AccessFlags</a></code></span></h4>
+<div class='docblock'><p>Gets the access flags of the class.</p>
+</div><h4 id='method.superclass_index' class="method"><span id='superclass_index.v-1' class='invisible'><code>fn <a href='#method.superclass_index' class='fnname'>superclass_index</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;</code></span></h4>
+<div class='docblock'><p>Gets the index in the type IDs list of the superclass for this class, ifd it exists.</p>
+</div><h4 id='method.interfaces' class="method"><span id='interfaces.v-1' class='invisible'><code>fn <a href='#method.interfaces' class='fnname'>interfaces</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;[</a><a class="enum" href="../../dalvik/types/enum.Type.html" title="enum dalvik::types::Type">Type</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a></code></span></h4>
+<div class='docblock'><p>Gets the list of interfaces implemented by the class.</p>
+</div><h4 id='method.source_file_index' class="method"><span id='source_file_index.v-1' class='invisible'><code>fn <a href='#method.source_file_index' class='fnname'>source_file_index</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>&gt;</code></span></h4>
+<div class='docblock'><p>Gets the index of the source file in the string list if it&#39;s known.</p>
+</div><h4 id='method.annotations' class="method"><span id='annotations.v-1' class='invisible'><code>fn <a href='#method.annotations' class='fnname'>annotations</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="struct" href="../../dalvik/types/struct.AnnotationsDirectory.html" title="struct dalvik::types::AnnotationsDirectory">AnnotationsDirectory</a>&gt;</code></span></h4>
+<div class='docblock'><p>Gets the annotations for the class, if there are any.</p>
+</div><h4 id='method.class_data' class="method"><span id='class_data.v-1' class='invisible'><code>fn <a href='#method.class_data' class='fnname'>class_data</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="struct" href="../../dalvik/types/read/struct.ClassData.html" title="struct dalvik::types::read::ClassData">ClassData</a>&gt;</code></span></h4>
+<div class='docblock'><p>Gets the data associated with the class.</p>
+</div><h4 id='method.static_values' class="method"><span id='static_values.v-1' class='invisible'><code>fn <a href='#method.static_values' class='fnname'>static_values</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="struct" href="../../dalvik/types/struct.Array.html" title="struct dalvik::types::Array">Array</a>&gt;</code></span></h4>
+<div class='docblock'><p>Gets the arrays with the values for the static files in this class.</p>
+
+<p>The values are in the same order as the static_field_ids in the class data of the class. If
+a value is not found, it is considered <code>0</code> or <code>NULL</code> depending on the type of the variable.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="struct" href="../../dalvik/types/struct.Class.html" title="struct dalvik::types::Class">Class</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/dalvik/types/mod.rs.html#516' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class="method"><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "dalvik";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>
