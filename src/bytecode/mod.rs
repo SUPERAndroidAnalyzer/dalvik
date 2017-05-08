@@ -55,6 +55,8 @@ pub enum ByteCode {
     If(TestType, u8, u8, i16),
     If0(TestType, u8, i16),
     Array(ArrayOperation, u8, u8, u8),
+    Instance(ArrayOperation, u8, u8, FieldReference),
+    Static(ArrayOperation, u8, FieldReference),
 }
 
 #[derive(Debug)]
@@ -154,20 +156,20 @@ pub enum ArrayOperation {
 impl From<u8> for ArrayOperation {
     fn from(opcode: u8) -> Self {
         match opcode {
-            0x44 => ArrayOperation::Get,
-            0x45 => ArrayOperation::GetWide,
-            0x46 => ArrayOperation::GetObject,
-            0x47 => ArrayOperation::GetBoolean,
-            0x48 => ArrayOperation::GetByte,
-            0x49 => ArrayOperation::GetChar,
-            0x4A => ArrayOperation::GetShort,
-            0x4B => ArrayOperation::Put,
-            0x4C => ArrayOperation::PutWide,
-            0x4D => ArrayOperation::PutObject,
-            0x4E => ArrayOperation::PutBoolean,
-            0x4F => ArrayOperation::PutByte,
-            0x50 => ArrayOperation::PutChar,
-            0x51 => ArrayOperation::PutShort,
+            0x44 | 0x52 | 0x60 => ArrayOperation::Get,
+            0x45 | 0x53 | 0x61 => ArrayOperation::GetWide,
+            0x46 | 0x54 | 0x62 => ArrayOperation::GetObject,
+            0x47 | 0x55 | 0x63 => ArrayOperation::GetBoolean,
+            0x48 | 0x56 | 0x64 => ArrayOperation::GetByte,
+            0x49 | 0x57 | 0x65 => ArrayOperation::GetChar,
+            0x4A | 0x58 | 0x66 => ArrayOperation::GetShort,
+            0x4B | 0x59 | 0x67 => ArrayOperation::Put,
+            0x4C | 0x5A | 0x68 => ArrayOperation::PutWide,
+            0x4D | 0x5B | 0x69 => ArrayOperation::PutObject,
+            0x4E | 0x5C | 0x6A => ArrayOperation::PutBoolean,
+            0x4F | 0x5D | 0x6B => ArrayOperation::PutByte,
+            0x50 | 0x5E | 0x6C => ArrayOperation::PutChar,
+            0x51 | 0x5F | 0x6D => ArrayOperation::PutShort,
             _ => ArrayOperation::Unknown,
         }
     }
@@ -176,20 +178,20 @@ impl From<u8> for ArrayOperation {
 impl ToString for ArrayOperation {
     fn to_string(&self) -> String {
         match *self {
-            ArrayOperation::Get => "aget".to_string(),
-            ArrayOperation::GetWide => "aget-wide".to_string(),
-            ArrayOperation::GetObject => "aget-object".to_string(),
-            ArrayOperation::GetBoolean => "aget-boolean".to_string(),
-            ArrayOperation::GetByte => "aget-byte".to_string(),
-            ArrayOperation::GetChar => "aget-char".to_string(),
-            ArrayOperation::GetShort => "aget-short".to_string(),
-            ArrayOperation::Put => "aput".to_string(),
-            ArrayOperation::PutWide => "aput-wide".to_string(),
-            ArrayOperation::PutObject => "aput-object".to_string(),
-            ArrayOperation::PutBoolean => "aput-boolean".to_string(),
-            ArrayOperation::PutByte => "aput-byte".to_string(),
-            ArrayOperation::PutChar => "aput-char".to_string(),
-            ArrayOperation::PutShort => "aput-short".to_string(),
+            ArrayOperation::Get => "get".to_string(),
+            ArrayOperation::GetWide => "get-wide".to_string(),
+            ArrayOperation::GetObject => "get-object".to_string(),
+            ArrayOperation::GetBoolean => "get-boolean".to_string(),
+            ArrayOperation::GetByte => "get-byte".to_string(),
+            ArrayOperation::GetChar => "get-char".to_string(),
+            ArrayOperation::GetShort => "get-short".to_string(),
+            ArrayOperation::Put => "put".to_string(),
+            ArrayOperation::PutWide => "put-wide".to_string(),
+            ArrayOperation::PutObject => "put-object".to_string(),
+            ArrayOperation::PutBoolean => "put-boolean".to_string(),
+            ArrayOperation::PutByte => "put-byte".to_string(),
+            ArrayOperation::PutChar => "put-char".to_string(),
+            ArrayOperation::PutShort => "put-short".to_string(),
             ArrayOperation::Unknown => "unknown".to_string(),
         }
     }
@@ -198,6 +200,7 @@ impl ToString for ArrayOperation {
 pub type StringReference = u32;
 pub type ClassReference = u32;
 pub type TypeReference = u32;
+pub type FieldReference = u32;
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
@@ -345,7 +348,13 @@ impl ToString for ByteCode {
                 format!("{}z v{}, {}", tt.to_string(), dest, offset)
             },
             ByteCode::Array(ref ao, dest, op1, op2) => {
-                format!("{} v{}, v{}, v{}", ao.to_string(), dest, op1, op2)
+                format!("a{} v{}, v{}, v{}", ao.to_string(), dest, op1, op2)
+            },
+            ByteCode::Instance(ref ao, dest, op1, field) => {
+                format!("i{} v{}, v{}, field@{}", ao.to_string(), dest, op1, field)
+            },
+            ByteCode::Static(ref ao, dest, field) => {
+                format!("s{} v{}, field@{}", ao.to_string(), dest, field)
             },
         }
     }
@@ -730,6 +739,12 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(a @ 0x44 ... 0x51) => {
                 self.format23x().ok().map(|(dest, op1, op2)| ByteCode::Array(ArrayOperation::from(a), dest, op1, op2))
+            },
+            Ok(a @ 0x52 ... 0x5f) => {
+                self.format22c().ok().map(|(dest, op1, reference)| ByteCode::Instance(ArrayOperation::from(a), dest, op1, reference as FieldReference))
+            },
+            Ok(a @ 0x60 ... 0x6d) => {
+                self.format21c().ok().map(|(dest, reference)| ByteCode::Static(ArrayOperation::from(a), dest, reference as FieldReference))
             },
             _ => None,
         }
@@ -1321,5 +1336,27 @@ mod tests {
 
         assert_eq!("aput-object v4, v3, v2", opcode.to_string());
         assert!(matches!(opcode, ByteCode::Array(_, dest, op1, op2) if dest == 4 && op1 == 3 && op2 == 2));
+    }
+
+    #[test]
+    fn it_can_decode_instance_operation() {
+        let raw_opcode:&[u8] = &[0x55, 0x34, 0x03, 0x02];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("iget-boolean v4, v3, field@515", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Instance(_, dest, op1, reference) if dest == 4 && op1 == 3 && reference == 515));
+    }
+
+    #[test]
+    fn it_can_decode_static_operation() {
+        let raw_opcode:&[u8] = &[0x6d, 0x04, 0x03, 0x02];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("sput-short v4, field@515", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Static(_, dest, reference) if dest == 4 && reference == 515));
     }
 }
