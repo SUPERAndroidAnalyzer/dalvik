@@ -57,6 +57,8 @@ pub enum ByteCode {
     Array(ArrayOperation, u8, u8, u8),
     Instance(ArrayOperation, u8, u8, FieldReference),
     Static(ArrayOperation, u8, FieldReference),
+    Invoke(InvokeKind, Vec<u8>, MethodReference),
+    InvokeRange(InvokeKind, u16, u8, MethodReference),
 }
 
 #[derive(Debug)]
@@ -197,10 +199,47 @@ impl ToString for ArrayOperation {
     }
 }
 
+#[derive(Debug)]
+pub enum InvokeKind {
+    Virtual,
+    Super,
+    Direct,
+    Static,
+    Interface,
+    Unknown,
+}
+
+impl From<u8> for InvokeKind {
+    fn from(opcode: u8) -> Self {
+        match opcode {
+            0x6e | 0x74 => InvokeKind::Virtual,
+            0x6f | 0x75 => InvokeKind::Super,
+            0x70 | 0x76 => InvokeKind::Direct,
+            0x71 | 0x77 => InvokeKind::Static,
+            0x72 | 0x78 => InvokeKind::Interface,
+            _ => InvokeKind::Unknown,
+        }
+    }
+}
+
+impl ToString for InvokeKind {
+    fn to_string(&self) -> String {
+        match *self {
+            InvokeKind::Virtual => "invoke-virtual".to_string(),
+            InvokeKind::Super => "invoke-super".to_string(),
+            InvokeKind::Direct => "invoke-direct".to_string(),
+            InvokeKind::Static => "invoke-static".to_string(),
+            InvokeKind::Interface => "invoke-interface".to_string(),
+            InvokeKind::Unknown => "unknown".to_string(),
+        }
+    }
+}
+
 pub type StringReference = u32;
 pub type ClassReference = u32;
 pub type TypeReference = u32;
 pub type FieldReference = u32;
+pub type MethodReference = u32;
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
@@ -314,7 +353,7 @@ impl ToString for ByteCode {
                 format!("filled-new-array {{{}}}, type@{}", str_register.join(", "), reference)
             },
             ByteCode::FilledNewArrayRange(first_reg, amount, reference) => {
-                let str_register: Vec<String> = (first_reg..(amount + 1) as u16).map(|r| format!("v{}", r)).collect();
+                let str_register: Vec<String> = (first_reg..(first_reg as u16 + amount as u16 + 1) as u16).map(|r| format!("v{}", r)).collect();
                 format!("filled-new-array/range {{{}}}, type@{}", str_register.join(", "), reference)
             },
             ByteCode::FillArrayData(reg, offset) => {
@@ -347,15 +386,24 @@ impl ToString for ByteCode {
             ByteCode::If0(ref tt, dest, offset) => {
                 format!("{}z v{}, {}", tt.to_string(), dest, offset)
             },
-            ByteCode::Array(ref ao, dest, op1, op2) => {
-                format!("a{} v{}, v{}, v{}", ao.to_string(), dest, op1, op2)
+            ByteCode::Array(ref array_op, dest, op1, op2) => {
+                format!("a{} v{}, v{}, v{}", array_op.to_string(), dest, op1, op2)
             },
-            ByteCode::Instance(ref ao, dest, op1, field) => {
-                format!("i{} v{}, v{}, field@{}", ao.to_string(), dest, op1, field)
+            ByteCode::Instance(ref array_op, dest, op1, field) => {
+                format!("i{} v{}, v{}, field@{}", array_op.to_string(), dest, op1, field)
             },
-            ByteCode::Static(ref ao, dest, field) => {
-                format!("s{} v{}, field@{}", ao.to_string(), dest, field)
+            ByteCode::Static(ref array_op, dest, field) => {
+                format!("s{} v{}, field@{}", array_op.to_string(), dest, field)
             },
+            ByteCode::Invoke(ref invoke_kind, ref registers, method) => {
+                let str_register: Vec<String> = registers.iter().map(|r| format!("v{}", r)).collect();
+                format!("{} {{{}}}, method@{}", invoke_kind.to_string(), str_register.join(", "), method)
+            },
+            ByteCode::InvokeRange(ref invoke_kind, first_reg, amount, reference) => {
+                let str_register: Vec<String> = (first_reg..(first_reg + amount as u16)).map(|r| format!("v{}", r)).collect();
+                format!("{}/range {{{}}}, method@{}", invoke_kind.to_string(), str_register.join(", "), reference)
+            },
+
         }
     }
 }
@@ -745,6 +793,12 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(a @ 0x60 ... 0x6d) => {
                 self.format21c().ok().map(|(dest, reference)| ByteCode::Static(ArrayOperation::from(a), dest, reference as FieldReference))
+            },
+            Ok(a @ 0x6e ... 0x72) => {
+                self.format35c().ok().map(|(registers, reference)| ByteCode::Invoke(InvokeKind::from(a), registers, reference as MethodReference))
+            },
+            Ok(a @ 0x74 ... 0x78) => {
+                self.format3rc().ok().map(|(first, amount, reference)| ByteCode::InvokeRange(InvokeKind::from(a), first, amount, reference as FieldReference))
             },
             _ => None,
         }
@@ -1213,7 +1267,7 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert_eq!("filled-new-array/range {v1, v2}, type@8738", opcode.to_string());
+        assert_eq!("filled-new-array/range {v1, v2, v3}, type@8738", opcode.to_string());
         assert!(matches!(opcode, ByteCode::FilledNewArrayRange(start, amount, reference) if start == 1 && amount == 2 && reference == 8738));
     }
 
@@ -1358,5 +1412,27 @@ mod tests {
 
         assert_eq!("sput-short v4, field@515", opcode.to_string());
         assert!(matches!(opcode, ByteCode::Static(_, dest, reference) if dest == 4 && reference == 515));
+    }
+
+    #[test]
+    fn it_can_decode_invoke_operation() {
+        let raw_opcode:&[u8] = &[0x6f, 0x00, 0x00, 0x01, 0x01, 0x23];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("invoke-super {}, method@256", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Invoke(_, ref registers, reference) if registers.is_empty() && reference == 256));
+    }
+
+    #[test]
+    fn it_can_decode_invoke_range_operation() {
+        let raw_opcode:&[u8] = &[0x78, 0x0A, 0x00, 0x01, 0x00, 0x02];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("invoke-interface/range {v512, v513, v514, v515, v516, v517, v518, v519, v520}, method@256", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::InvokeRange(_, first_reg, amount, reference) if first_reg == 512 && amount == 9 && reference == 256));
     }
 }
