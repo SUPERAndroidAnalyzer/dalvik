@@ -60,6 +60,8 @@ pub enum ByteCode {
     Invoke(InvokeKind, Vec<u8>, MethodReference),
     InvokeRange(InvokeKind, u16, u8, MethodReference),
     Unary(UnaryOperation, u8, u8),
+    Binary(BinaryOperation, u8, u8, u8),
+    Binary2Addr(BinaryOperation, u8, u8),
 }
 
 #[derive(Debug)]
@@ -320,6 +322,123 @@ impl ToString for UnaryOperation {
     }
 }
 
+#[derive(Debug)]
+pub enum BinaryOperation {
+    AddInt,
+    SubInt,
+    MulInt,
+    DivInt,
+    RemInt,
+    AndInt,
+    OrInt,
+    XorInt,
+    ShlInt,
+    ShrInt,
+    UshrInt,
+    AddLong,
+    SubLong,
+    MulLong,
+    DivLong,
+    RemLong,
+    AndLong,
+    OrLong,
+    XorLong,
+    ShlLong,
+    ShrLong,
+    UshrLong,
+    AddFloat,
+    SubFloat,
+    MulFloat,
+    DivFloat,
+    RemFloat,
+    AddDouble,
+    SubDouble,
+    MulDouble,
+    DivDouble,
+    RemDouble,
+    Unknown,
+}
+
+impl From<u8> for BinaryOperation {
+    fn from(opcode: u8) -> Self {
+        match opcode {
+            0x90 | 0xb0 => BinaryOperation::AddInt,
+            0x91 | 0xb1 => BinaryOperation::SubInt,
+            0x92 | 0xb2 => BinaryOperation::MulInt,
+            0x93 | 0xb3 => BinaryOperation::DivInt,
+            0x94 | 0xb4 => BinaryOperation::RemInt,
+            0x95 | 0xb5 => BinaryOperation::AndInt,
+            0x96 | 0xb6 => BinaryOperation::OrInt,
+            0x97 | 0xb7 => BinaryOperation::XorInt,
+            0x98 | 0xb8 => BinaryOperation::ShlInt,
+            0x99 | 0xb9 => BinaryOperation::ShrInt,
+            0x9a | 0xba => BinaryOperation::UshrInt,
+            0x9b | 0xbb => BinaryOperation::AddLong,
+            0x9c | 0xbc => BinaryOperation::SubLong,
+            0x9d | 0xbd => BinaryOperation::MulLong,
+            0x9e | 0xbe => BinaryOperation::DivLong,
+            0x9f | 0xbf => BinaryOperation::RemLong,
+            0xa0 | 0xc0 => BinaryOperation::AndLong,
+            0xa1 | 0xc1 => BinaryOperation::OrLong,
+            0xa2 | 0xc2 => BinaryOperation::XorLong,
+            0xa3 | 0xc3 => BinaryOperation::ShlLong,
+            0xa4 | 0xc4 => BinaryOperation::ShrLong,
+            0xa5 | 0xc5 => BinaryOperation::UshrLong,
+            0xa6 | 0xc6 => BinaryOperation::AddFloat,
+            0xa7 | 0xc7 => BinaryOperation::SubFloat,
+            0xa8 | 0xc8 => BinaryOperation::MulFloat,
+            0xa9 | 0xc9 => BinaryOperation::DivFloat,
+            0xaa | 0xd0 => BinaryOperation::RemFloat,
+            0xab | 0xd1 => BinaryOperation::AddDouble,
+            0xac | 0xd2 => BinaryOperation::SubDouble,
+            0xad | 0xd3 => BinaryOperation::MulDouble,
+            0xae | 0xd4 => BinaryOperation::DivDouble,
+            0xaf | 0xd5 => BinaryOperation::RemDouble,
+            _ => BinaryOperation::Unknown,
+        }
+    }
+}
+
+impl ToString for BinaryOperation {
+    fn to_string(&self) -> String {
+        match *self {
+            BinaryOperation::AddInt => "add-int".to_string(),
+            BinaryOperation::SubInt => "sub-int".to_string(),
+            BinaryOperation::MulInt => "mul-int".to_string(),
+            BinaryOperation::DivInt => "div-int".to_string(),
+            BinaryOperation::RemInt => "rem-int".to_string(),
+            BinaryOperation::AndInt => "and-int".to_string(),
+            BinaryOperation::OrInt => "or-int".to_string(),
+            BinaryOperation::XorInt => "xor-int".to_string(),
+            BinaryOperation::ShlInt => "shl-int".to_string(),
+            BinaryOperation::ShrInt => "shr-int".to_string(),
+            BinaryOperation::UshrInt => "ushr-int".to_string(),
+            BinaryOperation::AddLong => "add-long".to_string(),
+            BinaryOperation::SubLong => "sub-long".to_string(),
+            BinaryOperation::MulLong => "mul-long".to_string(),
+            BinaryOperation::DivLong => "div-long".to_string(),
+            BinaryOperation::RemLong => "rem-long".to_string(),
+            BinaryOperation::AndLong => "and-long".to_string(),
+            BinaryOperation::OrLong => "or-long".to_string(),
+            BinaryOperation::XorLong => "xor-long".to_string(),
+            BinaryOperation::ShlLong => "shl-long".to_string(),
+            BinaryOperation::ShrLong => "shr-long".to_string(),
+            BinaryOperation::UshrLong => "ushr-long".to_string(),
+            BinaryOperation::AddFloat => "add-float".to_string(),
+            BinaryOperation::SubFloat => "sub-float".to_string(),
+            BinaryOperation::MulFloat => "mul-float".to_string(),
+            BinaryOperation::DivFloat => "div-float".to_string(),
+            BinaryOperation::RemFloat => "rem-float".to_string(),
+            BinaryOperation::AddDouble => "add-double".to_string(),
+            BinaryOperation::SubDouble => "sub-double".to_string(),
+            BinaryOperation::MulDouble => "mul-double".to_string(),
+            BinaryOperation::DivDouble => "div-double".to_string(),
+            BinaryOperation::RemDouble => "rem-double".to_string(),
+            BinaryOperation::Unknown => "unknown".to_string(),
+        }
+    }
+}
+
 pub type StringReference = u32;
 pub type ClassReference = u32;
 pub type TypeReference = u32;
@@ -491,7 +610,12 @@ impl ToString for ByteCode {
             ByteCode::Unary(ref operation, dest, src) => {
                 format!("{} v{}, v{}", operation.to_string(), dest, src)
             },
-
+            ByteCode::Binary(ref operation, dest, op1, op2) => {
+                format!("{} v{}, v{}, v{}", operation.to_string(), dest, op1, op2)
+            },
+            ByteCode::Binary2Addr(ref operation, src1, src2) => {
+                format!("{}/2addr v{}, v{}", operation.to_string(), src1, src2)
+            },
         }
     }
 }
@@ -890,6 +1014,12 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(op @ 0x7b ... 0x8f) => {
                 self.format12x().ok().map(|(dest, src)| ByteCode::Unary(UnaryOperation::from(op), dest, src))
+            },
+            Ok(op @ 0x90 ... 0xaf) => {
+                self.format23x().ok().map(|(dest, src1, src2)| ByteCode::Binary(BinaryOperation::from(op), dest, src1, src2))
+            },
+            Ok(op @ 0xb0 ... 0xcf) => {
+                self.format12x().ok().map(|(srcdest, src)| ByteCode::Binary2Addr(BinaryOperation::from(op), srcdest, src))
             },
             _ => None,
         }
@@ -1536,5 +1666,28 @@ mod tests {
 
         assert_eq!("long-to-int v3, v8", opcode.to_string());
         assert!(matches!(opcode, ByteCode::Unary(_, dest, src) if dest == 3 &&  src == 8));
+    }
+
+    #[test]
+    fn it_can_decode_binary_operation() {
+        let raw_opcode:&[u8] = &[0xa0, 0x0f, 0x20, 0x13];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("and-long v15, v32, v19", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Binary(_, dest, src1, src2) if dest == 15 &&  src1 == 32 && src2 == 19));
+    }
+
+
+    #[test]
+    fn it_can_decode_binary_2addr_operation() {
+        let raw_opcode:&[u8] = &[0xb9, 0x2f];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("shr-int/2addr v15, v2", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Binary2Addr(_, destsrc, src) if destsrc == 15 &&  src == 2));
     }
 }
