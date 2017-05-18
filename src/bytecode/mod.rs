@@ -59,6 +59,7 @@ pub enum ByteCode {
     Static(ArrayOperation, u8, FieldReference),
     Invoke(InvokeKind, Vec<u8>, MethodReference),
     InvokeRange(InvokeKind, u16, u8, MethodReference),
+    Unary(UnaryOperation, u8, u8),
 }
 
 #[derive(Debug)]
@@ -235,6 +236,90 @@ impl ToString for InvokeKind {
     }
 }
 
+#[derive(Debug)]
+pub enum UnaryOperation {
+    NegateInt,
+    NotInt,
+    NegateLong,
+    NotLong,
+    NegateFloat,
+    NegateDouble,
+    IntToLong,
+    IntToFloat,
+    IntToDouble,
+    LongToInt,
+    LongToFloat,
+    LongToDouble,
+    FloatToInt,
+    FloatToLong,
+    FloatToDouble,
+    DoubleToInt,
+    DoubleToLong,
+    DoubleToFloat,
+    IntToByte,
+    IntToChar,
+    IntToShort,
+    Unknown,
+}
+
+impl From<u8> for UnaryOperation {
+    fn from(opcode: u8) -> Self {
+        match opcode {
+            0x7b => UnaryOperation::NegateInt,
+            0x7c => UnaryOperation::NotInt,
+            0x7d => UnaryOperation::NegateLong,
+            0x7e => UnaryOperation::NotLong,
+            0x7f => UnaryOperation::NegateFloat,
+            0x80 => UnaryOperation::NegateDouble,
+            0x81 => UnaryOperation::IntToLong,
+            0x82 => UnaryOperation::IntToFloat,
+            0x83 => UnaryOperation::IntToDouble,
+            0x84 => UnaryOperation::LongToInt,
+            0x85 => UnaryOperation::LongToFloat,
+            0x86 => UnaryOperation::LongToDouble,
+            0x87 => UnaryOperation::FloatToInt,
+            0x88 => UnaryOperation::FloatToLong,
+            0x89 => UnaryOperation::FloatToDouble,
+            0x8a => UnaryOperation::DoubleToInt,
+            0x8b => UnaryOperation::DoubleToLong,
+            0x8c => UnaryOperation::DoubleToFloat,
+            0x8d => UnaryOperation::IntToByte,
+            0x8e => UnaryOperation::IntToChar,
+            0x8f => UnaryOperation::IntToShort,
+            _ => UnaryOperation::Unknown,
+        }
+    }
+}
+
+impl ToString for UnaryOperation {
+    fn to_string(&self) -> String {
+        match *self {
+            UnaryOperation::NegateInt => "neg-int".to_string(),
+            UnaryOperation::NotInt => "not-int".to_string(),
+            UnaryOperation::NegateLong => "neg-long".to_string(),
+            UnaryOperation::NotLong => "not-long".to_string(),
+            UnaryOperation::NegateFloat => "neg-float".to_string(),
+            UnaryOperation::NegateDouble => "neg-double".to_string(),
+            UnaryOperation::IntToLong => "int-to-long".to_string(),
+            UnaryOperation::IntToFloat => "int-to-float".to_string(),
+            UnaryOperation::IntToDouble => "int-to-double".to_string(),
+            UnaryOperation::LongToInt => "long-to-int".to_string(),
+            UnaryOperation::LongToFloat => "long-to-float".to_string(),
+            UnaryOperation::LongToDouble => "long-to-double".to_string(),
+            UnaryOperation::FloatToInt => "float-to-int".to_string(),
+            UnaryOperation::FloatToLong => "float-to-long".to_string(),
+            UnaryOperation::FloatToDouble => "float-to-double".to_string(),
+            UnaryOperation::DoubleToInt => "double-to-int".to_string(),
+            UnaryOperation::DoubleToLong => "double-to-long".to_string(),
+            UnaryOperation::DoubleToFloat => "double-to-float".to_string(),
+            UnaryOperation::IntToByte => "int-to-byte".to_string(),
+            UnaryOperation::IntToChar => "int-to-char".to_string(),
+            UnaryOperation::IntToShort => "int-to-short".to_string(),
+            UnaryOperation::Unknown => "unknown".to_string(),
+        }
+    }
+}
+
 pub type StringReference = u32;
 pub type ClassReference = u32;
 pub type TypeReference = u32;
@@ -402,6 +487,9 @@ impl ToString for ByteCode {
             ByteCode::InvokeRange(ref invoke_kind, first_reg, amount, reference) => {
                 let str_register: Vec<String> = (first_reg..(first_reg + amount as u16)).map(|r| format!("v{}", r)).collect();
                 format!("{}/range {{{}}}, method@{}", invoke_kind.to_string(), str_register.join(", "), reference)
+            },
+            ByteCode::Unary(ref operation, dest, src) => {
+                format!("{} v{}, v{}", operation.to_string(), dest, src)
             },
 
         }
@@ -799,6 +887,9 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             },
             Ok(a @ 0x74 ... 0x78) => {
                 self.format3rc().ok().map(|(first, amount, reference)| ByteCode::InvokeRange(InvokeKind::from(a), first, amount, reference as FieldReference))
+            },
+            Ok(op @ 0x7b ... 0x8f) => {
+                self.format12x().ok().map(|(dest, src)| ByteCode::Unary(UnaryOperation::from(op), dest, src))
             },
             _ => None,
         }
@@ -1434,5 +1525,16 @@ mod tests {
 
         assert_eq!("invoke-interface/range {v512, v513, v514, v515, v516, v517, v518, v519, v520}, method@256", opcode.to_string());
         assert!(matches!(opcode, ByteCode::InvokeRange(_, first_reg, amount, reference) if first_reg == 512 && amount == 9 && reference == 256));
+    }
+
+    #[test]
+    fn it_can_decode_unary_operation() {
+        let raw_opcode:&[u8] = &[0x84, 0x83];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("long-to-int v3, v8", opcode.to_string());
+        assert!(matches!(opcode, ByteCode::Unary(_, dest, src) if dest == 3 &&  src == 8));
     }
 }
