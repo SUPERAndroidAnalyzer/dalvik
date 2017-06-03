@@ -104,7 +104,7 @@ impl Dex {
 }
 
 impl From<DexReader> for Dex {
-    fn from(reader: DexReader) -> Dex {
+    fn from(_: DexReader) -> Dex {
         unimplemented!()
     }
 }

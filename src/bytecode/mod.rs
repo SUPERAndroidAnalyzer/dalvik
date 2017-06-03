@@ -1,10 +1,11 @@
-use std::io::Cursor;
-use byteorder::{ByteOrder, ReadBytesExt, LittleEndian, BigEndian};
+//! Representation of the Dalvik bytecodes and utilities to decode them
+
+use byteorder::{ReadBytesExt, LittleEndian};
 use std::io::Read;
 use error::*;
-use std::fmt::Debug;
 
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub enum ByteCode {
     Nop,
     Move(u8, u8),
@@ -65,6 +66,7 @@ pub enum ByteCode {
 }
 
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub enum CompareType {
     LittleThanFloat,
     GreaterThanFloat,
@@ -101,6 +103,7 @@ impl ToString for CompareType {
 }
 
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub enum TestType {
     Equal,
     NonEqual,
@@ -140,6 +143,7 @@ impl ToString for TestType {
 }
 
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub enum ArrayOperation {
     Get,
     GetWide,
@@ -203,6 +207,7 @@ impl ToString for ArrayOperation {
 }
 
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub enum InvokeKind {
     Virtual,
     Super,
@@ -239,6 +244,7 @@ impl ToString for InvokeKind {
 }
 
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub enum UnaryOperation {
     NegateInt,
     NotInt,
@@ -323,6 +329,7 @@ impl ToString for UnaryOperation {
 }
 
 #[derive(Debug)]
+#[allow(missing_docs)]
 pub enum BinaryOperation {
     AddInt,
     SubInt,
@@ -439,10 +446,15 @@ impl ToString for BinaryOperation {
     }
 }
 
+/// String index on the Dex string table
 pub type StringReference = u32;
+/// Class index on the Dex class table
 pub type ClassReference = u32;
+/// Type index on the Dex type table
 pub type TypeReference = u32;
+/// Field index on the Dex field table
 pub type FieldReference = u32;
+/// Method index on the Dex method table
 pub type MethodReference = u32;
 
 impl ToString for ByteCode {
@@ -585,17 +597,20 @@ impl ToString for ByteCode {
     }
 }
 
+/// Implementations of the distinct bytecodes data layouts
+/// It will read from the source and return the data destructured
 pub struct ByteCodeDecoder<R: Read> {
     cursor: R,
 }
 
 impl<R: Read> ByteCodeDecoder<R> {
+    /// Creates a new ByteCodeDecoder given a `Read` input
     pub fn new(buffer: R) -> Self {
         ByteCodeDecoder { cursor: buffer }
     }
 
     fn format10x(&mut self) -> Result<()> {
-        let current_byte = self.cursor.read_u8()?;
+        let _ = self.cursor.read_u8()?;
 
         Ok(())
     }
