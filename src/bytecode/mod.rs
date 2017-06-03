@@ -63,6 +63,8 @@ pub enum ByteCode {
     Unary(UnaryOperation, u8, u8),
     Binary(BinaryOperation, u8, u8, u8),
     Binary2Addr(BinaryOperation, u8, u8),
+    BinaryLit16(BinaryOperation, u8, u8, i16),
+    BinaryLit8(BinaryOperation, u8, u8, i8),
 }
 
 #[derive(Debug)]
@@ -369,17 +371,17 @@ pub enum BinaryOperation {
 impl From<u8> for BinaryOperation {
     fn from(opcode: u8) -> Self {
         match opcode {
-            0x90 | 0xb0 => BinaryOperation::AddInt,
-            0x91 | 0xb1 => BinaryOperation::SubInt,
-            0x92 | 0xb2 => BinaryOperation::MulInt,
-            0x93 | 0xb3 => BinaryOperation::DivInt,
-            0x94 | 0xb4 => BinaryOperation::RemInt,
-            0x95 | 0xb5 => BinaryOperation::AndInt,
-            0x96 | 0xb6 => BinaryOperation::OrInt,
-            0x97 | 0xb7 => BinaryOperation::XorInt,
-            0x98 | 0xb8 => BinaryOperation::ShlInt,
-            0x99 | 0xb9 => BinaryOperation::ShrInt,
-            0x9a | 0xba => BinaryOperation::UshrInt,
+            0x90 | 0xb0 | 0xd0 | 0xd8 => BinaryOperation::AddInt,
+            0x91 | 0xb1 | 0xd1 | 0xd9 => BinaryOperation::SubInt,
+            0x92 | 0xb2 | 0xd2 | 0xda => BinaryOperation::MulInt,
+            0x93 | 0xb3 | 0xd3 | 0xdb => BinaryOperation::DivInt,
+            0x94 | 0xb4 | 0xd4 | 0xdc => BinaryOperation::RemInt,
+            0x95 | 0xb5 | 0xd5 | 0xdd => BinaryOperation::AndInt,
+            0x96 | 0xb6 | 0xd6 | 0xde => BinaryOperation::OrInt,
+            0x97 | 0xb7 | 0xd7 | 0xdf => BinaryOperation::XorInt,
+            0x98 | 0xb8 | 0xe0 => BinaryOperation::ShlInt,
+            0x99 | 0xb9 | 0xe1 => BinaryOperation::ShrInt,
+            0x9a | 0xba | 0xe2 => BinaryOperation::UshrInt,
             0x9b | 0xbb => BinaryOperation::AddLong,
             0x9c | 0xbc => BinaryOperation::SubLong,
             0x9d | 0xbd => BinaryOperation::MulLong,
@@ -395,12 +397,12 @@ impl From<u8> for BinaryOperation {
             0xa7 | 0xc7 => BinaryOperation::SubFloat,
             0xa8 | 0xc8 => BinaryOperation::MulFloat,
             0xa9 | 0xc9 => BinaryOperation::DivFloat,
-            0xaa | 0xd0 => BinaryOperation::RemFloat,
-            0xab | 0xd1 => BinaryOperation::AddDouble,
-            0xac | 0xd2 => BinaryOperation::SubDouble,
-            0xad | 0xd3 => BinaryOperation::MulDouble,
-            0xae | 0xd4 => BinaryOperation::DivDouble,
-            0xaf | 0xd5 => BinaryOperation::RemDouble,
+            0xaa | 0xca => BinaryOperation::RemFloat,
+            0xab | 0xcb => BinaryOperation::AddDouble,
+            0xac | 0xcc => BinaryOperation::SubDouble,
+            0xad | 0xcd => BinaryOperation::MulDouble,
+            0xae | 0xce => BinaryOperation::DivDouble,
+            0xaf | 0xcf => BinaryOperation::RemDouble,
             _ => BinaryOperation::Unknown,
         }
     }
@@ -593,6 +595,27 @@ impl ToString for ByteCode {
             ByteCode::Binary2Addr(ref operation, src1, src2) => {
                 format!("{}/2addr v{}, v{}", operation.to_string(), src1, src2)
             }
+            ByteCode::BinaryLit16(ref operation, dest, src, literal) => {
+                match *operation {
+                    BinaryOperation::SubInt => {
+                        format!("rsub-int v{}, v{}, #{}", dest, src, literal)
+                    }
+                    _ => {
+                        format!("{}/lit16 v{}, v{}, #{}",
+                                operation.to_string(),
+                                dest,
+                                src,
+                                literal)
+                    }
+                }
+            }
+            ByteCode::BinaryLit8(ref operation, dest, src, literal) => {
+                format!("{}/lit8 v{}, v{}, #{}",
+                        operation.to_string(),
+                        dest,
+                        src,
+                        literal)
+            }
         }
     }
 }
@@ -718,6 +741,19 @@ impl<R: Read> ByteCodeDecoder<R> {
         let offset = self.cursor.read_i16::<LittleEndian>()?;
 
         Ok((dest, source, offset))
+    }
+
+    fn format22s(&mut self) -> Result<(u8, u8, i16)> {
+        self.format22t()
+    }
+
+    fn format22b(&mut self) -> Result<(u8, u8, i8)> {
+        let dest = self.cursor.read_u8()?;
+        // TODO: Make byteorder generic
+        let operand1 = self.cursor.read_u8()?;
+        let literal = self.cursor.read_i8()?;
+
+        Ok((dest, operand1, literal))
     }
 
     fn format23x(&mut self) -> Result<(u8, u8, u8)> {
@@ -1069,6 +1105,20 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                     .ok()
                     .map(|(srcdest, src)| {
                              ByteCode::Binary2Addr(BinaryOperation::from(op), srcdest, src)
+                         })
+            }
+            Ok(op @ 0xd0...0xd7) => {
+                self.format22s()
+                    .ok()
+                    .map(|(dest, src, literal)| {
+                             ByteCode::BinaryLit16(BinaryOperation::from(op), dest, src, literal)
+                         })
+            }
+            Ok(op @ 0xd8...0xe2) => {
+                self.format22b()
+                    .ok()
+                    .map(|(dest, src, literal)| {
+                             ByteCode::BinaryLit8(BinaryOperation::from(op), dest, src, literal)
                          })
             }
             _ => None,
@@ -1829,5 +1879,47 @@ mod tests {
         assert!(matches!(
             opcode,
             ByteCode::Binary2Addr(_, destsrc, src) if destsrc == 15 &&  src == 2));
+    }
+
+    #[test]
+    fn it_can_decode_binary_literal_16_operation() {
+        let raw_opcode: &[u8] = &[0xd4, 0x2f, 0xFF, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("rem-int/lit16 v15, v2, #255", opcode.to_string());
+        assert!(matches!(
+            opcode,
+            ByteCode::BinaryLit16(_, dest, src, lit) if dest == 15 &&  src == 2 && lit == 255)
+        );
+    }
+
+    #[test]
+    fn it_can_decode_binary_literal_16_rsub_operation() {
+        let raw_opcode: &[u8] = &[0xd1, 0x2f, 0xFF, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("rsub-int v15, v2, #255", opcode.to_string());
+        assert!(matches!(
+            opcode,
+            ByteCode::BinaryLit16(_, dest, src, lit) if dest == 15 &&  src == 2 && lit == 255)
+        );
+    }
+
+    #[test]
+    fn it_can_decode_binary_literal_8_operation() {
+        let raw_opcode: &[u8] = &[0xe2, 0x10, 0x43, 0x01];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!("ushr-int/lit8 v16, v67, #1", opcode.to_string());
+        assert!(matches!(
+            opcode,
+            ByteCode::BinaryLit8(_, dest, src, lit) if dest == 16 &&  src == 67 && lit == 1)
+        );
     }
 }
