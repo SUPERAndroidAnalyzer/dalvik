@@ -30,7 +30,8 @@ extern crate bitflags;
 extern crate error_chain;
 
 #[cfg(test)]
-#[macro_use] extern crate matches;
+#[macro_use]
+extern crate matches;
 
 
 use std::path::Path;

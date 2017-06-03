@@ -583,8 +583,7 @@ impl EncodedAnnotation {
     /// Creates an annotation from a reader.
     #[doc(hidden)]
     pub fn from_reader<R: Read>(reader: &mut R) -> Result<EncodedAnnotation> {
-        let (type_id, _) = read_uleb128(reader)
-            .chain_err(|| "could not read type ID")?;
+        let (type_id, _) = read_uleb128(reader).chain_err(|| "could not read type ID")?;
         let (size, _) = read_uleb128(reader).chain_err(|| "could not read size")?;
         let mut elements = Vec::with_capacity(size as usize);
         for _ in 0..size {
@@ -854,10 +853,12 @@ impl ClassData {
                 .chain_err(|| "could not read field access flags")?;
 
             field_vec.push(Field {
-                field_id: field_id,
-                access_flags: AccessFlags::from_bits(access_flags)
-                    .ok_or_else(|| Error::from(ErrorKind::InvalidAccessFlags(access_flags)))?,
-            });
+                               field_id: field_id,
+                               access_flags: AccessFlags::from_bits(access_flags)
+                                   .ok_or_else(|| {
+                Error::from(ErrorKind::InvalidAccessFlags(access_flags))
+            })?,
+                           });
 
             let mut last_field_id = field_id;
             for _ in 1..field_count {
@@ -870,11 +871,12 @@ impl ClassData {
                 last_field_id += field_id_diff;
 
                 field_vec.push(Field {
-                        field_id: last_field_id,
-                        access_flags: AccessFlags::from_bits(access_flags).ok_or_else(|| {
-                                Error::from(ErrorKind::InvalidAccessFlags(access_flags))
-                            })?,
-                    });
+                                   field_id: last_field_id,
+                                   access_flags: AccessFlags::from_bits(access_flags)
+                                       .ok_or_else(|| {
+                    Error::from(ErrorKind::InvalidAccessFlags(access_flags))
+                })?,
+                               });
             }
         }
         Ok(())
@@ -900,11 +902,13 @@ impl ClassData {
             };
 
             method_vec.push(Method {
-                method_id: method_id,
-                access_flags: AccessFlags::from_bits(access_flags)
-                    .ok_or_else(|| Error::from(ErrorKind::InvalidAccessFlags(access_flags)))?,
-                code_offset: code_offset,
-            });
+                                method_id: method_id,
+                                access_flags: AccessFlags::from_bits(access_flags)
+                                    .ok_or_else(|| {
+                Error::from(ErrorKind::InvalidAccessFlags(access_flags))
+            })?,
+                                code_offset: code_offset,
+                            });
 
             let mut last_method_id = method_id;
             for _ in 1..method_count {
@@ -925,12 +929,13 @@ impl ClassData {
                 last_method_id += method_id_diff;
 
                 method_vec.push(Method {
-                        method_id: last_method_id,
-                        access_flags: AccessFlags::from_bits(access_flags).ok_or_else(|| {
-                                Error::from(ErrorKind::InvalidAccessFlags(access_flags))
-                            })?,
-                        code_offset: code_offset,
-                    });
+                                    method_id: last_method_id,
+                                    access_flags: AccessFlags::from_bits(access_flags)
+                                        .ok_or_else(|| {
+                    Error::from(ErrorKind::InvalidAccessFlags(access_flags))
+                })?,
+                                    code_offset: code_offset,
+                                });
             }
         }
         Ok(())
@@ -1289,10 +1294,8 @@ struct HandlerInfo {
 impl HandlerInfo {
     /// Creates a handler information structure from a reader object.
     fn from_reader<R: Read>(reader: &mut R) -> Result<(HandlerInfo, u32)> {
-        let (type_id, read_t) = read_uleb128(reader)
-            .chain_err(|| "could not read type ID")?;
-        let (addr, read_a) = read_uleb128(reader)
-            .chain_err(|| "could not read address")?;
+        let (type_id, read_t) = read_uleb128(reader).chain_err(|| "could not read type ID")?;
+        let (addr, read_a) = read_uleb128(reader).chain_err(|| "could not read address")?;
 
         Ok((HandlerInfo {
                 type_id: type_id,
