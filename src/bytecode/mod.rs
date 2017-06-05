@@ -470,7 +470,7 @@ pub type CallSiteReference = u32;
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
         match *self {
-            ByteCode::Nop => format!("nop"),
+            ByteCode::Nop => "nop".to_string(),
             ByteCode::Move(dest, source) => format!("move v{}, v{}", dest, source),
             ByteCode::MoveFrom16(dest, source) => format!("move/from16 v{}, v{}", dest, source),
             ByteCode::Move16(dest, source) => format!("move/16 v{}, v{}", dest, source),
@@ -490,7 +490,7 @@ impl ToString for ByteCode {
             ByteCode::MoveResultWide(dest) => format!("move-result-wide v{}", dest),
             ByteCode::MoveResultObject(dest) => format!("move-result-object v{}", dest),
             ByteCode::MoveException(dest) => format!("move-exception v{}", dest),
-            ByteCode::ReturnVoid => format!("return-void"),
+            ByteCode::ReturnVoid => "return-void".to_string(),
             ByteCode::Return(dest) => format!("return v{}", dest),
             ByteCode::ReturnWide(dest) => format!("return-wide v{}", dest),
             ByteCode::ReturnObject(dest) => format!("return-object v{}", dest),
@@ -947,14 +947,14 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                     .ok()
                     .map(|(d, s)| ByteCode::MoveObject16(d, s))
             }
-            Ok(0x0A) => self.format11x().ok().map(|d| ByteCode::MoveResult(d)),
-            Ok(0x0B) => self.format11x().ok().map(|d| ByteCode::MoveResultWide(d)),
-            Ok(0x0C) => self.format11x().ok().map(|d| ByteCode::MoveResultObject(d)),
-            Ok(0x0D) => self.format11x().ok().map(|d| ByteCode::MoveException(d)),
+            Ok(0x0A) => self.format11x().ok().map(ByteCode::MoveResult),
+            Ok(0x0B) => self.format11x().ok().map(ByteCode::MoveResultWide),
+            Ok(0x0C) => self.format11x().ok().map(ByteCode::MoveResultObject),
+            Ok(0x0D) => self.format11x().ok().map(ByteCode::MoveException),
             Ok(0x0E) => self.format10x().ok().map(|_| ByteCode::ReturnVoid),
-            Ok(0x0F) => self.format11x().ok().map(|d| ByteCode::Return(d)),
-            Ok(0x10) => self.format11x().ok().map(|d| ByteCode::ReturnWide(d)),
-            Ok(0x11) => self.format11x().ok().map(|d| ByteCode::ReturnObject(d)),
+            Ok(0x0F) => self.format11x().ok().map(ByteCode::Return),
+            Ok(0x10) => self.format11x().ok().map(ByteCode::ReturnWide),
+            Ok(0x11) => self.format11x().ok().map(ByteCode::ReturnObject),
             Ok(0x12) => {
                 self.format11n()
                     .ok()
@@ -1014,8 +1014,8 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                     .ok()
                     .map(|(reg, reference)| ByteCode::ConstClass(reg, reference as ClassReference))
             }
-            Ok(0x1D) => self.format11x().ok().map(|reg| ByteCode::MonitorEnter(reg)),
-            Ok(0x1E) => self.format11x().ok().map(|reg| ByteCode::MonitorExit(reg)),
+            Ok(0x1D) => self.format11x().ok().map(ByteCode::MonitorEnter),
+            Ok(0x1E) => self.format11x().ok().map(ByteCode::MonitorExit),
             Ok(0x1F) => {
                 self.format21c()
                     .ok()
@@ -1068,10 +1068,10 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                     .ok()
                     .map(|(reg, offset)| ByteCode::FillArrayData(reg, offset))
             }
-            Ok(0x27) => self.format11x().ok().map(|reg| ByteCode::Throw(reg)),
-            Ok(0x28) => self.format10t().ok().map(|offset| ByteCode::Goto(offset)),
-            Ok(0x29) => self.format20t().ok().map(|offset| ByteCode::Goto16(offset)),
-            Ok(0x2A) => self.format30t().ok().map(|offset| ByteCode::Goto32(offset)),
+            Ok(0x27) => self.format11x().ok().map(ByteCode::Throw),
+            Ok(0x28) => self.format10t().ok().map(ByteCode::Goto),
+            Ok(0x29) => self.format20t().ok().map(ByteCode::Goto16),
+            Ok(0x2A) => self.format30t().ok().map(ByteCode::Goto32),
             Ok(0x2B) => {
                 self.format31t()
                     .ok()
