@@ -65,6 +65,7 @@ pub enum ByteCode {
     Binary2Addr(BinaryOperation, u8, u8),
     BinaryLit16(BinaryOperation, u8, u8, i16),
     BinaryLit8(BinaryOperation, u8, u8, i8),
+    InvokePolymorphic(Vec<u8>, MethodReference, PrototypeReference),
 }
 
 #[derive(Debug)]
@@ -458,6 +459,8 @@ pub type TypeReference = u32;
 pub type FieldReference = u32;
 /// Method index on the Dex method table
 pub type MethodReference = u32;
+/// Prototype index on the Dex prototype table
+pub type PrototypeReference = u32;
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
@@ -615,6 +618,14 @@ impl ToString for ByteCode {
                         dest,
                         src,
                         literal)
+            }
+            ByteCode::InvokePolymorphic(ref registers, method, proto) => {
+                let str_register: Vec<String> =
+                    registers.iter().map(|r| format!("v{}", r)).collect();
+                format!("invoke-polymorphic {{{}}}, method@{} proto@{}",
+                        str_register.join(", "),
+                        method,
+                        proto)
             }
         }
     }
@@ -807,14 +818,14 @@ impl<R: Read> ByteCodeDecoder<R> {
 
         let count = (first_byte & 0xF0) >> 4;
         let last_register = first_byte & 0xF;
-        arguments.push(last_register);
 
         let reference = self.cursor.read_u16::<LittleEndian>()?;
 
         let reg_array = self.read_4bit_array(4)?;
         arguments.extend(reg_array);
+        arguments.push(last_register);
 
-        let final_arguments = arguments.into_iter().rev().take(count as usize).collect();
+        let final_arguments = arguments.into_iter().take(count as usize).collect();
 
         Ok((final_arguments, reference))
     }
@@ -825,6 +836,13 @@ impl<R: Read> ByteCodeDecoder<R> {
         let first = self.cursor.read_u16::<LittleEndian>()?;
 
         Ok((first, amount - 1, reference))
+    }
+
+    fn format45cc(&mut self) -> Result<(Vec<u8>, u16, u16)> {
+        let (registers, method_ref) = self.format35c()?;
+        let proto_ref = self.cursor.read_u16::<LittleEndian>()?;
+
+        Ok((registers, method_ref, proto_ref))
     }
 
     fn format51l(&mut self) -> Result<(u8, i64)> {
@@ -844,8 +862,8 @@ impl<R: Read> ByteCodeDecoder<R> {
             let high = (current & 0xF0) >> 4;
             let low = current & 0xF;
 
-            values.push(high);
             values.push(low);
+            values.push(high);
         }
 
         Ok(values)
@@ -1119,6 +1137,13 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                     .ok()
                     .map(|(dest, src, literal)| {
                              ByteCode::BinaryLit8(BinaryOperation::from(op), dest, src, literal)
+                         })
+            }
+            Ok(0xfa) => {
+                self.format45cc()
+                    .ok()
+                    .map(|(registers, method, proto)| {
+                             ByteCode::InvokePolymorphic(registers, method as u32, proto as u32)
                          })
             }
             _ => None,
@@ -1573,7 +1598,7 @@ mod tests {
 
     #[test]
     fn it_can_decode_filled_new_array_three_elements() {
-        let raw_opcode: &[u8] = &[0x24, 0x35, 0x20, 0x00, 0x43, 0x21];
+        let raw_opcode: &[u8] = &[0x24, 0x35, 0x20, 0x00, 0x21, 0x43];
         let mut d = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
@@ -1589,7 +1614,7 @@ mod tests {
 
     #[test]
     fn it_can_decode_filled_new_array_five_elements() {
-        let raw_opcode: &[u8] = &[0x24, 0x55, 0x20, 0x00, 0x43, 0x21];
+        let raw_opcode: &[u8] = &[0x24, 0x55, 0x20, 0x00, 0x21, 0x43];
         let mut d = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
@@ -1605,7 +1630,7 @@ mod tests {
 
     #[test]
     fn it_can_decode_filled_new_array_more_than_five_elements() {
-        let raw_opcode: &[u8] = &[0x24, 0x85, 0x20, 0x00, 0x43, 0x21];
+        let raw_opcode: &[u8] = &[0x24, 0x85, 0x20, 0x00, 0x21, 0x43];
         let mut d = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
@@ -1920,6 +1945,24 @@ mod tests {
         assert!(matches!(
             opcode,
             ByteCode::BinaryLit8(_, dest, src, lit) if dest == 16 &&  src == 67 && lit == 1)
+        );
+    }
+
+    #[test]
+    fn it_can_decode_invoke_polymorphic() {
+        let raw_opcode: &[u8] = &[0xfa, 0x50, 0x00, 0x01, 0x21, 0x43, 0x10, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!(
+            "invoke-polymorphic {v1, v2, v3, v4, v0}, method@256 proto@16",
+        opcode.to_string()
+        );
+        assert!(matches!(
+            opcode,
+            ByteCode::InvokePolymorphic(ref registers, method, proto
+        ) if method == 256 && proto == 16 && registers.as_ref() == [1, 2, 3, 4, 0])
         );
     }
 }
