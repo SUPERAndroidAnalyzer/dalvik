@@ -67,7 +67,8 @@ pub enum ByteCode {
     BinaryLit8(BinaryOperation, u8, u8, i8),
     InvokePolymorphic(Vec<u8>, MethodReference, PrototypeReference),
     InvokePolymorphicRange(u16, u8, MethodReference, PrototypeReference),
-    InvokeCustom(Vec<u8>, CallSiteReference)
+    InvokeCustom(Vec<u8>, CallSiteReference),
+    InvokeCustomRange(u16, u8, CallSiteReference),
 }
 
 #[derive(Debug)]
@@ -647,6 +648,14 @@ impl ToString for ByteCode {
                         str_register.join(", "),
                         call_site)
             }
+            ByteCode::InvokeCustomRange(first_reg, amount, call_site) => {
+                let str_register: Vec<String> = (first_reg..(first_reg + amount as u16))
+                    .map(|r| format!("v{}", r))
+                    .collect();
+                format!("invoke-custom/range {{{}}}, call_site@{}",
+                        str_register.join(", "),
+                        call_site)
+            }
         }
     }
 }
@@ -1187,8 +1196,15 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                 self.format35c()
                     .ok()
                     .map(|(registers, call_site)| {
-                        ByteCode::InvokeCustom(registers, call_site as u32)
-                    })
+                             ByteCode::InvokeCustom(registers, call_site as u32)
+                         })
+            }
+            Ok(0xfd) => {
+                self.format3rc()
+                    .ok()
+                    .map(|(first, amount, call_site)| {
+                             ByteCode::InvokeCustomRange(first, amount, call_site as u32)
+                         })
             }
             _ => None,
         }
@@ -2043,6 +2059,24 @@ mod tests {
             opcode,
             ByteCode::InvokeCustom(ref registers, call_site
         ) if call_site == 256 && registers.as_ref() == [1, 2, 3, 4, 0])
+        );
+    }
+
+    #[test]
+    fn it_can_decode_invoke_custom_range() {
+        let raw_opcode: &[u8] = &[0xfd, 0x04, 0x10, 0x00, 0x01, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!(
+        "invoke-custom/range {v1, v2, v3}, call_site@16",
+        opcode.to_string()
+        );
+        assert!(matches!(
+            opcode,
+            ByteCode::InvokeCustomRange(first, amount, call_site
+        ) if first == 1 && amount == 3 && call_site == 16)
         );
     }
 }
