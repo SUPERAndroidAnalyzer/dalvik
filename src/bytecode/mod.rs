@@ -67,6 +67,7 @@ pub enum ByteCode {
     BinaryLit8(BinaryOperation, u8, u8, i8),
     InvokePolymorphic(Vec<u8>, MethodReference, PrototypeReference),
     InvokePolymorphicRange(u16, u8, MethodReference, PrototypeReference),
+    InvokeCustom(Vec<u8>, CallSiteReference)
 }
 
 #[derive(Debug)]
@@ -462,6 +463,8 @@ pub type FieldReference = u32;
 pub type MethodReference = u32;
 /// Prototype index on the Dex prototype table
 pub type PrototypeReference = u32;
+/// Call site index on the Dex call site table
+pub type CallSiteReference = u32;
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
@@ -636,6 +639,13 @@ impl ToString for ByteCode {
                         str_register.join(", "),
                         method,
                         proto)
+            }
+            ByteCode::InvokeCustom(ref registers, call_site) => {
+                let str_register: Vec<String> =
+                    registers.iter().map(|r| format!("v{}", r)).collect();
+                format!("invoke-custom {{{}}}, call_site@{}",
+                        str_register.join(", "),
+                        call_site)
             }
         }
     }
@@ -1172,6 +1182,13 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                                                               method as u32,
                                                               proto as u32)
                          })
+            }
+            Ok(0xfc) => {
+                self.format35c()
+                    .ok()
+                    .map(|(registers, call_site)| {
+                        ByteCode::InvokeCustom(registers, call_site as u32)
+                    })
             }
             _ => None,
         }
@@ -2008,6 +2025,24 @@ mod tests {
             opcode,
             ByteCode::InvokePolymorphicRange(start, amount, method, proto
         ) if method == 16 && proto == 1 && start == 1 && amount == 3)
+        );
+    }
+
+    #[test]
+    fn it_can_decode_invoke_custom() {
+        let raw_opcode: &[u8] = &[0xfc, 0x50, 0x00, 0x01, 0x21, 0x43];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!(
+        "invoke-custom {v1, v2, v3, v4, v0}, call_site@256",
+        opcode.to_string()
+        );
+        assert!(matches!(
+            opcode,
+            ByteCode::InvokeCustom(ref registers, call_site
+        ) if call_site == 256 && registers.as_ref() == [1, 2, 3, 4, 0])
         );
     }
 }
