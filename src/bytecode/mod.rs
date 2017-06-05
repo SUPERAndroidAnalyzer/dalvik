@@ -66,6 +66,7 @@ pub enum ByteCode {
     BinaryLit16(BinaryOperation, u8, u8, i16),
     BinaryLit8(BinaryOperation, u8, u8, i8),
     InvokePolymorphic(Vec<u8>, MethodReference, PrototypeReference),
+    InvokePolymorphicRange(u16, u8, MethodReference, PrototypeReference),
 }
 
 #[derive(Debug)]
@@ -627,6 +628,15 @@ impl ToString for ByteCode {
                         method,
                         proto)
             }
+            ByteCode::InvokePolymorphicRange(first_reg, amount, method, proto) => {
+                let str_register: Vec<String> = (first_reg..(first_reg + amount as u16))
+                    .map(|r| format!("v{}", r))
+                    .collect();
+                format!("invoke-polymorphic/range {{{}}}, method@{} proto@{}",
+                        str_register.join(", "),
+                        method,
+                        proto)
+            }
         }
     }
 }
@@ -843,6 +853,13 @@ impl<R: Read> ByteCodeDecoder<R> {
         let proto_ref = self.cursor.read_u16::<LittleEndian>()?;
 
         Ok((registers, method_ref, proto_ref))
+    }
+
+    fn format4rcc(&mut self) -> Result<(u16, u8, u16, u16)> {
+        let (first, amount, method_ref) = self.format3rc()?;
+        let proto_ref = self.cursor.read_u16::<LittleEndian>()?;
+
+        Ok((first, amount, method_ref, proto_ref))
     }
 
     fn format51l(&mut self) -> Result<(u8, i64)> {
@@ -1144,6 +1161,16 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                     .ok()
                     .map(|(registers, method, proto)| {
                              ByteCode::InvokePolymorphic(registers, method as u32, proto as u32)
+                         })
+            }
+            Ok(0xfb) => {
+                self.format4rcc()
+                    .ok()
+                    .map(|(first, amount, method, proto)| {
+                             ByteCode::InvokePolymorphicRange(first,
+                                                              amount,
+                                                              method as u32,
+                                                              proto as u32)
                          })
             }
             _ => None,
@@ -1956,13 +1983,31 @@ mod tests {
         let opcode = d.nth(0).unwrap();
 
         assert_eq!(
-            "invoke-polymorphic {v1, v2, v3, v4, v0}, method@256 proto@16",
+        "invoke-polymorphic {v1, v2, v3, v4, v0}, method@256 proto@16",
         opcode.to_string()
         );
         assert!(matches!(
             opcode,
             ByteCode::InvokePolymorphic(ref registers, method, proto
         ) if method == 256 && proto == 16 && registers.as_ref() == [1, 2, 3, 4, 0])
+        );
+    }
+
+    #[test]
+    fn it_can_decode_invoke_polymorphic_range() {
+        let raw_opcode: &[u8] = &[0xfb, 0x04, 0x10, 0x00, 0x01, 0x00, 0x01, 0x00];
+        let mut d = ByteCodeDecoder::new(raw_opcode);
+
+        let opcode = d.nth(0).unwrap();
+
+        assert_eq!(
+        "invoke-polymorphic/range {v1, v2, v3}, method@16 proto@1",
+        opcode.to_string()
+        );
+        assert!(matches!(
+            opcode,
+            ByteCode::InvokePolymorphicRange(start, amount, method, proto
+        ) if method == 16 && proto == 1 && start == 1 && amount == 3)
         );
     }
 }
