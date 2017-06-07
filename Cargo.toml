@@ -21,6 +21,9 @@ byteorder = "1.0"
 bitflags = "0.8"
 error-chain = "0.10"
 
+[dev-dependencies]
+matches = "^0.1"
+
 [features]
 default = []
 debug = []

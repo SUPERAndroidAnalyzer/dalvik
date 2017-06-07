@@ -176,18 +176,19 @@ impl DexReader {
     fn read_all_types<B: ByteOrder>(&mut self) -> Result<()> {
         for _ in 0..self.header.get_type_ids_size() {
             let current_offset = self.file_cursor.position();
-            let index =
-                self.file_cursor
-                    .read_u32::<B>()
-                    .chain_err(|| {
-                                   format!("could not read type ID at offset {:#010x}",
+            let index = self.file_cursor
+                .read_u32::<B>()
+                .chain_err(|| {
+                               format!("could not read type ID at offset {:#010x}",
                                            current_offset)
-                               })?;
+                           })?;
             let type_str = self.strings
                 .get(index as usize)
                 .ok_or_else(|| ErrorKind::UnknownStringIndex(index))?;
-            self.types.push(type_str.parse()
-                .chain_err(|| {
+            self.types
+                .push(type_str
+                          .parse()
+                          .chain_err(|| {
                     format!("could not read type descriptor from string at index {} (`{}`)",
                             index,
                             type_str)
@@ -221,7 +222,8 @@ impl DexReader {
                 self.strings
                     .get(prototype_id.shorty_index() as usize)
                     .ok_or_else(|| ErrorKind::UnknownStringIndex(prototype_id.shorty_index()))?;
-            let shorty_descriptor = shorty_str.parse()
+            let shorty_descriptor = shorty_str
+                .parse()
                 .chain_err(|| {
                     format!("could not read shorty descriptor from string at index {} (`{}`)",
                             prototype_id.shorty_index(),
@@ -323,9 +325,9 @@ impl DexReader {
                 self.file_cursor.set_position(offset as u64);
                 Some(self.read_annotations_directory::<B>()
                          .chain_err(|| {
-                             format!("could not read annotation list at offset {:#010x} for class \
+                    format!("could not read annotation list at offset {:#010x} for class \
                                       at offset {:#010x}", offset, class_offset)
-                                  })?)
+                })?)
             } else {
                 None
             };
