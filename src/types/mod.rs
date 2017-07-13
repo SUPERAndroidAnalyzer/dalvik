@@ -4,6 +4,8 @@ pub mod read;
 
 use std::str::FromStr;
 use std::ops::Deref;
+use std::fmt::{Display, Formatter};
+use std::fmt;
 
 use error::*;
 use self::read::ClassData;
@@ -514,6 +516,93 @@ bitflags! {
     }
 }
 
+impl Display for AccessFlags {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let mut out = String::new();
+
+        if self.contains(ACC_PUBLIC) {
+            out.push_str("public ");
+        }
+
+        if self.contains(ACC_PRIVATE) {
+            out.push_str("private ");
+        }
+
+        if self.contains(ACC_PROTECTED) {
+            out.push_str("protected ");
+        }
+
+        if self.contains(ACC_STATIC) {
+            out.push_str("static ");
+        }
+
+        if self.contains(ACC_FINAL) {
+            out.push_str("final ");
+        }
+
+        if self.contains(ACC_SYNCHRONIZED) {
+            out.push_str("synchronized ");
+        }
+
+        if self.contains(ACC_VOLATILE) {
+            out.push_str("volatile ");
+        }
+
+        if self.contains(ACC_BRIDGE) {
+            out.push_str("bridge ");
+        }
+
+        if self.contains(ACC_TRANSIENT) {
+            out.push_str("transient ");
+        }
+
+        if self.contains(ACC_VARARGS) {
+            out.push_str("varargs ");
+        }
+
+        if self.contains(ACC_NATIVE) {
+            out.push_str("native ");
+        }
+
+        if self.contains(ACC_INTERFACE) {
+            out.push_str("interface ");
+        }
+
+        if self.contains(ACC_ABSTRACT) {
+            out.push_str("abstract ");
+        }
+
+        if self.contains(ACC_STRICT) {
+            out.push_str("strict ");
+        }
+
+        if self.contains(ACC_SYNTHETIC) {
+            out.push_str("synthetic ");
+        }
+
+        if self.contains(ACC_ANNOTATION) {
+            out.push_str("annotation ");
+        }
+
+        if self.contains(ACC_ENUM) {
+            out.push_str("enum ");
+        }
+
+        if self.contains(ACC_CONSTRUCTOR) {
+            out.push_str("constructor ");
+        }
+
+        if self.contains(ACC_DECLARED_SYNCHRONIZED) {
+            out.push_str("synchronized ");
+        }
+
+
+        write!(f, "{}", out.trim());
+
+        Ok(())
+    }
+}
+
 /// Structure representing a class.
 #[derive(Debug)]
 pub struct Class {
@@ -596,4 +685,27 @@ impl Class {
 
 
     // static_values: static_values,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn it_can_display_mixed_access_bitflags() {
+        let access = ACC_PUBLIC | ACC_DECLARED_SYNCHRONIZED;
+
+        let display = format!("{}", access);
+
+        assert_eq!("public synchronized", display);
+    }
+
+    #[test]
+    fn it_can_display_mixed_access_bitflags_protected_static_abstract() {
+        let access = ACC_PROTECTED | ACC_ABSTRACT | ACC_STATIC;
+
+        let display = format!("{}", access);
+
+        assert_eq!("protected static abstract", display);
+    }
 }
