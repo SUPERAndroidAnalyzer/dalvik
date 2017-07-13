@@ -5,13 +5,37 @@ use std::fs;
 #[test]
 fn it_header_read() {
     let header = dalvik::Header::from_file("test.dex").unwrap();
-    assert_eq!(&[0x64, 0x65, 0x78, 0xa, 0x30, 0x33, 0x35, 0x0],
-               header.get_magic());
+    assert_eq!(
+        &[0x64, 0x65, 0x78, 0xa, 0x30, 0x33, 0x35, 0x0],
+        header.get_magic()
+    );
     assert_eq!(35, header.get_dex_version());
     assert_eq!(0xa0576d4c, header.get_checksum());
-    assert_eq!(&[0x91, 0x02, 0x73, 0x72, 0x0d, 0xda, 0xf0, 0x75, 0x5b, 0x48, 0xd8, 0x09, 0xfd,
-                 0x6a, 0x6f, 0x01, 0x8f, 0xc9, 0x29, 0x15],
-               header.get_signature());
+    assert_eq!(
+        &[
+            0x91,
+            0x02,
+            0x73,
+            0x72,
+            0x0d,
+            0xda,
+            0xf0,
+            0x75,
+            0x5b,
+            0x48,
+            0xd8,
+            0x09,
+            0xfd,
+            0x6a,
+            0x6f,
+            0x01,
+            0x8f,
+            0xc9,
+            0x29,
+            0x15,
+        ],
+        header.get_signature()
+    );
     let file_size = fs::metadata("test.dex").unwrap().len();
     assert_eq!(file_size, header.get_file_size() as u64);
     assert_eq!(0x70, header.get_header_size());

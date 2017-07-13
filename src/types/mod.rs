@@ -66,9 +66,9 @@ impl FromStr for Type {
                             type_str.push(t);
                             type_str.push_str(chars.as_str());
                             return Ok(Type::Array {
-                                          dimensions: dimensions,
-                                          array_type: Box::new(type_str.parse()?),
-                                      });
+                                dimensions: dimensions,
+                                array_type: Box::new(type_str.parse()?),
+                            });
                         }
                         None => return Err(ErrorKind::InvalidTypeDescriptor(s.to_owned()).into()),
                     }
@@ -197,9 +197,9 @@ impl FromStr for ShortyDescriptor {
             field_types.push(ShortyFieldType::from_char(c)?);
         }
         Ok(ShortyDescriptor {
-               return_type: return_type,
-               field_types: field_types.into_boxed_slice(),
-           })
+            return_type: return_type,
+            field_types: field_types.into_boxed_slice(),
+        })
     }
 }
 
@@ -213,10 +213,11 @@ pub struct Prototype {
 
 impl Prototype {
     /// Creates a new prototype.
-    pub fn new<TA: Into<Option<Box<[Type]>>>>(descriptor: ShortyDescriptor,
-                                              return_type: Type,
-                                              parameters: TA)
-                                              -> Prototype {
+    pub fn new<TA: Into<Option<Box<[Type]>>>>(
+        descriptor: ShortyDescriptor,
+        return_type: Type,
+        parameters: TA,
+    ) -> Prototype {
         Prototype {
             descriptor,
             return_type,
@@ -353,11 +354,12 @@ pub struct AnnotationsDirectory {
 
 impl AnnotationsDirectory {
     /// Creates a new annotations directory.
-    pub fn new<CA: Into<Box<[Annotation]>>>(class_annotations: CA,
-                                            field_annotations: Box<[FieldAnnotations]>,
-                                            method_annotations: Box<[MethodAnnotations]>,
-                                            parameter_annotations: Box<[ParameterAnnotations]>)
-                                            -> AnnotationsDirectory {
+    pub fn new<CA: Into<Box<[Annotation]>>>(
+        class_annotations: CA,
+        field_annotations: Box<[FieldAnnotations]>,
+        method_annotations: Box<[MethodAnnotations]>,
+        parameter_annotations: Box<[ParameterAnnotations]>,
+    ) -> AnnotationsDirectory {
         AnnotationsDirectory {
             class_annotations: class_annotations.into(),
             field_annotations,
@@ -527,15 +529,16 @@ pub struct Class {
 
 impl Class {
     /// Creates a new class.
-    pub fn new(class_index: u32,
-               access_flags: AccessFlags,
-               superclass_index: Option<u32>,
-               interfaces: Box<[Type]>,
-               source_file_index: Option<u32>,
-               annotations: Option<AnnotationsDirectory>,
-               class_data: Option<ClassData>,
-               static_values: Option<Array>)
-               -> Class {
+    pub fn new(
+        class_index: u32,
+        access_flags: AccessFlags,
+        superclass_index: Option<u32>,
+        interfaces: Box<[Type]>,
+        source_file_index: Option<u32>,
+        annotations: Option<AnnotationsDirectory>,
+        class_data: Option<ClassData>,
+        static_values: Option<Array>,
+    ) -> Class {
         Class {
             class_index,
             access_flags,

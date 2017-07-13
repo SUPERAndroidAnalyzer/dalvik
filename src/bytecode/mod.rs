@@ -535,18 +535,22 @@ impl ToString for ByteCode {
             ByteCode::FilledNewArray(ref registers, reference) => {
                 let str_register: Vec<String> =
                     registers.iter().map(|r| format!("v{}", r)).collect();
-                format!("filled-new-array {{{}}}, type@{}",
-                        str_register.join(", "),
-                        reference)
+                format!(
+                    "filled-new-array {{{}}}, type@{}",
+                    str_register.join(", "),
+                    reference
+                )
             }
             ByteCode::FilledNewArrayRange(first_reg, amount, reference) => {
                 let str_register: Vec<String> = (first_reg..
-                                                 (first_reg as u16 + amount as u16 + 1) as u16)
-                        .map(|r| format!("v{}", r))
-                        .collect();
-                format!("filled-new-array/range {{{}}}, type@{}",
-                        str_register.join(", "),
-                        reference)
+                                                     (first_reg as u16 + amount as u16 + 1) as u16)
+                    .map(|r| format!("v{}", r))
+                    .collect();
+                format!(
+                    "filled-new-array/range {{{}}}, type@{}",
+                    str_register.join(", "),
+                    reference
+                )
             }
             ByteCode::FillArrayData(reg, offset) => format!("fill-array-data v{}, {}", reg, offset),
             ByteCode::Throw(reg) => format!("throw v{}", reg),
@@ -568,11 +572,13 @@ impl ToString for ByteCode {
                 format!("a{} v{}, v{}, v{}", array_op.to_string(), dest, op1, op2)
             }
             ByteCode::Instance(ref array_op, dest, op1, field) => {
-                format!("i{} v{}, v{}, field@{}",
-                        array_op.to_string(),
-                        dest,
-                        op1,
-                        field)
+                format!(
+                    "i{} v{}, v{}, field@{}",
+                    array_op.to_string(),
+                    dest,
+                    op1,
+                    field
+                )
             }
             ByteCode::Static(ref array_op, dest, field) => {
                 format!("s{} v{}, field@{}", array_op.to_string(), dest, field)
@@ -580,19 +586,23 @@ impl ToString for ByteCode {
             ByteCode::Invoke(ref invoke_kind, ref registers, method) => {
                 let str_register: Vec<String> =
                     registers.iter().map(|r| format!("v{}", r)).collect();
-                format!("{} {{{}}}, method@{}",
-                        invoke_kind.to_string(),
-                        str_register.join(", "),
-                        method)
+                format!(
+                    "{} {{{}}}, method@{}",
+                    invoke_kind.to_string(),
+                    str_register.join(", "),
+                    method
+                )
             }
             ByteCode::InvokeRange(ref invoke_kind, first_reg, amount, reference) => {
                 let str_register: Vec<String> = (first_reg..(first_reg + amount as u16))
                     .map(|r| format!("v{}", r))
                     .collect();
-                format!("{}/range {{{}}}, method@{}",
-                        invoke_kind.to_string(),
-                        str_register.join(", "),
-                        reference)
+                format!(
+                    "{}/range {{{}}}, method@{}",
+                    invoke_kind.to_string(),
+                    str_register.join(", "),
+                    reference
+                )
             }
             ByteCode::Unary(ref operation, dest, src) => {
                 format!("{} v{}, v{}", operation.to_string(), dest, src)
@@ -609,52 +619,64 @@ impl ToString for ByteCode {
                         format!("rsub-int v{}, v{}, #{}", dest, src, literal)
                     }
                     _ => {
-                        format!("{}/lit16 v{}, v{}, #{}",
-                                operation.to_string(),
-                                dest,
-                                src,
-                                literal)
+                        format!(
+                            "{}/lit16 v{}, v{}, #{}",
+                            operation.to_string(),
+                            dest,
+                            src,
+                            literal
+                        )
                     }
                 }
             }
             ByteCode::BinaryLit8(ref operation, dest, src, literal) => {
-                format!("{}/lit8 v{}, v{}, #{}",
-                        operation.to_string(),
-                        dest,
-                        src,
-                        literal)
+                format!(
+                    "{}/lit8 v{}, v{}, #{}",
+                    operation.to_string(),
+                    dest,
+                    src,
+                    literal
+                )
             }
             ByteCode::InvokePolymorphic(ref registers, method, proto) => {
                 let str_register: Vec<String> =
                     registers.iter().map(|r| format!("v{}", r)).collect();
-                format!("invoke-polymorphic {{{}}}, method@{} proto@{}",
-                        str_register.join(", "),
-                        method,
-                        proto)
+                format!(
+                    "invoke-polymorphic {{{}}}, method@{} proto@{}",
+                    str_register.join(", "),
+                    method,
+                    proto
+                )
             }
             ByteCode::InvokePolymorphicRange(first_reg, amount, method, proto) => {
                 let str_register: Vec<String> = (first_reg..(first_reg + amount as u16))
                     .map(|r| format!("v{}", r))
                     .collect();
-                format!("invoke-polymorphic/range {{{}}}, method@{} proto@{}",
-                        str_register.join(", "),
-                        method,
-                        proto)
+                format!(
+                    "invoke-polymorphic/range {{{}}}, method@{} proto@{}",
+                    str_register.join(", "),
+                    method,
+                    proto
+                )
             }
             ByteCode::InvokeCustom(ref registers, call_site) => {
                 let str_register: Vec<String> =
                     registers.iter().map(|r| format!("v{}", r)).collect();
-                format!("invoke-custom {{{}}}, call_site@{}",
-                        str_register.join(", "),
-                        call_site)
+                format!(
+                    "invoke-custom {{{}}}, call_site@{}",
+                    str_register.join(", "),
+                    call_site
+                )
             }
             ByteCode::InvokeCustomRange(first_reg, amount, call_site) => {
                 let str_register: Vec<String> = (first_reg..(first_reg + amount as u16))
                     .map(|r| format!("v{}", r))
                     .collect();
-                format!("invoke-custom/range {{{}}}, call_site@{}",
-                        str_register.join(", "),
-                        call_site)
+                format!(
+                    "invoke-custom/range {{{}}}, call_site@{}",
+                    str_register.join(", "),
+                    call_site
+                )
             }
         }
     }
@@ -916,36 +938,36 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             Ok(0x00) => self.format10x().ok().map(|_| ByteCode::Nop),
             Ok(0x01) => self.format12x().ok().map(|(d, s)| ByteCode::Move(d, s)),
             Ok(0x02) => {
-                self.format22x()
-                    .ok()
-                    .map(|(d, s)| ByteCode::MoveFrom16(d, s))
+                self.format22x().ok().map(
+                    |(d, s)| ByteCode::MoveFrom16(d, s),
+                )
             }
             Ok(0x03) => self.format32x().ok().map(|(d, s)| ByteCode::Move16(d, s)),
             Ok(0x04) => self.format12x().ok().map(|(d, s)| ByteCode::MoveWide(d, s)),
             Ok(0x05) => {
-                self.format22x()
-                    .ok()
-                    .map(|(d, s)| ByteCode::MoveWideFrom16(d, s))
+                self.format22x().ok().map(
+                    |(d, s)| ByteCode::MoveWideFrom16(d, s),
+                )
             }
             Ok(0x06) => {
-                self.format32x()
-                    .ok()
-                    .map(|(d, s)| ByteCode::MoveWide16(d, s))
+                self.format32x().ok().map(
+                    |(d, s)| ByteCode::MoveWide16(d, s),
+                )
             }
             Ok(0x07) => {
-                self.format12x()
-                    .ok()
-                    .map(|(d, s)| ByteCode::MoveObject(d, s))
+                self.format12x().ok().map(
+                    |(d, s)| ByteCode::MoveObject(d, s),
+                )
             }
             Ok(0x08) => {
-                self.format22x()
-                    .ok()
-                    .map(|(d, s)| ByteCode::MoveObjectFrom16(d, s))
+                self.format22x().ok().map(|(d, s)| {
+                    ByteCode::MoveObjectFrom16(d, s)
+                })
             }
             Ok(0x09) => {
-                self.format32x()
-                    .ok()
-                    .map(|(d, s)| ByteCode::MoveObject16(d, s))
+                self.format32x().ok().map(
+                    |(d, s)| ByteCode::MoveObject16(d, s),
+                )
             }
             Ok(0x0A) => self.format11x().ok().map(ByteCode::MoveResult),
             Ok(0x0B) => self.format11x().ok().map(ByteCode::MoveResultWide),
@@ -956,255 +978,212 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
             Ok(0x10) => self.format11x().ok().map(ByteCode::ReturnWide),
             Ok(0x11) => self.format11x().ok().map(ByteCode::ReturnObject),
             Ok(0x12) => {
-                self.format11n()
-                    .ok()
-                    .map(|(reg, lit)| ByteCode::Const4(reg, lit))
+                self.format11n().ok().map(
+                    |(reg, lit)| ByteCode::Const4(reg, lit),
+                )
             }
             Ok(0x13) => {
-                self.format21s()
-                    .ok()
-                    .map(|(reg, lit)| ByteCode::Const16(reg, lit))
+                self.format21s().ok().map(|(reg, lit)| {
+                    ByteCode::Const16(reg, lit)
+                })
             }
             Ok(0x14) => {
-                self.format31i()
-                    .ok()
-                    .map(|(reg, lit)| ByteCode::Const(reg, lit))
+                self.format31i().ok().map(
+                    |(reg, lit)| ByteCode::Const(reg, lit),
+                )
             }
             Ok(0x15) => {
-                self.format21hw()
-                    .ok()
-                    .map(|(reg, lit)| ByteCode::ConstHigh16(reg, lit))
+                self.format21hw().ok().map(|(reg, lit)| {
+                    ByteCode::ConstHigh16(reg, lit)
+                })
             }
             Ok(0x16) => {
-                self.format21s()
-                    .ok()
-                    .map(|(reg, lit)| ByteCode::ConstWide16(reg, lit as i64))
+                self.format21s().ok().map(|(reg, lit)| {
+                    ByteCode::ConstWide16(reg, lit as i64)
+                })
             }
             Ok(0x17) => {
-                self.format31i()
-                    .ok()
-                    .map(|(reg, lit)| ByteCode::ConstWide32(reg, lit as i64))
+                self.format31i().ok().map(|(reg, lit)| {
+                    ByteCode::ConstWide32(reg, lit as i64)
+                })
             }
             Ok(0x18) => {
-                self.format51l()
-                    .ok()
-                    .map(|(reg, lit)| ByteCode::ConstWide(reg, lit))
+                self.format51l().ok().map(|(reg, lit)| {
+                    ByteCode::ConstWide(reg, lit)
+                })
             }
             Ok(0x19) => {
-                self.format21hd()
-                    .ok()
-                    .map(|(reg, lit)| ByteCode::ConstWideHigh16(reg, lit))
+                self.format21hd().ok().map(|(reg, lit)| {
+                    ByteCode::ConstWideHigh16(reg, lit)
+                })
             }
             Ok(0x1A) => {
-                self.format21c()
-                    .ok()
-                    .map(|(reg, reference)| {
-                             ByteCode::ConstString(reg, reference as StringReference)
-                         })
+                self.format21c().ok().map(|(reg, reference)| {
+                    ByteCode::ConstString(reg, reference as StringReference)
+                })
             }
             Ok(0x1B) => {
-                self.format31c()
-                    .ok()
-                    .map(|(reg, reference)| {
-                             ByteCode::ConstStringJumbo(reg, reference as StringReference)
-                         })
+                self.format31c().ok().map(|(reg, reference)| {
+                    ByteCode::ConstStringJumbo(reg, reference as StringReference)
+                })
             }
             Ok(0x1C) => {
-                self.format21c()
-                    .ok()
-                    .map(|(reg, reference)| ByteCode::ConstClass(reg, reference as ClassReference))
+                self.format21c().ok().map(|(reg, reference)| {
+                    ByteCode::ConstClass(reg, reference as ClassReference)
+                })
             }
             Ok(0x1D) => self.format11x().ok().map(ByteCode::MonitorEnter),
             Ok(0x1E) => self.format11x().ok().map(ByteCode::MonitorExit),
             Ok(0x1F) => {
-                self.format21c()
-                    .ok()
-                    .map(|(reg, reference)| ByteCode::CheckCast(reg, reference as TypeReference))
+                self.format21c().ok().map(|(reg, reference)| {
+                    ByteCode::CheckCast(reg, reference as TypeReference)
+                })
             }
             Ok(0x20) => {
-                self.format22c()
-                    .ok()
-                    .map(|(dest, src, reference)| {
-                             ByteCode::InstanceOf(dest, src, reference as TypeReference)
-                         })
+                self.format22c().ok().map(|(dest, src, reference)| {
+                    ByteCode::InstanceOf(dest, src, reference as TypeReference)
+                })
             }
             Ok(0x21) => {
-                self.format12x()
-                    .ok()
-                    .map(|(dest, src)| ByteCode::ArrayLength(dest, src))
+                self.format12x().ok().map(|(dest, src)| {
+                    ByteCode::ArrayLength(dest, src)
+                })
             }
             Ok(0x22) => {
-                self.format21c()
-                    .ok()
-                    .map(|(dest, reference)| {
-                             ByteCode::NewInstance(dest, reference as TypeReference)
-                         })
+                self.format21c().ok().map(|(dest, reference)| {
+                    ByteCode::NewInstance(dest, reference as TypeReference)
+                })
             }
             Ok(0x23) => {
-                self.format22c()
-                    .ok()
-                    .map(|(dest, size, reference)| {
-                             ByteCode::NewArray(dest, size, reference as TypeReference)
-                         })
+                self.format22c().ok().map(|(dest, size, reference)| {
+                    ByteCode::NewArray(dest, size, reference as TypeReference)
+                })
             }
             Ok(0x24) => {
-                self.format35c()
-                    .ok()
-                    .map(|(registers, reference)| {
-                             ByteCode::FilledNewArray(registers, reference as TypeReference)
-                         })
+                self.format35c().ok().map(|(registers, reference)| {
+                    ByteCode::FilledNewArray(registers, reference as TypeReference)
+                })
             }
             Ok(0x25) => {
-                self.format3rc()
-                    .ok()
-                    .map(|(first, amount, reference)| {
-                             ByteCode::FilledNewArrayRange(first,
-                                                           amount,
-                                                           reference as TypeReference)
-                         })
+                self.format3rc().ok().map(|(first, amount, reference)| {
+                    ByteCode::FilledNewArrayRange(first, amount, reference as TypeReference)
+                })
             }
             Ok(0x26) => {
-                self.format31t()
-                    .ok()
-                    .map(|(reg, offset)| ByteCode::FillArrayData(reg, offset))
+                self.format31t().ok().map(|(reg, offset)| {
+                    ByteCode::FillArrayData(reg, offset)
+                })
             }
             Ok(0x27) => self.format11x().ok().map(ByteCode::Throw),
             Ok(0x28) => self.format10t().ok().map(ByteCode::Goto),
             Ok(0x29) => self.format20t().ok().map(ByteCode::Goto16),
             Ok(0x2A) => self.format30t().ok().map(ByteCode::Goto32),
             Ok(0x2B) => {
-                self.format31t()
-                    .ok()
-                    .map(|(reg, offset)| ByteCode::PackedSwitch(reg, offset))
+                self.format31t().ok().map(|(reg, offset)| {
+                    ByteCode::PackedSwitch(reg, offset)
+                })
             }
             Ok(0x2C) => {
-                self.format31t()
-                    .ok()
-                    .map(|(reg, offset)| ByteCode::SparseSwitch(reg, offset))
+                self.format31t().ok().map(|(reg, offset)| {
+                    ByteCode::SparseSwitch(reg, offset)
+                })
             }
             Ok(a @ 0x2D...0x31) => {
-                self.format23x()
-                    .ok()
-                    .map(|(dest, op1, op2)| ByteCode::Compare(CompareType::from(a), dest, op1, op2))
+                self.format23x().ok().map(|(dest, op1, op2)| {
+                    ByteCode::Compare(CompareType::from(a), dest, op1, op2)
+                })
             }
             Ok(a @ 0x32...0x37) => {
-                self.format22t()
-                    .ok()
-                    .map(|(dest, src, offset)| ByteCode::If(TestType::from(a), dest, src, offset))
+                self.format22t().ok().map(|(dest, src, offset)| {
+                    ByteCode::If(TestType::from(a), dest, src, offset)
+                })
             }
             Ok(a @ 0x38...0x3D) => {
-                self.format21t()
-                    .ok()
-                    .map(|(dest, offset)| ByteCode::If0(TestType::from(a), dest, offset))
+                self.format21t().ok().map(|(dest, offset)| {
+                    ByteCode::If0(TestType::from(a), dest, offset)
+                })
             }
             Ok(a @ 0x44...0x51) => {
-                self.format23x()
-                    .ok()
-                    .map(|(dest, op1, op2)| {
-                             ByteCode::Array(ArrayOperation::from(a), dest, op1, op2)
-                         })
+                self.format23x().ok().map(|(dest, op1, op2)| {
+                    ByteCode::Array(ArrayOperation::from(a), dest, op1, op2)
+                })
             }
             Ok(a @ 0x52...0x5f) => {
-                self.format22c()
-                    .ok()
-                    .map(|(dest, op1, reference)| {
-                             ByteCode::Instance(ArrayOperation::from(a),
-                                                dest,
-                                                op1,
-                                                reference as FieldReference)
-                         })
+                self.format22c().ok().map(|(dest, op1, reference)| {
+                    ByteCode::Instance(
+                        ArrayOperation::from(a),
+                        dest,
+                        op1,
+                        reference as FieldReference,
+                    )
+                })
             }
             Ok(a @ 0x60...0x6d) => {
-                self.format21c()
-                    .ok()
-                    .map(|(dest, reference)| {
-                             ByteCode::Static(ArrayOperation::from(a),
-                                              dest,
-                                              reference as FieldReference)
-                         })
+                self.format21c().ok().map(|(dest, reference)| {
+                    ByteCode::Static(ArrayOperation::from(a), dest, reference as FieldReference)
+                })
             }
             Ok(a @ 0x6e...0x72) => {
-                self.format35c()
-                    .ok()
-                    .map(|(registers, reference)| {
-                             ByteCode::Invoke(InvokeKind::from(a),
-                                              registers,
-                                              reference as MethodReference)
-                         })
+                self.format35c().ok().map(|(registers, reference)| {
+                    ByteCode::Invoke(InvokeKind::from(a), registers, reference as MethodReference)
+                })
             }
             Ok(a @ 0x74...0x78) => {
-                self.format3rc()
-                    .ok()
-                    .map(|(first, amount, reference)| {
-                             ByteCode::InvokeRange(InvokeKind::from(a),
-                                                   first,
-                                                   amount,
-                                                   reference as FieldReference)
-                         })
+                self.format3rc().ok().map(|(first, amount, reference)| {
+                    ByteCode::InvokeRange(
+                        InvokeKind::from(a),
+                        first,
+                        amount,
+                        reference as FieldReference,
+                    )
+                })
             }
             Ok(op @ 0x7b...0x8f) => {
-                self.format12x()
-                    .ok()
-                    .map(|(dest, src)| ByteCode::Unary(UnaryOperation::from(op), dest, src))
+                self.format12x().ok().map(|(dest, src)| {
+                    ByteCode::Unary(UnaryOperation::from(op), dest, src)
+                })
             }
             Ok(op @ 0x90...0xaf) => {
-                self.format23x()
-                    .ok()
-                    .map(|(dest, src1, src2)| {
-                             ByteCode::Binary(BinaryOperation::from(op), dest, src1, src2)
-                         })
+                self.format23x().ok().map(|(dest, src1, src2)| {
+                    ByteCode::Binary(BinaryOperation::from(op), dest, src1, src2)
+                })
             }
             Ok(op @ 0xb0...0xcf) => {
-                self.format12x()
-                    .ok()
-                    .map(|(srcdest, src)| {
-                             ByteCode::Binary2Addr(BinaryOperation::from(op), srcdest, src)
-                         })
+                self.format12x().ok().map(|(srcdest, src)| {
+                    ByteCode::Binary2Addr(BinaryOperation::from(op), srcdest, src)
+                })
             }
             Ok(op @ 0xd0...0xd7) => {
-                self.format22s()
-                    .ok()
-                    .map(|(dest, src, literal)| {
-                             ByteCode::BinaryLit16(BinaryOperation::from(op), dest, src, literal)
-                         })
+                self.format22s().ok().map(|(dest, src, literal)| {
+                    ByteCode::BinaryLit16(BinaryOperation::from(op), dest, src, literal)
+                })
             }
             Ok(op @ 0xd8...0xe2) => {
-                self.format22b()
-                    .ok()
-                    .map(|(dest, src, literal)| {
-                             ByteCode::BinaryLit8(BinaryOperation::from(op), dest, src, literal)
-                         })
+                self.format22b().ok().map(|(dest, src, literal)| {
+                    ByteCode::BinaryLit8(BinaryOperation::from(op), dest, src, literal)
+                })
             }
             Ok(0xfa) => {
-                self.format45cc()
-                    .ok()
-                    .map(|(registers, method, proto)| {
-                             ByteCode::InvokePolymorphic(registers, method as u32, proto as u32)
-                         })
+                self.format45cc().ok().map(|(registers, method, proto)| {
+                    ByteCode::InvokePolymorphic(registers, method as u32, proto as u32)
+                })
             }
             Ok(0xfb) => {
-                self.format4rcc()
-                    .ok()
-                    .map(|(first, amount, method, proto)| {
-                             ByteCode::InvokePolymorphicRange(first,
-                                                              amount,
-                                                              method as u32,
-                                                              proto as u32)
-                         })
+                self.format4rcc().ok().map(
+                    |(first, amount, method, proto)| {
+                        ByteCode::InvokePolymorphicRange(first, amount, method as u32, proto as u32)
+                    },
+                )
             }
             Ok(0xfc) => {
-                self.format35c()
-                    .ok()
-                    .map(|(registers, call_site)| {
-                             ByteCode::InvokeCustom(registers, call_site as u32)
-                         })
+                self.format35c().ok().map(|(registers, call_site)| {
+                    ByteCode::InvokeCustom(registers, call_site as u32)
+                })
             }
             Ok(0xfd) => {
-                self.format3rc()
-                    .ok()
-                    .map(|(first, amount, call_site)| {
-                             ByteCode::InvokeCustomRange(first, amount, call_site as u32)
-                         })
+                self.format3rc().ok().map(|(first, amount, call_site)| {
+                    ByteCode::InvokeCustomRange(first, amount, call_site as u32)
+                })
             }
             _ => None,
         }
@@ -1508,11 +1487,15 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert_eq!("const-wide/high16 v1, #-281474976710656",
-                   opcode.to_string());
-        assert!(matches!(
+        assert_eq!(
+            "const-wide/high16 v1, #-281474976710656",
+            opcode.to_string()
+        );
+        assert!(
+            matches!(
             opcode,
-            ByteCode::ConstWideHigh16(r, i) if r == 1 && i == -281474976710656));
+            ByteCode::ConstWideHigh16(r, i) if r == 1 && i == -281474976710656)
+        );
     }
 
     #[test]
@@ -1523,9 +1506,11 @@ mod tests {
         let opcode = d.nth(0).unwrap();
 
         assert_eq!("const-string v1, string@65535", opcode.to_string());
-        assert!(matches!(
+        assert!(
+            matches!(
             opcode,
-            ByteCode::ConstString(r, i) if r == 1 && i == 65535 as StringReference));
+            ByteCode::ConstString(r, i) if r == 1 && i == 65535 as StringReference)
+        );
     }
 
     #[test]
@@ -1535,11 +1520,15 @@ mod tests {
 
         let opcode = d.nth(0).unwrap();
 
-        assert_eq!("const-string/jumbo v1, string@268500991",
-                   opcode.to_string());
-        assert!(matches!(
+        assert_eq!(
+            "const-string/jumbo v1, string@268500991",
+            opcode.to_string()
+        );
+        assert!(
+            matches!(
             opcode,
-            ByteCode::ConstStringJumbo(r, i) if r == 1 && i == 268500991 as StringReference));
+            ByteCode::ConstStringJumbo(r, i) if r == 1 && i == 268500991 as StringReference)
+        );
     }
 
     #[test]
@@ -1550,9 +1539,11 @@ mod tests {
         let opcode = d.nth(0).unwrap();
 
         assert_eq!("const-class v1, class@4369", opcode.to_string());
-        assert!(matches!(
+        assert!(
+            matches!(
             opcode,
-            ByteCode::ConstClass(r, i) if r == 1 && i == 4369 as ClassReference));
+            ByteCode::ConstClass(r, i) if r == 1 && i == 4369 as ClassReference)
+        );
     }
 
     #[test]
@@ -1585,9 +1576,11 @@ mod tests {
         let opcode = d.nth(0).unwrap();
 
         assert_eq!("check-cast v1, type@4369", opcode.to_string());
-        assert!(matches!(
+        assert!(
+            matches!(
             opcode,
-            ByteCode::CheckCast(r, i) if r == 1 && i == 4369 as TypeReference));
+            ByteCode::CheckCast(r, i) if r == 1 && i == 4369 as TypeReference)
+        );
     }
 
     #[test]
@@ -1598,9 +1591,11 @@ mod tests {
         let opcode = d.nth(0).unwrap();
 
         assert_eq!("instance-of v2, v10, type@4369", opcode.to_string());
-        assert!(matches!(
+        assert!(
+            matches!(
             opcode,
-            ByteCode::InstanceOf(d, s, i) if d == 2 && s == 10 && i == 4369 as TypeReference));
+            ByteCode::InstanceOf(d, s, i) if d == 2 && s == 10 && i == 4369 as TypeReference)
+        );
     }
 
     #[test]
@@ -1635,9 +1630,11 @@ mod tests {
         let opcode = d.nth(0).unwrap();
 
         assert_eq!("new-array v9, v10, type@32", opcode.to_string());
-        assert!(matches!(
+        assert!(
+            matches!(
             opcode,
-            ByteCode::NewArray(d, s, reference) if d == 9 && s == 10 && reference == 32));
+            ByteCode::NewArray(d, s, reference) if d == 9 && s == 10 && reference == 32)
+        );
     }
 
     #[test]
