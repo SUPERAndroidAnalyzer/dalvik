@@ -51,15 +51,17 @@ impl Header {
         if file_size < HEADER_SIZE as u64 || file_size > (u32::MAX as u64) {
             return Err(ErrorKind::InvalidFileSize(file_size).into());
         }
-        let header = Header::from_reader(BufReader::new(f))
-            .chain_err(|| {
-                           ErrorKind::Header("there was an error reading the header of the dex file"
-                                                 .to_owned())
-                       })?;
+        let header = Header::from_reader(BufReader::new(f)).chain_err(|| {
+            ErrorKind::Header(
+                "there was an error reading the header of the dex file".to_owned(),
+            )
+        })?;
         if file_size == header.get_file_size() as u64 {
             Ok(header)
         } else {
-            Err(ErrorKind::HeaderFileSizeMismatch(file_size, header.get_file_size()).into())
+            Err(
+                ErrorKind::HeaderFileSizeMismatch(file_size, header.get_file_size()).into(),
+            )
         }
     }
 
@@ -67,33 +69,33 @@ impl Header {
     pub fn from_reader<R: Read>(mut reader: R) -> Result<Header> {
         // Magic number
         let mut magic = [0_u8; 8];
-        reader
-            .read_exact(&mut magic)
-            .chain_err(|| "could not read dex magic number")?;
+        reader.read_exact(&mut magic).chain_err(
+            || "could not read dex magic number",
+        )?;
         if !Header::is_magic_valid(&magic) {
             return Err(ErrorKind::IncorrectMagic(magic).into());
         }
         // Checksum
-        let mut checksum = reader
-            .read_u32::<LittleEndian>()
-            .chain_err(|| "could not read file checksum")?;
+        let mut checksum = reader.read_u32::<LittleEndian>().chain_err(
+            || "could not read file checksum",
+        )?;
         // Signature
         let mut signature = [0_u8; 20];
-        reader
-            .read_exact(&mut signature)
-            .chain_err(|| "could not read file signature")?;
+        reader.read_exact(&mut signature).chain_err(
+            || "could not read file signature",
+        )?;
         // File size
-        let mut file_size = reader
-            .read_u32::<LittleEndian>()
-            .chain_err(|| "could not read file size")?;
+        let mut file_size = reader.read_u32::<LittleEndian>().chain_err(
+            || "could not read file size",
+        )?;
         // Header size
-        let mut header_size = reader
-            .read_u32::<LittleEndian>()
-            .chain_err(|| "could not read header size")?;
+        let mut header_size = reader.read_u32::<LittleEndian>().chain_err(
+            || "could not read header size",
+        )?;
         // Endian tag
-        let endian_tag = reader
-            .read_u32::<LittleEndian>()
-            .chain_err(|| "could not read endian tag")?;
+        let endian_tag = reader.read_u32::<LittleEndian>().chain_err(
+            || "could not read endian tag",
+        )?;
 
         // Check endianness
         if endian_tag == REVERSE_ENDIAN_CONSTANT {
@@ -111,32 +113,37 @@ impl Header {
         }
 
         if endian_tag == ENDIAN_CONSTANT {
-            Header::read_data::<_, LittleEndian>(reader,
-                                                 magic,
-                                                 checksum,
-                                                 signature,
-                                                 file_size,
-                                                 header_size,
-                                                 ENDIAN_CONSTANT)
+            Header::read_data::<_, LittleEndian>(
+                reader,
+                magic,
+                checksum,
+                signature,
+                file_size,
+                header_size,
+                ENDIAN_CONSTANT,
+            )
         } else {
-            Header::read_data::<_, BigEndian>(reader,
-                                              magic,
-                                              checksum,
-                                              signature,
-                                              file_size,
-                                              header_size,
-                                              REVERSE_ENDIAN_CONSTANT)
+            Header::read_data::<_, BigEndian>(
+                reader,
+                magic,
+                checksum,
+                signature,
+                file_size,
+                header_size,
+                REVERSE_ENDIAN_CONSTANT,
+            )
         }
     }
 
-    fn read_data<R: Read, E: ByteOrder>(mut reader: R,
-                                        magic: [u8; 8],
-                                        checksum: u32,
-                                        signature: [u8; 20],
-                                        file_size: u32,
-                                        header_size: u32,
-                                        endian_tag: u32)
-                                        -> Result<Header> {
+    fn read_data<R: Read, E: ByteOrder>(
+        mut reader: R,
+        magic: [u8; 8],
+        checksum: u32,
+        signature: [u8; 20],
+        file_size: u32,
+        header_size: u32,
+        endian_tag: u32,
+    ) -> Result<Header> {
         #[inline]
         fn some_if(x: u32, b: bool) -> Option<u32> {
             if b { Some(x) } else { None }
@@ -144,244 +151,284 @@ impl Header {
         let mut current_offset = HEADER_SIZE;
 
         // Link size
-        let link_size = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the link section size")?;
+        let link_size = reader.read_u32::<E>().chain_err(
+            || "could not read the link section size",
+        )?;
         // Link offset
-        let link_offset = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the link section offset")?;
+        let link_offset = reader.read_u32::<E>().chain_err(
+            || "could not read the link section offset",
+        )?;
         if link_size == 0 && link_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets("link_offset", link_offset, 0).into());
+            return Err(
+                ErrorKind::MismatchedOffsets("link_offset", link_offset, 0).into(),
+            );
         }
 
         // Map offset
-        let map_offset = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the map section offset")?;
+        let map_offset = reader.read_u32::<E>().chain_err(
+            || "could not read the map section offset",
+        )?;
         if map_offset == 0x00000000 {
-            return Err(ErrorKind::InvalidOffset("`map_offset` was 0x00000000, and it can never \
+            return Err(
+                ErrorKind::InvalidOffset(
+                    "`map_offset` was 0x00000000, and it can never \
                                                  be zero"
-                                                        .to_owned())
-                               .into());
+                        .to_owned(),
+                ).into(),
+            );
         }
 
         // String IDs size
-        let string_ids_size = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the string IDs list size")?;
+        let string_ids_size = reader.read_u32::<E>().chain_err(
+            || "could not read the string IDs list size",
+        )?;
         // String IDs offset
-        let string_ids_offset = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the string IDs list offset")?;
+        let string_ids_offset = reader.read_u32::<E>().chain_err(
+            || "could not read the string IDs list offset",
+        )?;
         if string_ids_size > 0 && string_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets("string_ids_offset",
-                                                    string_ids_offset,
-                                                    HEADER_SIZE)
-                               .into());
+            return Err(
+                ErrorKind::MismatchedOffsets(
+                    "string_ids_offset",
+                    string_ids_offset,
+                    HEADER_SIZE,
+                ).into(),
+            );
         }
         if string_ids_size == 0 && string_ids_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets("string_ids_offset", string_ids_offset, 0)
-                           .into());
+            return Err(
+                ErrorKind::MismatchedOffsets("string_ids_offset", string_ids_offset, 0).into(),
+            );
         }
         current_offset += string_ids_size * STRING_ID_ITEM_SIZE;
 
         // Types IDs size
-        let type_ids_size = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the type IDs list size")?;
+        let type_ids_size = reader.read_u32::<E>().chain_err(
+            || "could not read the type IDs list size",
+        )?;
         // Types IDs offset
-        let type_ids_offset = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the type IDs list offset")?;
+        let type_ids_offset = reader.read_u32::<E>().chain_err(
+            || "could not read the type IDs list offset",
+        )?;
         if type_ids_size > 0 && type_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets("type_ids_offset",
-                                                    type_ids_offset,
-                                                    current_offset)
-                               .into());
+            return Err(
+                ErrorKind::MismatchedOffsets("type_ids_offset", type_ids_offset, current_offset)
+                    .into(),
+            );
         }
         if type_ids_size == 0 && type_ids_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets("type_ids_offset", type_ids_offset, 0).into());
+            return Err(
+                ErrorKind::MismatchedOffsets("type_ids_offset", type_ids_offset, 0).into(),
+            );
         }
         current_offset += type_ids_size * TYPE_ID_ITEM_SIZE;
 
         // Prototype IDs size
-        let prototype_ids_size = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the prototype IDs list size")?;
+        let prototype_ids_size = reader.read_u32::<E>().chain_err(
+            || "could not read the prototype IDs list size",
+        )?;
         // Prototype IDs offset
-        let prototype_ids_offset =
-            reader
-                .read_u32::<E>()
-                .chain_err(|| "could not read the prototype IDs list offset")?;
+        let prototype_ids_offset = reader.read_u32::<E>().chain_err(
+            || "could not read the prototype IDs list offset",
+        )?;
         if prototype_ids_size > 0 && prototype_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets("prototype_ids_offset",
-                                                    prototype_ids_offset,
-                                                    current_offset)
-                               .into());
+            return Err(
+                ErrorKind::MismatchedOffsets(
+                    "prototype_ids_offset",
+                    prototype_ids_offset,
+                    current_offset,
+                ).into(),
+            );
         }
         if prototype_ids_size == 0 && prototype_ids_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets("prototype_ids_offset",
-                                                    prototype_ids_offset,
-                                                    0)
-                               .into());
+            return Err(
+                ErrorKind::MismatchedOffsets("prototype_ids_offset", prototype_ids_offset, 0)
+                    .into(),
+            );
         }
         current_offset += prototype_ids_size * PROTO_ID_ITEM_SIZE;
 
         // Field IDs size
-        let field_ids_size = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the field IDs list size")?;
+        let field_ids_size = reader.read_u32::<E>().chain_err(
+            || "could not read the field IDs list size",
+        )?;
         // Field IDs offset
-        let field_ids_offset = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the field IDs list offset")?;
+        let field_ids_offset = reader.read_u32::<E>().chain_err(
+            || "could not read the field IDs list offset",
+        )?;
         if field_ids_size > 0 && field_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets("field_ids_offset",
-                                                    field_ids_offset,
-                                                    current_offset)
-                               .into());
+            return Err(
+                ErrorKind::MismatchedOffsets(
+                    "field_ids_offset",
+                    field_ids_offset,
+                    current_offset,
+                ).into(),
+            );
         }
         if field_ids_size == 0 && field_ids_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets("field_ids_offset", field_ids_offset, 0)
-                           .into());
+            return Err(
+                ErrorKind::MismatchedOffsets("field_ids_offset", field_ids_offset, 0).into(),
+            );
         }
         current_offset += field_ids_size * FIELD_ID_ITEM_SIZE;
 
         // Method IDs size
-        let method_ids_size = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the method IDs list size")?;
+        let method_ids_size = reader.read_u32::<E>().chain_err(
+            || "could not read the method IDs list size",
+        )?;
         // Method IDs offset
-        let method_ids_offset = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the method IDs list offset")?;
+        let method_ids_offset = reader.read_u32::<E>().chain_err(
+            || "could not read the method IDs list offset",
+        )?;
         if method_ids_size > 0 && method_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets("method_ids_offset",
-                                                    method_ids_offset,
-                                                    current_offset)
-                               .into());
+            return Err(
+                ErrorKind::MismatchedOffsets(
+                    "method_ids_offset",
+                    method_ids_offset,
+                    current_offset,
+                ).into(),
+            );
         }
         if method_ids_size == 0 && method_ids_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets("method_ids_offset", method_ids_offset, 0)
-                           .into());
+            return Err(
+                ErrorKind::MismatchedOffsets("method_ids_offset", method_ids_offset, 0).into(),
+            );
         }
         current_offset += method_ids_size * METHOD_ID_ITEM_SIZE;
 
         // Class defs size
-        let class_defs_size = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the class definitions list size")?;
+        let class_defs_size = reader.read_u32::<E>().chain_err(
+            || "could not read the class definitions list size",
+        )?;
         // Class defs offset
-        let class_defs_offset =
-            reader
-                .read_u32::<E>()
-                .chain_err(|| "could not read the class definitions list offset")?;
+        let class_defs_offset = reader.read_u32::<E>().chain_err(
+            || "could not read the class definitions list offset",
+        )?;
         if class_defs_size > 0 && class_defs_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets("class_defs_offset",
-                                                    class_defs_offset,
-                                                    current_offset)
-                               .into());
+            return Err(
+                ErrorKind::MismatchedOffsets(
+                    "class_defs_offset",
+                    class_defs_offset,
+                    current_offset,
+                ).into(),
+            );
         }
         if class_defs_size == 0 && class_defs_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets("class_defs_offset", class_defs_offset, 0)
-                           .into());
+            return Err(
+                ErrorKind::MismatchedOffsets("class_defs_offset", class_defs_offset, 0).into(),
+            );
         }
         current_offset += class_defs_size * CLASS_DEF_ITEM_SIZE;
 
         // Data size
-        let data_size = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the data section size")?;
+        let data_size = reader.read_u32::<E>().chain_err(
+            || "could not read the data section size",
+        )?;
         if data_size & 0b11 != 0 {
-            return Err(ErrorKind::Header(format!("`data_size` must be a 4-byte multiple, but \
+            return Err(
+                ErrorKind::Header(format!(
+                    "`data_size` must be a 4-byte multiple, but \
                                                   it was {:#010x}",
-                                                 data_size))
-                               .into());
+                    data_size
+                )).into(),
+            );
         }
 
         // Data offset
-        let data_offset = reader
-            .read_u32::<E>()
-            .chain_err(|| "could not read the data section offset")?;
+        let data_offset = reader.read_u32::<E>().chain_err(
+            || "could not read the data section offset",
+        )?;
         if data_offset != current_offset {
             // return Err(Error::mismatched_offsets("data_offset", data_offset, current_offset));
             // TODO seems that there is more information after the class definitions.
             if cfg!(feature = "debug") {
-                println!("{} bytes of unknown data were found.",
-                         data_offset - current_offset);
+                println!(
+                    "{} bytes of unknown data were found.",
+                    data_offset - current_offset
+                );
             }
             current_offset = data_offset;
         }
         current_offset += data_size;
         if map_offset < data_offset || map_offset > data_offset + data_size {
-            return Err(ErrorKind::InvalidOffset(format!("`map_offset` section must be in the \
+            return Err(
+                ErrorKind::InvalidOffset(format!(
+                    "`map_offset` section must be in the \
                                                          `data` section (between {:#010x} and \
                                                          {:#010x}) but it was at {:#010x}",
-                                                        data_offset,
-                                                        current_offset,
-                                                        map_offset))
-                               .into());
+                    data_offset,
+                    current_offset,
+                    map_offset
+                )).into(),
+            );
         }
         if link_size == 0 && current_offset != file_size {
-            return Err(ErrorKind::Header(format!("`data` section must end at the EOF if there \
+            return Err(
+                ErrorKind::Header(format!(
+                    "`data` section must end at the EOF if there \
                                                   are no links in the file. Data end: \
                                                   {:#010x}, `file_size`: {:#010x}",
-                                                 current_offset,
-                                                 file_size))
-                               .into());
+                    current_offset,
+                    file_size
+                )).into(),
+            );
 
         }
         if link_size != 0 && link_offset == 0 {
-            return Err(ErrorKind::MismatchedOffsets("link_offset", 0, current_offset).into());
+            return Err(
+                ErrorKind::MismatchedOffsets("link_offset", 0, current_offset).into(),
+            );
         }
         if link_size != 0 && link_offset != 0 {
             if link_offset != current_offset {
-                return Err(ErrorKind::MismatchedOffsets("link_offset",
-                                                        link_offset,
-                                                        current_offset)
-                                   .into());
+                return Err(
+                    ErrorKind::MismatchedOffsets("link_offset", link_offset, current_offset)
+                        .into(),
+                );
             }
             if link_offset + link_size != file_size {
-                return Err(ErrorKind::Header("`link_data` section must end at the end \
+                return Err(
+                    ErrorKind::Header(
+                        "`link_data` section must end at the end \
                                                        of file"
-                                                     .to_owned())
-                                   .into());
+                            .to_owned(),
+                    ).into(),
+                );
             }
         }
 
         Ok(Header {
-               magic: magic,
-               checksum: checksum,
-               signature: signature,
-               file_size: file_size,
-               header_size: header_size,
-               endian_tag: endian_tag,
-               link_size: link_size,
-               link_offset: some_if(link_offset, link_offset != 0),
-               map_offset: map_offset,
-               string_ids_size: string_ids_size,
-               string_ids_offset: some_if(string_ids_offset, string_ids_offset > 0),
-               type_ids_size: type_ids_size,
-               type_ids_offset: some_if(type_ids_offset, type_ids_offset > 0),
-               prototype_ids_size: prototype_ids_size,
-               prototype_ids_offset: some_if(prototype_ids_offset, prototype_ids_size > 0),
-               field_ids_size: field_ids_size,
-               field_ids_offset: some_if(field_ids_offset, field_ids_size > 0),
-               method_ids_size: method_ids_size,
-               method_ids_offset: some_if(method_ids_offset, method_ids_size > 0),
-               class_defs_size: class_defs_size,
-               class_defs_offset: some_if(class_defs_offset, class_defs_size > 0),
-               data_size: data_size,
-               data_offset: data_offset,
-           })
+            magic: magic,
+            checksum: checksum,
+            signature: signature,
+            file_size: file_size,
+            header_size: header_size,
+            endian_tag: endian_tag,
+            link_size: link_size,
+            link_offset: some_if(link_offset, link_offset != 0),
+            map_offset: map_offset,
+            string_ids_size: string_ids_size,
+            string_ids_offset: some_if(string_ids_offset, string_ids_offset > 0),
+            type_ids_size: type_ids_size,
+            type_ids_offset: some_if(type_ids_offset, type_ids_offset > 0),
+            prototype_ids_size: prototype_ids_size,
+            prototype_ids_offset: some_if(prototype_ids_offset, prototype_ids_size > 0),
+            field_ids_size: field_ids_size,
+            field_ids_offset: some_if(field_ids_offset, field_ids_size > 0),
+            method_ids_size: method_ids_size,
+            method_ids_offset: some_if(method_ids_offset, method_ids_size > 0),
+            class_defs_size: class_defs_size,
+            class_defs_offset: some_if(class_defs_offset, class_defs_size > 0),
+            data_size: data_size,
+            data_offset: data_offset,
+        })
     }
 
     /// Checks if the dex magic number given is valid.
     fn is_magic_valid(magic: &[u8; 8]) -> bool {
-        &magic[0..4] == &[0x64, 0x65, 0x78, 0x0a] && magic[7] == 0x00 &&
-        magic[4] >= 0x30 && magic[5] >= 0x30 && magic[6] >= 0x30 && magic[4] <= 0x39 &&
-        magic[5] <= 0x39 && magic[6] <= 0x39
+        &magic[0..4] == &[0x64, 0x65, 0x78, 0x0a] && magic[7] == 0x00 && magic[4] >= 0x30 &&
+            magic[5] >= 0x30 && magic[6] >= 0x30 &&
+            magic[4] <= 0x39 && magic[5] <= 0x39 && magic[6] <= 0x39
     }
 
     /// Gets the magic value.
@@ -533,86 +580,102 @@ impl Header {
 
 impl fmt::Debug for Header {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "Header {{ magic: [ {} ] (version: {}), checksum: {:#x}, SHA-1 signature: {}, \
+        write!(
+            f,
+            "Header {{ magic: [ {} ] (version: {}), checksum: {:#x}, SHA-1 signature: {}, \
                 file_size: {} bytes, header_size: {} bytes, endian_tag: {:#x} ({} endian), {}, \
                 map_offset: {:#x}, {}, {}, {}, {}, {}, {}, data_size: {} bytes, data_offset: \
                 {:#x} }}",
-               {
-                   let mut magic_vec = Vec::with_capacity(8);
-                   for b in &self.magic {
-                       magic_vec.push(format!("{:#02x}", b))
-                   }
-                   magic_vec.join(", ")
-               },
-               self.get_dex_version(),
-               self.checksum,
-               {
-                   let mut signature = String::with_capacity(40);
-                   for b in &self.signature {
-                       signature.push_str(&format!("{:02x}", b))
-                   }
-                   signature
-               },
-               self.file_size,
-               self.header_size,
-               self.endian_tag,
-               if self.is_little_endian() {
-                   "little"
-               } else {
-                   "big"
-               },
-               if let Some(off) = self.link_offset {
-                   format!("link_size: {} bytes, link_offset: {:#x}",
-                           self.link_size,
-                           off)
-               } else {
-                   String::from("no link section")
-               },
-               self.map_offset,
-               if let Some(off) = self.string_ids_offset {
-                   format!("string_ids_size: {} strings, string_ids_offset: {:#x}",
-                           self.string_ids_size,
-                           off)
-               } else {
-                   String::from("no strings")
-               },
-               if let Some(off) = self.type_ids_offset {
-                   format!("type_ids_size: {} types, type_ids_offset: {:#x}",
-                           self.type_ids_size,
-                           off)
-               } else {
-                   String::from("no types")
-               },
-               if let Some(off) = self.prototype_ids_offset {
-                   format!("prototype_ids_size: {} types, prototype_ids_offset: {:#x}",
-                           self.prototype_ids_size,
-                           off)
-               } else {
-                   String::from("no prototypes")
-               },
-               if let Some(off) = self.field_ids_offset {
-                   format!("field_ids_size: {} types, field_ids_offset: {:#x}",
-                           self.field_ids_size,
-                           off)
-               } else {
-                   String::from("no fields")
-               },
-               if let Some(off) = self.method_ids_offset {
-                   format!("method_ids_size: {} types, method_ids_offset: {:#x}",
-                           self.method_ids_size,
-                           off)
-               } else {
-                   String::from("no methods")
-               },
-               if let Some(off) = self.class_defs_offset {
-                   format!("class_defs_size: {} classes, class_defs_offset: {:#x}",
-                           self.class_defs_size,
-                           off)
-               } else {
-                   String::from("no classes")
-               },
-               self.data_size,
-               self.data_offset)
+            {
+                let mut magic_vec = Vec::with_capacity(8);
+                for b in &self.magic {
+                    magic_vec.push(format!("{:#02x}", b))
+                }
+                magic_vec.join(", ")
+            },
+            self.get_dex_version(),
+            self.checksum,
+            {
+                let mut signature = String::with_capacity(40);
+                for b in &self.signature {
+                    signature.push_str(&format!("{:02x}", b))
+                }
+                signature
+            },
+            self.file_size,
+            self.header_size,
+            self.endian_tag,
+            if self.is_little_endian() {
+                "little"
+            } else {
+                "big"
+            },
+            if let Some(off) = self.link_offset {
+                format!(
+                    "link_size: {} bytes, link_offset: {:#x}",
+                    self.link_size,
+                    off
+                )
+            } else {
+                String::from("no link section")
+            },
+            self.map_offset,
+            if let Some(off) = self.string_ids_offset {
+                format!(
+                    "string_ids_size: {} strings, string_ids_offset: {:#x}",
+                    self.string_ids_size,
+                    off
+                )
+            } else {
+                String::from("no strings")
+            },
+            if let Some(off) = self.type_ids_offset {
+                format!(
+                    "type_ids_size: {} types, type_ids_offset: {:#x}",
+                    self.type_ids_size,
+                    off
+                )
+            } else {
+                String::from("no types")
+            },
+            if let Some(off) = self.prototype_ids_offset {
+                format!(
+                    "prototype_ids_size: {} types, prototype_ids_offset: {:#x}",
+                    self.prototype_ids_size,
+                    off
+                )
+            } else {
+                String::from("no prototypes")
+            },
+            if let Some(off) = self.field_ids_offset {
+                format!(
+                    "field_ids_size: {} types, field_ids_offset: {:#x}",
+                    self.field_ids_size,
+                    off
+                )
+            } else {
+                String::from("no fields")
+            },
+            if let Some(off) = self.method_ids_offset {
+                format!(
+                    "method_ids_size: {} types, method_ids_offset: {:#x}",
+                    self.method_ids_size,
+                    off
+                )
+            } else {
+                String::from("no methods")
+            },
+            if let Some(off) = self.class_defs_offset {
+                format!(
+                    "class_defs_size: {} classes, class_defs_offset: {:#x}",
+                    self.class_defs_size,
+                    off
+                )
+            } else {
+                String::from("no classes")
+            },
+            self.data_size,
+            self.data_offset
+        )
     }
 }

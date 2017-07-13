@@ -76,11 +76,12 @@ impl Dex {
 
     /// Loads a new Dex data structure from the given reader.
     pub fn from_reader<R: BufRead>(reader: R, size: Option<usize>) -> Result<Dex> {
-        let mut dex_reader = DexReader::new(reader, size)
-            .chain_err(|| "could not create reader")?;
-        dex_reader
-            .read_data()
-            .chain_err(|| "could not read dex file")?;
+        let mut dex_reader = DexReader::new(reader, size).chain_err(
+            || "could not create reader",
+        )?;
+        dex_reader.read_data().chain_err(
+            || "could not read dex file",
+        )?;
 
         Ok(dex_reader.into())
     }
