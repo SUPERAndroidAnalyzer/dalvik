@@ -17,9 +17,9 @@ travis-ci = { repository = "SUPERAndroidAnalyzer/dalvik", branch = "master" }
 appveyor = { repository = "Razican/dalvik", branch = "master", service = "github" }
 
 [dependencies]
-byteorder = "1.0"
-bitflags = "0.8"
-error-chain = "0.10"
+byteorder = "1.1"
+bitflags = "1.0"
+error-chain = "0.11"
 
 [dev-dependencies]
 matches = "^0.1"

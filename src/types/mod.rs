@@ -474,45 +474,45 @@ impl ParameterAnnotations {
 
 bitflags! {
     /// Access flags.
-    pub flags AccessFlags: u32 {
+    pub struct AccessFlags: u32 {
         /// Public access.
-        const ACC_PUBLIC = 0x1,
+        const ACC_PUBLIC = 0x1;
         /// Private access.
-        const ACC_PRIVATE = 0x2,
+        const ACC_PRIVATE = 0x2;
         /// Protected access.
-        const ACC_PROTECTED = 0x4,
+        const ACC_PROTECTED = 0x4;
         /// Static access.
-        const ACC_STATIC = 0x8,
+        const ACC_STATIC = 0x8;
         /// Final element (non modifiable).
-        const ACC_FINAL = 0x10,
+        const ACC_FINAL = 0x10;
         /// Thread - synchronized element.
-        const ACC_SYNCHRONIZED = 0x20,
+        const ACC_SYNCHRONIZED = 0x20;
         /// Volatile element.
-        const ACC_VOLATILE = 0x40,
+        const ACC_VOLATILE = 0x40;
         /// Bridge.
-        const ACC_BRIDGE = 0x40,
+        const ACC_BRIDGE = 0x40;
         /// Transient.
-        const ACC_TRANSIENT = 0x80,
+        const ACC_TRANSIENT = 0x80;
         /// Varargs.
-        const ACC_VARARGS = 0x80,
+        const ACC_VARARGS = 0x80;
         /// Native element.
-        const ACC_NATIVE = 0x100,
+        const ACC_NATIVE = 0x100;
         /// Interface.
-        const ACC_INTERFACE = 0x200,
+        const ACC_INTERFACE = 0x200;
         /// Abstract element.
-        const ACC_ABSTRACT = 0x400,
+        const ACC_ABSTRACT = 0x400;
         /// Strict.
-        const ACC_STRICT = 0x800,
+        const ACC_STRICT = 0x800;
         /// Syntetic.
-        const ACC_SYNTHETIC = 0x1000,
+        const ACC_SYNTHETIC = 0x1000;
         /// Annotation.
-        const ACC_ANNOTATION = 0x2000,
+        const ACC_ANNOTATION = 0x2000;
         /// Enum.
-        const ACC_ENUM = 0x4000,
+        const ACC_ENUM = 0x4000;
         /// Constructor.
-        const ACC_CONSTRUCTOR = 0x10000,
+        const ACC_CONSTRUCTOR = 0x10000;
         /// Declared as synchronized element.
-        const ACC_DECLARED_SYNCHRONIZED = 0x20000,
+        const ACC_DECLARED_SYNCHRONIZED = 0x20000;
     }
 }
 
@@ -520,86 +520,83 @@ impl Display for AccessFlags {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let mut out = String::new();
 
-        if self.contains(ACC_PUBLIC) {
+        if self.contains(AccessFlags::ACC_PUBLIC) {
             out.push_str("public ");
         }
 
-        if self.contains(ACC_PRIVATE) {
+        if self.contains(AccessFlags::ACC_PRIVATE) {
             out.push_str("private ");
         }
 
-        if self.contains(ACC_PROTECTED) {
+        if self.contains(AccessFlags::ACC_PROTECTED) {
             out.push_str("protected ");
         }
 
-        if self.contains(ACC_STATIC) {
+        if self.contains(AccessFlags::ACC_STATIC) {
             out.push_str("static ");
         }
 
-        if self.contains(ACC_FINAL) {
+        if self.contains(AccessFlags::ACC_FINAL) {
             out.push_str("final ");
         }
 
-        if self.contains(ACC_SYNCHRONIZED) {
+        if self.contains(AccessFlags::ACC_SYNCHRONIZED) {
             out.push_str("synchronized ");
         }
 
-        if self.contains(ACC_VOLATILE) {
+        if self.contains(AccessFlags::ACC_VOLATILE) {
             out.push_str("volatile ");
         }
 
-        if self.contains(ACC_BRIDGE) {
+        if self.contains(AccessFlags::ACC_BRIDGE) {
             out.push_str("bridge ");
         }
 
-        if self.contains(ACC_TRANSIENT) {
+        if self.contains(AccessFlags::ACC_TRANSIENT) {
             out.push_str("transient ");
         }
 
-        if self.contains(ACC_VARARGS) {
+        if self.contains(AccessFlags::ACC_VARARGS) {
             out.push_str("varargs ");
         }
 
-        if self.contains(ACC_NATIVE) {
+        if self.contains(AccessFlags::ACC_NATIVE) {
             out.push_str("native ");
         }
 
-        if self.contains(ACC_INTERFACE) {
+        if self.contains(AccessFlags::ACC_INTERFACE) {
             out.push_str("interface ");
         }
 
-        if self.contains(ACC_ABSTRACT) {
+        if self.contains(AccessFlags::ACC_ABSTRACT) {
             out.push_str("abstract ");
         }
 
-        if self.contains(ACC_STRICT) {
+        if self.contains(AccessFlags::ACC_STRICT) {
             out.push_str("strict ");
         }
 
-        if self.contains(ACC_SYNTHETIC) {
+        if self.contains(AccessFlags::ACC_SYNTHETIC) {
             out.push_str("synthetic ");
         }
 
-        if self.contains(ACC_ANNOTATION) {
+        if self.contains(AccessFlags::ACC_ANNOTATION) {
             out.push_str("annotation ");
         }
 
-        if self.contains(ACC_ENUM) {
+        if self.contains(AccessFlags::ACC_ENUM) {
             out.push_str("enum ");
         }
 
-        if self.contains(ACC_CONSTRUCTOR) {
+        if self.contains(AccessFlags::ACC_CONSTRUCTOR) {
             out.push_str("constructor ");
         }
 
-        if self.contains(ACC_DECLARED_SYNCHRONIZED) {
+        if self.contains(AccessFlags::ACC_DECLARED_SYNCHRONIZED) {
             out.push_str("synchronized ");
         }
 
-
-        write!(f, "{}", out.trim());
-
-        Ok(())
+        write!(f, "{}", out.trim())
     }
 }
 
@@ -693,7 +690,7 @@ mod test {
 
     #[test]
     fn it_can_display_mixed_access_bitflags() {
-        let access = ACC_PUBLIC | ACC_DECLARED_SYNCHRONIZED;
+        let access = AccessFlags::ACC_PUBLIC | AccessFlags::ACC_DECLARED_SYNCHRONIZED;
 
         let display = format!("{}", access);
 
@@ -702,7 +699,8 @@ mod test {
 
     #[test]
     fn it_can_display_mixed_access_bitflags_protected_static_abstract() {
-        let access = ACC_PROTECTED | ACC_ABSTRACT | ACC_STATIC;
+        let access = AccessFlags::ACC_PROTECTED | AccessFlags::ACC_ABSTRACT |
+            AccessFlags::ACC_STATIC;
 
         let display = format!("{}", access);
 

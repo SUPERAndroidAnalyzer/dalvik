@@ -1,5 +1,10 @@
 //! Dalvik executable file format parser.
 
+// Allowing these at least for now.
+#![allow(unknown_lints, missing_docs_in_private_items, stutter, option_unwrap_used,
+    result_unwrap_used, integer_arithmetic, cast_possible_truncation, cast_possible_wrap,
+    indexing_slicing, cast_precision_loss, cast_sign_loss)]
+
 // #![forbid(deprecated, overflowing_literals, stable_features, trivial_casts,
 // unconditional_recursion,
 //     plugin_as_library, unused_allocation, trivial_numeric_casts, unused_features, while_truem,
@@ -15,10 +20,7 @@
     pub_enum_variant_names, shadow_reuse, shadow_same, shadow_unrelated, similar_names,
     single_match_else, string_add, string_add_assign, unicode_not_nfc, unseparated_literal_suffix,
     use_debug, wrong_pub_self_convention)]
-// Allowing these at least for now.
-#![allow(missing_docs_in_private_items, unknown_lints, stutter, option_unwrap_used,
-    result_unwrap_used, integer_arithmetic, cast_possible_truncation, cast_possible_wrap,
-    indexing_slicing, cast_precision_loss, cast_sign_loss)]
+
 
 // `error_chain!` can recurse deeply
 #![recursion_limit = "1024"]
