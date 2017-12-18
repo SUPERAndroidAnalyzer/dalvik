@@ -2,9 +2,8 @@
 
 // Allowing these at least for now.
 #![allow(unknown_lints, missing_docs_in_private_items, stutter, option_unwrap_used,
-    result_unwrap_used, integer_arithmetic, cast_possible_truncation, cast_possible_wrap,
-    indexing_slicing, cast_precision_loss, cast_sign_loss)]
-
+         result_unwrap_used, integer_arithmetic, cast_possible_truncation, cast_possible_wrap,
+         indexing_slicing, cast_precision_loss, cast_sign_loss)]
 // #![forbid(deprecated, overflowing_literals, stable_features, trivial_casts,
 // unconditional_recursion,
 //     plugin_as_library, unused_allocation, trivial_numeric_casts, unused_features, while_truem,
@@ -16,18 +15,16 @@
 //     mutex_integer, mut_mut, mem_forget, print_stdout)]
 // #![deny(unused_qualifications, unused, unused_attributes)]
 #![warn(missing_docs, variant_size_differences, enum_glob_use, if_not_else,
-    invalid_upcast_comparisons, items_after_statements, non_ascii_literal, nonminimal_bool,
-    pub_enum_variant_names, shadow_reuse, shadow_same, shadow_unrelated, similar_names,
-    single_match_else, string_add, string_add_assign, unicode_not_nfc, unseparated_literal_suffix,
-    use_debug, wrong_pub_self_convention)]
-
-
+        invalid_upcast_comparisons, items_after_statements, non_ascii_literal, nonminimal_bool,
+        pub_enum_variant_names, shadow_reuse, shadow_same, shadow_unrelated, similar_names,
+        single_match_else, string_add, string_add_assign, unicode_not_nfc,
+        unseparated_literal_suffix, use_debug, wrong_pub_self_convention)]
 // `error_chain!` can recurse deeply
 #![recursion_limit = "1024"]
 
-extern crate byteorder;
 #[macro_use]
 extern crate bitflags;
+extern crate byteorder;
 #[macro_use]
 extern crate error_chain;
 
@@ -35,12 +32,10 @@ extern crate error_chain;
 #[macro_use]
 extern crate matches;
 
-
 use std::path::Path;
 use std::{fs, u32};
 use std::io::prelude::*;
 use std::io::BufReader;
-
 
 pub mod error;
 pub mod header;
@@ -78,12 +73,10 @@ impl Dex {
 
     /// Loads a new Dex data structure from the given reader.
     pub fn from_reader<R: BufRead>(reader: R, size: Option<usize>) -> Result<Dex> {
-        let mut dex_reader = DexReader::new(reader, size).chain_err(
-            || "could not create reader",
-        )?;
-        dex_reader.read_data().chain_err(
-            || "could not read dex file",
-        )?;
+        let mut dex_reader = DexReader::new(reader, size).chain_err(|| "could not create reader")?;
+        dex_reader
+            .read_data()
+            .chain_err(|| "could not read dex file")?;
 
         Ok(dex_reader.into())
     }

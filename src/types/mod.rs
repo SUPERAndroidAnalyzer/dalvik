@@ -680,7 +680,6 @@ impl Class {
         self.static_values.as_ref()
     }
 
-
     // static_values: static_values,
 }
 
@@ -699,8 +698,8 @@ mod test {
 
     #[test]
     fn it_can_display_mixed_access_bitflags_protected_static_abstract() {
-        let access = AccessFlags::ACC_PROTECTED | AccessFlags::ACC_ABSTRACT |
-            AccessFlags::ACC_STATIC;
+        let access =
+            AccessFlags::ACC_PROTECTED | AccessFlags::ACC_ABSTRACT | AccessFlags::ACC_STATIC;
 
         let display = format!("{}", access);
 
