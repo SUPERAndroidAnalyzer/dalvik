@@ -2,6 +2,7 @@
 
 use byteorder::{LittleEndian, ReadBytesExt};
 use error::*;
+use std::fmt::Debug;
 use std::io::Read;
 
 #[derive(Debug)]
@@ -71,7 +72,7 @@ pub enum ByteCode {
     InvokeCustomRange(u16, u8, CallSiteReference),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 #[allow(missing_docs)]
 pub enum CompareType {
     LittleThanFloat,
@@ -97,7 +98,7 @@ impl From<u8> for CompareType {
 
 impl ToString for CompareType {
     fn to_string(&self) -> String {
-        match *self {
+        match self {
             CompareType::LittleThanFloat => "cmpl-float".to_string(),
             CompareType::GreaterThanFloat => "cmpg-float".to_string(),
             CompareType::LittleThanDouble => "cmpl-double".to_string(),
@@ -108,7 +109,7 @@ impl ToString for CompareType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 #[allow(missing_docs)]
 pub enum TestType {
     Equal,
@@ -136,7 +137,7 @@ impl From<u8> for TestType {
 
 impl ToString for TestType {
     fn to_string(&self) -> String {
-        match *self {
+        match self {
             TestType::Equal => "if-eq".to_string(),
             TestType::NonEqual => "if-ne".to_string(),
             TestType::LittleThan => "if-lt".to_string(),
@@ -148,7 +149,7 @@ impl ToString for TestType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 #[allow(missing_docs)]
 pub enum ArrayOperation {
     Get,
@@ -192,7 +193,7 @@ impl From<u8> for ArrayOperation {
 
 impl ToString for ArrayOperation {
     fn to_string(&self) -> String {
-        match *self {
+        match self {
             ArrayOperation::Get => "get".to_string(),
             ArrayOperation::GetWide => "get-wide".to_string(),
             ArrayOperation::GetObject => "get-object".to_string(),
@@ -212,7 +213,7 @@ impl ToString for ArrayOperation {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 #[allow(missing_docs)]
 pub enum InvokeKind {
     Virtual,
@@ -238,7 +239,7 @@ impl From<u8> for InvokeKind {
 
 impl ToString for InvokeKind {
     fn to_string(&self) -> String {
-        match *self {
+        match self {
             InvokeKind::Virtual => "invoke-virtual".to_string(),
             InvokeKind::Super => "invoke-super".to_string(),
             InvokeKind::Direct => "invoke-direct".to_string(),
@@ -249,7 +250,7 @@ impl ToString for InvokeKind {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 #[allow(missing_docs)]
 pub enum UnaryOperation {
     NegateInt,
@@ -307,7 +308,7 @@ impl From<u8> for UnaryOperation {
 
 impl ToString for UnaryOperation {
     fn to_string(&self) -> String {
-        match *self {
+        match self {
             UnaryOperation::NegateInt => "neg-int".to_string(),
             UnaryOperation::NotInt => "not-int".to_string(),
             UnaryOperation::NegateLong => "neg-long".to_string(),
@@ -334,7 +335,7 @@ impl ToString for UnaryOperation {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 #[allow(missing_docs)]
 pub enum BinaryOperation {
     AddInt,
@@ -414,7 +415,7 @@ impl From<u8> for BinaryOperation {
 
 impl ToString for BinaryOperation {
     fn to_string(&self) -> String {
-        match *self {
+        match self {
             BinaryOperation::AddInt => "add-int".to_string(),
             BinaryOperation::SubInt => "sub-int".to_string(),
             BinaryOperation::MulInt => "mul-int".to_string(),
@@ -469,7 +470,7 @@ pub type CallSiteReference = u32;
 
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
-        match *self {
+        match self {
             ByteCode::Nop => "nop".to_string(),
             ByteCode::Move(dest, source) => format!("move v{}, v{}", dest, source),
             ByteCode::MoveFrom16(dest, source) => format!("move/from16 v{}, v{}", dest, source),
@@ -542,8 +543,7 @@ impl ToString for ByteCode {
                 )
             }
             ByteCode::FilledNewArrayRange(first_reg, amount, reference) => {
-                let str_register: Vec<String> = (first_reg
-                    ..(first_reg as u16 + amount as u16 + 1) as u16)
+                let str_register: Vec<String> = (*first_reg..(*first_reg + u16::from(*amount) + 1))
                     .map(|r| format!("v{}", r))
                     .collect();
                 format!(
@@ -592,7 +592,7 @@ impl ToString for ByteCode {
                 )
             }
             ByteCode::InvokeRange(ref invoke_kind, first_reg, amount, reference) => {
-                let str_register: Vec<String> = (first_reg..(first_reg + amount as u16))
+                let str_register: Vec<String> = (*first_reg..(*first_reg + u16::from(*amount)))
                     .map(|r| format!("v{}", r))
                     .collect();
                 format!(
@@ -611,7 +611,7 @@ impl ToString for ByteCode {
             ByteCode::Binary2Addr(ref operation, src1, src2) => {
                 format!("{}/2addr v{}, v{}", operation.to_string(), src1, src2)
             }
-            ByteCode::BinaryLit16(ref operation, dest, src, literal) => match *operation {
+            ByteCode::BinaryLit16(ref operation, dest, src, literal) => match operation {
                 BinaryOperation::SubInt => format!("rsub-int v{}, v{}, #{}", dest, src, literal),
                 _ => format!(
                     "{}/lit16 v{}, v{}, #{}",
@@ -639,7 +639,7 @@ impl ToString for ByteCode {
                 )
             }
             ByteCode::InvokePolymorphicRange(first_reg, amount, method, proto) => {
-                let str_register: Vec<String> = (first_reg..(first_reg + amount as u16))
+                let str_register: Vec<String> = (*first_reg..(*first_reg + u16::from(*amount)))
                     .map(|r| format!("v{}", r))
                     .collect();
                 format!(
@@ -659,7 +659,7 @@ impl ToString for ByteCode {
                 )
             }
             ByteCode::InvokeCustomRange(first_reg, amount, call_site) => {
-                let str_register: Vec<String> = (first_reg..(first_reg + amount as u16))
+                let str_register: Vec<String> = (*first_reg..(*first_reg + u16::from(*amount)))
                     .map(|r| format!("v{}", r))
                     .collect();
                 format!(
@@ -674,14 +674,15 @@ impl ToString for ByteCode {
 
 /// Implementations of the distinct bytecodes data layouts
 /// It will read from the source and return the data destructured
-pub struct ByteCodeDecoder<R: Read> {
+#[derive(Debug)]
+pub struct ByteCodeDecoder<R: Read + Debug> {
     cursor: R,
 }
 
-impl<R: Read> ByteCodeDecoder<R> {
+impl<R: Read + Debug> ByteCodeDecoder<R> {
     /// Creates a new ByteCodeDecoder given a `Read` input
-    pub fn new(buffer: R) -> Self {
-        ByteCodeDecoder { cursor: buffer }
+    pub fn new(cursor: R) -> Self {
+        Self { cursor }
     }
 
     fn format10x(&mut self) -> Result<()> {
@@ -701,7 +702,7 @@ impl<R: Read> ByteCodeDecoder<R> {
     fn format11n(&mut self) -> Result<(u8, i32)> {
         let current_byte = self.cursor.read_u8()?;
 
-        let literal = ((current_byte & 0xF0) as i8 >> 4) as i32;
+        let literal = i32::from((current_byte & 0xF0) as i8 >> 4);
         let register = current_byte & 0xF;
 
         Ok((register, literal))
@@ -737,13 +738,13 @@ impl<R: Read> ByteCodeDecoder<R> {
         // TODO: Make byteorder generic
         let literal = self.cursor.read_i16::<LittleEndian>()?;
 
-        Ok((dest, literal as i32))
+        Ok((dest, i32::from(literal)))
     }
 
     fn format21hw(&mut self) -> Result<(u8, i32)> {
         let dest = self.cursor.read_u8()?;
         // TODO: Make byteorder generic
-        let literal = (self.cursor.read_i16::<LittleEndian>()? as i32) << 16;
+        let literal = (i32::from(self.cursor.read_i16::<LittleEndian>()?)) << 16;
 
         Ok((dest, literal))
     }
@@ -751,7 +752,7 @@ impl<R: Read> ByteCodeDecoder<R> {
     fn format21hd(&mut self) -> Result<(u8, i64)> {
         let dest = self.cursor.read_u8()?;
         // TODO: Make byteorder generic
-        let literal = (self.cursor.read_i16::<LittleEndian>()? as i64) << 48;
+        let literal = (i64::from(self.cursor.read_i16::<LittleEndian>()?)) << 48;
 
         Ok((dest, literal))
     }
@@ -767,7 +768,7 @@ impl<R: Read> ByteCodeDecoder<R> {
     fn format22c(&mut self) -> Result<(u8, u8, u16)> {
         let current_byte = self.cursor.read_u8()?;
 
-        let source = ((current_byte & 0xF0) as u8 >> 4) as u8;
+        let source = (current_byte & 0xF0) >> 4;
         let dest = current_byte & 0xF;
 
         // TODO: Make byteorder generic
@@ -787,7 +788,7 @@ impl<R: Read> ByteCodeDecoder<R> {
     fn format22t(&mut self) -> Result<(u8, u8, i16)> {
         let current_byte = self.cursor.read_u8()?;
 
-        let source = ((current_byte & 0xF0) as u8 >> 4) as u8;
+        let source = (current_byte & 0xF0) >> 4;
         let dest = current_byte & 0xF;
         // TODO: Make byteorder generic
         let offset = self.cursor.read_i16::<LittleEndian>()?;
@@ -918,7 +919,7 @@ impl<R: Read> ByteCodeDecoder<R> {
     }
 }
 
-impl<R: Read> Iterator for ByteCodeDecoder<R> {
+impl<R: Read + Debug> Iterator for ByteCodeDecoder<R> {
     type Item = ByteCode;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -969,47 +970,47 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                 .map(|(reg, lit)| ByteCode::ConstHigh16(reg, lit)),
             Ok(0x16) => self.format21s()
                 .ok()
-                .map(|(reg, lit)| ByteCode::ConstWide16(reg, lit as i64)),
+                .map(|(reg, lit)| ByteCode::ConstWide16(reg, i64::from(lit))),
             Ok(0x17) => self.format31i()
                 .ok()
-                .map(|(reg, lit)| ByteCode::ConstWide32(reg, lit as i64)),
+                .map(|(reg, lit)| ByteCode::ConstWide32(reg, i64::from(lit))),
             Ok(0x18) => self.format51l()
                 .ok()
                 .map(|(reg, lit)| ByteCode::ConstWide(reg, lit)),
             Ok(0x19) => self.format21hd()
                 .ok()
                 .map(|(reg, lit)| ByteCode::ConstWideHigh16(reg, lit)),
-            Ok(0x1A) => self.format21c()
-                .ok()
-                .map(|(reg, reference)| ByteCode::ConstString(reg, reference as StringReference)),
-            Ok(0x1B) => self.format31c().ok().map(|(reg, reference)| {
-                ByteCode::ConstStringJumbo(reg, reference as StringReference)
+            Ok(0x1A) => self.format21c().ok().map(|(reg, reference)| {
+                ByteCode::ConstString(reg, StringReference::from(reference))
             }),
+            Ok(0x1B) => self.format31c()
+                .ok()
+                .map(|(reg, reference)| ByteCode::ConstStringJumbo(reg, reference)),
             Ok(0x1C) => self.format21c()
                 .ok()
-                .map(|(reg, reference)| ByteCode::ConstClass(reg, reference as ClassReference)),
+                .map(|(reg, reference)| ByteCode::ConstClass(reg, ClassReference::from(reference))),
             Ok(0x1D) => self.format11x().ok().map(ByteCode::MonitorEnter),
             Ok(0x1E) => self.format11x().ok().map(ByteCode::MonitorExit),
             Ok(0x1F) => self.format21c()
                 .ok()
-                .map(|(reg, reference)| ByteCode::CheckCast(reg, reference as TypeReference)),
+                .map(|(reg, reference)| ByteCode::CheckCast(reg, TypeReference::from(reference))),
             Ok(0x20) => self.format22c().ok().map(|(dest, src, reference)| {
-                ByteCode::InstanceOf(dest, src, reference as TypeReference)
+                ByteCode::InstanceOf(dest, src, TypeReference::from(reference))
             }),
             Ok(0x21) => self.format12x()
                 .ok()
                 .map(|(dest, src)| ByteCode::ArrayLength(dest, src)),
-            Ok(0x22) => self.format21c()
-                .ok()
-                .map(|(dest, reference)| ByteCode::NewInstance(dest, reference as TypeReference)),
+            Ok(0x22) => self.format21c().ok().map(|(dest, reference)| {
+                ByteCode::NewInstance(dest, TypeReference::from(reference))
+            }),
             Ok(0x23) => self.format22c().ok().map(|(dest, size, reference)| {
-                ByteCode::NewArray(dest, size, reference as TypeReference)
+                ByteCode::NewArray(dest, size, TypeReference::from(reference))
             }),
             Ok(0x24) => self.format35c().ok().map(|(registers, reference)| {
-                ByteCode::FilledNewArray(registers, reference as TypeReference)
+                ByteCode::FilledNewArray(registers, TypeReference::from(reference))
             }),
             Ok(0x25) => self.format3rc().ok().map(|(first, amount, reference)| {
-                ByteCode::FilledNewArrayRange(first, amount, reference as TypeReference)
+                ByteCode::FilledNewArrayRange(first, amount, TypeReference::from(reference))
             }),
             Ok(0x26) => self.format31t()
                 .ok()
@@ -1041,21 +1042,29 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                     ArrayOperation::from(a),
                     dest,
                     op1,
-                    reference as FieldReference,
+                    FieldReference::from(reference),
                 )
             }),
             Ok(a @ 0x60...0x6d) => self.format21c().ok().map(|(dest, reference)| {
-                ByteCode::Static(ArrayOperation::from(a), dest, reference as FieldReference)
+                ByteCode::Static(
+                    ArrayOperation::from(a),
+                    dest,
+                    FieldReference::from(reference),
+                )
             }),
             Ok(a @ 0x6e...0x72) => self.format35c().ok().map(|(registers, reference)| {
-                ByteCode::Invoke(InvokeKind::from(a), registers, reference as MethodReference)
+                ByteCode::Invoke(
+                    InvokeKind::from(a),
+                    registers,
+                    MethodReference::from(reference),
+                )
             }),
             Ok(a @ 0x74...0x78) => self.format3rc().ok().map(|(first, amount, reference)| {
                 ByteCode::InvokeRange(
                     InvokeKind::from(a),
                     first,
                     amount,
-                    reference as FieldReference,
+                    FieldReference::from(reference),
                 )
             }),
             Ok(op @ 0x7b...0x8f) => self.format12x()
@@ -1074,18 +1083,23 @@ impl<R: Read> Iterator for ByteCodeDecoder<R> {
                 ByteCode::BinaryLit8(BinaryOperation::from(op), dest, src, literal)
             }),
             Ok(0xfa) => self.format45cc().ok().map(|(registers, method, proto)| {
-                ByteCode::InvokePolymorphic(registers, method as u32, proto as u32)
+                ByteCode::InvokePolymorphic(registers, u32::from(method), u32::from(proto))
             }),
             Ok(0xfb) => self.format4rcc()
                 .ok()
                 .map(|(first, amount, method, proto)| {
-                    ByteCode::InvokePolymorphicRange(first, amount, method as u32, proto as u32)
+                    ByteCode::InvokePolymorphicRange(
+                        first,
+                        amount,
+                        u32::from(method),
+                        u32::from(proto),
+                    )
                 }),
-            Ok(0xfc) => self.format35c()
-                .ok()
-                .map(|(registers, call_site)| ByteCode::InvokeCustom(registers, call_site as u32)),
+            Ok(0xfc) => self.format35c().ok().map(|(registers, call_site)| {
+                ByteCode::InvokeCustom(registers, u32::from(call_site))
+            }),
             Ok(0xfd) => self.format3rc().ok().map(|(first, amount, call_site)| {
-                ByteCode::InvokeCustomRange(first, amount, call_site as u32)
+                ByteCode::InvokeCustomRange(first, amount, u32::from(call_site))
             }),
             _ => None,
         }

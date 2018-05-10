@@ -10,11 +10,12 @@ use error::*;
 use sizes::*;
 
 /// Endianness constant representing little endian file.
-pub const ENDIAN_CONSTANT: u32 = 0x12345678;
+pub const ENDIAN_CONSTANT: u32 = 0x12_34_56_78;
 /// Endianness constant representing big endian file.
-pub const REVERSE_ENDIAN_CONSTANT: u32 = 0x78563412;
+pub const REVERSE_ENDIAN_CONSTANT: u32 = 0x78_56_34_12;
 
 /// Dex header representantion structure.
+#[derive(Clone, Copy)]
 pub struct Header {
     magic: [u8; 8],
     checksum: u32,
@@ -43,18 +44,18 @@ pub struct Header {
 
 impl Header {
     /// Obtains the header from a Dex file.
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Header> {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let f = fs::File::open(path).chain_err(|| "could not open file")?;
         let file_size = f.metadata()
             .chain_err(|| "could not read file metadata")?
             .len();
-        if file_size < HEADER_SIZE as u64 || file_size > (u32::MAX as u64) {
+        if file_size < u64::from(HEADER_SIZE) || file_size > (u64::from(u32::max_value())) {
             return Err(ErrorKind::InvalidFileSize(file_size).into());
         }
-        let header = Header::from_reader(BufReader::new(f)).chain_err(|| {
+        let header = Self::from_reader(BufReader::new(f)).chain_err(|| {
             ErrorKind::Header("there was an error reading the header of the dex file".to_owned())
         })?;
-        if file_size == header.get_file_size() as u64 {
+        if file_size == u64::from(header.get_file_size()) {
             Ok(header)
         } else {
             Err(ErrorKind::HeaderFileSizeMismatch(file_size, header.get_file_size()).into())
@@ -62,13 +63,13 @@ impl Header {
     }
 
     /// Obtains the header from a Dex file reader.
-    pub fn from_reader<R: Read>(mut reader: R) -> Result<Header> {
+    pub fn from_reader<R: Read>(mut reader: R) -> Result<Self> {
         // Magic number
         let mut magic = [0_u8; 8];
         reader
             .read_exact(&mut magic)
             .chain_err(|| "could not read dex magic number")?;
-        if !Header::is_magic_valid(&magic) {
+        if !Self::is_magic_valid(&magic) {
             return Err(ErrorKind::IncorrectMagic(magic).into());
         }
         // Checksum
@@ -109,7 +110,7 @@ impl Header {
         }
 
         if endian_tag == ENDIAN_CONSTANT {
-            Header::read_data::<_, LittleEndian>(
+            Self::read_data::<_, LittleEndian>(
                 reader,
                 magic,
                 checksum,
@@ -119,7 +120,7 @@ impl Header {
                 ENDIAN_CONSTANT,
             )
         } else {
-            Header::read_data::<_, BigEndian>(
+            Self::read_data::<_, BigEndian>(
                 reader,
                 magic,
                 checksum,
@@ -139,7 +140,7 @@ impl Header {
         file_size: u32,
         header_size: u32,
         endian_tag: u32,
-    ) -> Result<Header> {
+    ) -> Result<Self> {
         #[inline]
         fn some_if(x: u32, b: bool) -> Option<u32> {
             if b {
@@ -166,11 +167,9 @@ impl Header {
         let map_offset = reader
             .read_u32::<E>()
             .chain_err(|| "could not read the map section offset")?;
-        if map_offset == 0x00000000 {
+        if map_offset == 0x0000_0000 {
             return Err(ErrorKind::InvalidOffset(
-                "`map_offset` was 0x00000000, and it can never \
-                 be zero"
-                    .to_owned(),
+                "`map_offset` was 0x00000000, and it can never be zero".to_owned(),
             ).into());
         }
 
@@ -370,36 +369,36 @@ impl Header {
             }
         }
 
-        Ok(Header {
-            magic: magic,
-            checksum: checksum,
-            signature: signature,
-            file_size: file_size,
-            header_size: header_size,
-            endian_tag: endian_tag,
-            link_size: link_size,
+        Ok(Self {
+            magic,
+            checksum,
+            signature,
+            file_size,
+            header_size,
+            endian_tag,
+            link_size,
             link_offset: some_if(link_offset, link_offset != 0),
-            map_offset: map_offset,
-            string_ids_size: string_ids_size,
+            map_offset,
+            string_ids_size,
             string_ids_offset: some_if(string_ids_offset, string_ids_offset > 0),
-            type_ids_size: type_ids_size,
+            type_ids_size,
             type_ids_offset: some_if(type_ids_offset, type_ids_offset > 0),
-            prototype_ids_size: prototype_ids_size,
+            prototype_ids_size,
             prototype_ids_offset: some_if(prototype_ids_offset, prototype_ids_size > 0),
-            field_ids_size: field_ids_size,
+            field_ids_size,
             field_ids_offset: some_if(field_ids_offset, field_ids_size > 0),
-            method_ids_size: method_ids_size,
+            method_ids_size,
             method_ids_offset: some_if(method_ids_offset, method_ids_size > 0),
-            class_defs_size: class_defs_size,
+            class_defs_size,
             class_defs_offset: some_if(class_defs_offset, class_defs_size > 0),
-            data_size: data_size,
-            data_offset: data_offset,
+            data_size,
+            data_offset,
         })
     }
 
     /// Checks if the dex magic number given is valid.
     fn is_magic_valid(magic: &[u8; 8]) -> bool {
-        &magic[0..4] == &[0x64, 0x65, 0x78, 0x0a] && magic[7] == 0x00 && magic[4] >= 0x30
+        magic[0..4] == [0x64, 0x65, 0x78, 0x0a] && magic[7] == 0x00 && magic[4] >= 0x30
             && magic[5] >= 0x30 && magic[6] >= 0x30 && magic[4] <= 0x39 && magic[5] <= 0x39
             && magic[6] <= 0x39
     }

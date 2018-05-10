@@ -46,7 +46,7 @@ pub enum Type {
 
 impl FromStr for Type {
     type Err = Error;
-    fn from_str(s: &str) -> Result<Type> {
+    fn from_str(s: &str) -> Result<Self> {
         let mut chars = s.chars();
         match chars.next() {
             Some('V') => Ok(Type::Void),
@@ -58,6 +58,7 @@ impl FromStr for Type {
             Some('J') => Ok(Type::Long),
             Some('F') => Ok(Type::Float),
             Some('D') => Ok(Type::Double),
+            Some('L') => Ok(Type::FullyQualifiedName(chars.collect())),
             Some('[') => {
                 let mut dimensions = 1;
                 loop {
@@ -68,7 +69,7 @@ impl FromStr for Type {
                             type_str.push(t);
                             type_str.push_str(chars.as_str());
                             return Ok(Type::Array {
-                                dimensions: dimensions,
+                                dimensions,
                                 array_type: Box::new(type_str.parse()?),
                             });
                         }
@@ -76,7 +77,6 @@ impl FromStr for Type {
                     }
                 }
             }
-            Some('L') => Ok(Type::FullyQualifiedName(chars.as_str().to_owned())),
             _ => Err(ErrorKind::InvalidTypeDescriptor(s.to_owned()).into()),
         }
     }
@@ -97,7 +97,7 @@ enum ShortyReturnType {
 }
 
 impl ShortyReturnType {
-    fn from_char(c: char) -> Result<ShortyReturnType> {
+    fn from_char(c: char) -> Result<Self> {
         match c {
             'V' => Ok(ShortyReturnType::Void),
             'Z' => Ok(ShortyReturnType::Boolean),
@@ -115,7 +115,7 @@ impl ShortyReturnType {
 }
 
 impl From<Type> for ShortyReturnType {
-    fn from(t: Type) -> ShortyReturnType {
+    fn from(t: Type) -> Self {
         match t {
             Type::Void => ShortyReturnType::Void,
             Type::Boolean => ShortyReturnType::Boolean,
@@ -126,14 +126,13 @@ impl From<Type> for ShortyReturnType {
             Type::Long => ShortyReturnType::Long,
             Type::Float => ShortyReturnType::Float,
             Type::Double => ShortyReturnType::Double,
-            Type::FullyQualifiedName(_) => ShortyReturnType::Reference,
-            Type::Array { .. } => ShortyReturnType::Reference,
+            Type::FullyQualifiedName(_) | Type::Array { .. } => ShortyReturnType::Reference,
         }
     }
 }
 
 impl From<ShortyFieldType> for ShortyReturnType {
-    fn from(ft: ShortyFieldType) -> ShortyReturnType {
+    fn from(ft: ShortyFieldType) -> Self {
         match ft {
             ShortyFieldType::Boolean => ShortyReturnType::Boolean,
             ShortyFieldType::Byte => ShortyReturnType::Byte,
@@ -162,7 +161,7 @@ enum ShortyFieldType {
 }
 
 impl ShortyFieldType {
-    fn from_char(c: char) -> Result<ShortyFieldType> {
+    fn from_char(c: char) -> Result<Self> {
         match c {
             'Z' => Ok(ShortyFieldType::Boolean),
             'B' => Ok(ShortyFieldType::Byte),
@@ -187,7 +186,7 @@ pub struct ShortyDescriptor {
 
 impl FromStr for ShortyDescriptor {
     type Err = Error;
-    fn from_str(s: &str) -> Result<ShortyDescriptor> {
+    fn from_str(s: &str) -> Result<Self> {
         let mut chars = s.chars();
         let return_type = if let Some(c) = chars.next() {
             ShortyReturnType::from_char(c)?
@@ -198,8 +197,8 @@ impl FromStr for ShortyDescriptor {
         for c in chars {
             field_types.push(ShortyFieldType::from_char(c)?);
         }
-        Ok(ShortyDescriptor {
-            return_type: return_type,
+        Ok(Self {
+            return_type,
             field_types: field_types.into_boxed_slice(),
         })
     }
@@ -219,8 +218,8 @@ impl Prototype {
         descriptor: ShortyDescriptor,
         return_type: Type,
         parameters: TA,
-    ) -> Prototype {
-        Prototype {
+    ) -> Self {
+        Self {
             descriptor,
             return_type,
             parameters: parameters.into(),
@@ -356,17 +355,23 @@ pub struct AnnotationsDirectory {
 
 impl AnnotationsDirectory {
     /// Creates a new annotations directory.
-    pub fn new<CA: Into<Box<[Annotation]>>>(
+    pub fn new<CA, FA, MA, PA>(
         class_annotations: CA,
-        field_annotations: Box<[FieldAnnotations]>,
-        method_annotations: Box<[MethodAnnotations]>,
-        parameter_annotations: Box<[ParameterAnnotations]>,
-    ) -> AnnotationsDirectory {
-        AnnotationsDirectory {
+        field_annotations: FA,
+        method_annotations: MA,
+        parameter_annotations: PA,
+    ) -> Self
+    where
+        CA: Into<Box<[Annotation]>>,
+        FA: Into<Box<[FieldAnnotations]>>,
+        MA: Into<Box<[MethodAnnotations]>>,
+        PA: Into<Box<[ParameterAnnotations]>>,
+    {
+        Self {
             class_annotations: class_annotations.into(),
-            field_annotations,
-            method_annotations,
-            parameter_annotations,
+            field_annotations: field_annotations.into(),
+            method_annotations: method_annotations.into(),
+            parameter_annotations: parameter_annotations.into(),
         }
     }
 
@@ -400,8 +405,8 @@ pub struct FieldAnnotations {
 
 impl FieldAnnotations {
     /// Creates a new list of field annotations.
-    pub fn new(field_id: u32, annotations: Box<[Annotation]>) -> FieldAnnotations {
-        FieldAnnotations {
+    pub fn new(field_id: u32, annotations: Box<[Annotation]>) -> Self {
+        Self {
             field_id,
             annotations,
         }
@@ -427,8 +432,8 @@ pub struct MethodAnnotations {
 
 impl MethodAnnotations {
     /// Creates a new list of method annotations.
-    pub fn new(method_id: u32, annotations: Box<[Annotation]>) -> MethodAnnotations {
-        MethodAnnotations {
+    pub fn new(method_id: u32, annotations: Box<[Annotation]>) -> Self {
+        Self {
             method_id,
             annotations,
         }
@@ -454,8 +459,8 @@ pub struct ParameterAnnotations {
 
 impl ParameterAnnotations {
     /// Creates a new list of method annotations.
-    pub fn new(method_id: u32, annotations: Box<[Annotation]>) -> ParameterAnnotations {
-        ParameterAnnotations {
+    pub fn new(method_id: u32, annotations: Box<[Annotation]>) -> Self {
+        Self {
             method_id,
             annotations,
         }
@@ -520,79 +525,79 @@ impl Display for AccessFlags {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let mut out = String::new();
 
-        if self.contains(AccessFlags::ACC_PUBLIC) {
+        if self.contains(Self::ACC_PUBLIC) {
             out.push_str("public ");
         }
 
-        if self.contains(AccessFlags::ACC_PRIVATE) {
+        if self.contains(Self::ACC_PRIVATE) {
             out.push_str("private ");
         }
 
-        if self.contains(AccessFlags::ACC_PROTECTED) {
+        if self.contains(Self::ACC_PROTECTED) {
             out.push_str("protected ");
         }
 
-        if self.contains(AccessFlags::ACC_STATIC) {
+        if self.contains(Self::ACC_STATIC) {
             out.push_str("static ");
         }
 
-        if self.contains(AccessFlags::ACC_FINAL) {
+        if self.contains(Self::ACC_FINAL) {
             out.push_str("final ");
         }
 
-        if self.contains(AccessFlags::ACC_SYNCHRONIZED) {
+        if self.contains(Self::ACC_SYNCHRONIZED) {
             out.push_str("synchronized ");
         }
 
-        if self.contains(AccessFlags::ACC_VOLATILE) {
+        if self.contains(Self::ACC_VOLATILE) {
             out.push_str("volatile ");
         }
 
-        if self.contains(AccessFlags::ACC_BRIDGE) {
+        if self.contains(Self::ACC_BRIDGE) {
             out.push_str("bridge ");
         }
 
-        if self.contains(AccessFlags::ACC_TRANSIENT) {
+        if self.contains(Self::ACC_TRANSIENT) {
             out.push_str("transient ");
         }
 
-        if self.contains(AccessFlags::ACC_VARARGS) {
+        if self.contains(Self::ACC_VARARGS) {
             out.push_str("varargs ");
         }
 
-        if self.contains(AccessFlags::ACC_NATIVE) {
+        if self.contains(Self::ACC_NATIVE) {
             out.push_str("native ");
         }
 
-        if self.contains(AccessFlags::ACC_INTERFACE) {
+        if self.contains(Self::ACC_INTERFACE) {
             out.push_str("interface ");
         }
 
-        if self.contains(AccessFlags::ACC_ABSTRACT) {
+        if self.contains(Self::ACC_ABSTRACT) {
             out.push_str("abstract ");
         }
 
-        if self.contains(AccessFlags::ACC_STRICT) {
+        if self.contains(Self::ACC_STRICT) {
             out.push_str("strict ");
         }
 
-        if self.contains(AccessFlags::ACC_SYNTHETIC) {
+        if self.contains(Self::ACC_SYNTHETIC) {
             out.push_str("synthetic ");
         }
 
-        if self.contains(AccessFlags::ACC_ANNOTATION) {
+        if self.contains(Self::ACC_ANNOTATION) {
             out.push_str("annotation ");
         }
 
-        if self.contains(AccessFlags::ACC_ENUM) {
+        if self.contains(Self::ACC_ENUM) {
             out.push_str("enum ");
         }
 
-        if self.contains(AccessFlags::ACC_CONSTRUCTOR) {
+        if self.contains(Self::ACC_CONSTRUCTOR) {
             out.push_str("constructor ");
         }
 
-        if self.contains(AccessFlags::ACC_DECLARED_SYNCHRONIZED) {
+        if self.contains(Self::ACC_DECLARED_SYNCHRONIZED) {
             out.push_str("synchronized ");
         }
 
@@ -615,6 +620,7 @@ pub struct Class {
 
 impl Class {
     /// Creates a new class.
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new(
         class_index: u32,
         access_flags: AccessFlags,
@@ -624,8 +630,8 @@ impl Class {
         annotations: Option<AnnotationsDirectory>,
         class_data: Option<ClassData>,
         static_values: Option<Array>,
-    ) -> Class {
-        Class {
+    ) -> Self {
+        Self {
             class_index,
             access_flags,
             superclass_index,

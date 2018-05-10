@@ -29,7 +29,7 @@ error_chain!{
         InvalidFileSize(file_size: u64) {
             description("invalid dex file size")
             display("invalid dex file size: file size must be between {} and {} bytes, \
-                     but the size of the file was {} bytes", HEADER_SIZE, u32::MAX, file_size)
+                     but the size of the file was {} bytes", HEADER_SIZE, u32::max_value(), file_size)
         }
 
         /// Invalid endian tag.
@@ -67,7 +67,7 @@ error_chain!{
         }
 
         /// Unknown type index.
-        UnknownTypeIndex(index: u16) {
+        UnknownTypeIndex(index: u32) {
             description("unknown type index")
             display("there is no type with index {}", index)
         }

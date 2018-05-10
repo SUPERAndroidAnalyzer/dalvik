@@ -1,26 +1,15 @@
 //! Dalvik executable file format parser.
 
-// Allowing these at least for now.
-#![allow(unknown_lints, missing_docs_in_private_items, stutter, option_unwrap_used,
-         result_unwrap_used, integer_arithmetic, cast_possible_truncation, cast_possible_wrap,
-         indexing_slicing, cast_precision_loss, cast_sign_loss)]
-// #![forbid(deprecated, overflowing_literals, stable_features, trivial_casts,
-// unconditional_recursion,
-//     plugin_as_library, unused_allocation, trivial_numeric_casts, unused_features, while_truem,
-//     unused_parens, unused_comparisons, unused_extern_crates, unused_import_braces,
-// unused_results,
-//     improper_ctypes, non_shorthand_field_patterns, private_no_mangle_fns,
-// private_no_mangle_statics,
-//     filter_map, used_underscore_binding, option_map_unwrap_or, option_map_unwrap_or_else,
-//     mutex_integer, mut_mut, mem_forget, print_stdout)]
-// #![deny(unused_qualifications, unused, unused_attributes)]
-#![warn(missing_docs, variant_size_differences, enum_glob_use, if_not_else,
-        invalid_upcast_comparisons, items_after_statements, non_ascii_literal, nonminimal_bool,
-        pub_enum_variant_names, shadow_reuse, shadow_same, shadow_unrelated, similar_names,
-        single_match_else, string_add, string_add_assign, unicode_not_nfc,
-        unseparated_literal_suffix, use_debug, wrong_pub_self_convention)]
-// `error_chain!` can recurse deeply
 #![recursion_limit = "1024"]
+#![cfg_attr(feature = "cargo-clippy", deny(clippy))]
+#![forbid(anonymous_parameters)]
+#![cfg_attr(feature = "cargo-clippy", warn(clippy_pedantic))]
+#![deny(variant_size_differences, unused_results, unused_qualifications, unused_import_braces,
+        unsafe_code, trivial_numeric_casts, trivial_casts, missing_docs, unused_extern_crates,
+        missing_debug_implementations, missing_copy_implementations)]
+// Allowing these for now.
+#![cfg_attr(feature = "cargo-clippy",
+            allow(stutter, similar_names, cast_possible_truncation, cast_possible_wrap))]
 
 #[macro_use]
 extern crate bitflags;
@@ -60,19 +49,19 @@ pub struct Dex {
 
 impl Dex {
     /// Reads the Dex data structure from the given path.
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Dex> {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = fs::File::open(path).chain_err(|| "could not open file")?;
         let file_size = file.metadata()
             .chain_err(|| "could not read file metadata")?
             .len();
-        if file_size < HEADER_SIZE as u64 || file_size > u32::MAX as u64 {
+        if file_size < u64::from(HEADER_SIZE) || file_size > u64::from(u32::max_value()) {
             return Err(ErrorKind::InvalidFileSize(file_size).into());
         }
-        Dex::from_reader(BufReader::new(file), Some(file_size as usize))
+        Self::from_reader(BufReader::new(file), Some(file_size as usize))
     }
 
     /// Loads a new Dex data structure from the given reader.
-    pub fn from_reader<R: BufRead>(reader: R, size: Option<usize>) -> Result<Dex> {
+    pub fn from_reader<R: BufRead>(reader: R, size: Option<usize>) -> Result<Self> {
         let mut dex_reader = DexReader::new(reader, size).chain_err(|| "could not create reader")?;
         dex_reader
             .read_data()
@@ -100,7 +89,7 @@ impl Dex {
 }
 
 impl From<DexReader> for Dex {
-    fn from(reader: DexReader) -> Dex {
+    fn from(_reader: DexReader) -> Self {
         unimplemented!()
     }
 }
