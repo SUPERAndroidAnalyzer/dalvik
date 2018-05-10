@@ -1422,7 +1422,7 @@ mod tests {
         assert_eq!("const-string v1, string@65535", opcode.to_string());
         assert!(matches!(
             opcode,
-            ByteCode::ConstString(r, i) if r == 1 && i == 65535 as StringReference));
+            ByteCode::ConstString(r, i) if r == 1 && i == 65535));
     }
 
     #[test]
@@ -1438,7 +1438,7 @@ mod tests {
         );
         assert!(matches!(
             opcode,
-            ByteCode::ConstStringJumbo(r, i) if r == 1 && i == 268500991 as StringReference));
+            ByteCode::ConstStringJumbo(r, i) if r == 1 && i == 268500991));
     }
 
     #[test]
@@ -1451,7 +1451,7 @@ mod tests {
         assert_eq!("const-class v1, class@4369", opcode.to_string());
         assert!(matches!(
             opcode,
-            ByteCode::ConstClass(r, i) if r == 1 && i == 4369 as ClassReference));
+            ByteCode::ConstClass(r, i) if r == 1 && i == 4369));
     }
 
     #[test]
@@ -1486,7 +1486,7 @@ mod tests {
         assert_eq!("check-cast v1, type@4369", opcode.to_string());
         assert!(matches!(
             opcode,
-            ByteCode::CheckCast(r, i) if r == 1 && i == 4369 as TypeReference));
+            ByteCode::CheckCast(r, i) if r == 1 && i == 4369));
     }
 
     #[test]
@@ -1499,7 +1499,7 @@ mod tests {
         assert_eq!("instance-of v2, v10, type@4369", opcode.to_string());
         assert!(matches!(
             opcode,
-            ByteCode::InstanceOf(d, s, i) if d == 2 && s == 10 && i == 4369 as TypeReference));
+            ByteCode::InstanceOf(d, s, i) if d == 2 && s == 10 && i == 4369));
     }
 
     #[test]
