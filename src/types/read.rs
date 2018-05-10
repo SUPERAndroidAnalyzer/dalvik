@@ -4,10 +4,10 @@ use std::io::{Read, Seek};
 
 use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 
+use super::{AccessFlags, AnnotationElement, Array};
+use super::{Annotation, EncodedAnnotation, Value, Visibility};
 use error::*;
 use read::{read_sleb128, read_uleb128, read_uleb128p1};
-use super::{Annotation, EncodedAnnotation, Value, Visibility};
-use super::{AccessFlags, AnnotationElement, Array};
 
 /// Data structure representing the `proto_id_item` type.
 #[derive(Debug)]
@@ -1167,8 +1167,8 @@ impl CodeItem {
 
         let mut tries = Vec::with_capacity(tries_size as usize);
         for _ in 0..tries_size {
-            tries.push(TryItem::from_reader::<_, B>(reader)
-                .chain_err(|| "could not read try item")?);
+            tries
+                .push(TryItem::from_reader::<_, B>(reader).chain_err(|| "could not read try item")?);
         }
 
         let mut handlers = Vec::new();

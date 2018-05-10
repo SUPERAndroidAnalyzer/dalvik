@@ -32,18 +32,18 @@ extern crate error_chain;
 #[macro_use]
 extern crate matches;
 
+use std::io::BufReader;
+use std::io::prelude::*;
 use std::path::Path;
 use std::{fs, u32};
-use std::io::prelude::*;
-use std::io::BufReader;
 
+pub mod bytecode;
 pub mod error;
 pub mod header;
 pub mod types;
-pub mod bytecode;
 
-mod sizes;
 mod read;
+mod sizes;
 
 use error::*;
 pub use header::Header;

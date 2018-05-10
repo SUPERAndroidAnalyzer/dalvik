@@ -2,13 +2,13 @@
 
 pub mod read;
 
-use std::str::FromStr;
-use std::ops::Deref;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
+use std::ops::Deref;
+use std::str::FromStr;
 
-use error::*;
 use self::read::ClassData;
+use error::*;
 
 #[derive(Debug, Clone)]
 /// Basic built-in types.

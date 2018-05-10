@@ -4,8 +4,8 @@ use std::io::{BufRead, Cursor, Read};
 
 use byteorder::{BigEndian, ByteOrder, LittleEndian, ReadBytesExt};
 
-use header::Header;
 use error::*;
+use header::Header;
 use types::read::*;
 use types::*;
 

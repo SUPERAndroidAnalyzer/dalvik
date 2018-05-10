@@ -1,8 +1,8 @@
 //! Module containing the Dex file header.
 
+use std::io::{BufReader, Read};
 use std::path::Path;
 use std::{fmt, fs, u32};
-use std::io::{BufReader, Read};
 
 use byteorder::{BigEndian, ByteOrder, LittleEndian, ReadBytesExt};
 

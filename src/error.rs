@@ -2,9 +2,9 @@
 
 #![allow(missing_docs)]
 
-use std::u32;
-use sizes::HEADER_SIZE;
 use header::{ENDIAN_CONSTANT, REVERSE_ENDIAN_CONSTANT};
+use sizes::HEADER_SIZE;
+use std::u32;
 
 error_chain!{
     foreign_links {

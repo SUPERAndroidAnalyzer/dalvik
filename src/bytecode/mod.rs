@@ -1,8 +1,8 @@
 //! Representation of the Dalvik bytecodes and utilities to decode them
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use std::io::Read;
 use error::*;
+use std::io::Read;
 
 #[derive(Debug)]
 #[allow(missing_docs)]
