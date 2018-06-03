@@ -5,8 +5,9 @@ use std::path::Path;
 use std::{fmt, fs, u32};
 
 use byteorder::{BigEndian, ByteOrder, LittleEndian, ReadBytesExt};
+use failure::{Error, ResultExt};
 
-use error::*;
+use error;
 use sizes::*;
 
 /// Endianness constant representing little endian file.
@@ -44,55 +45,56 @@ pub struct Header {
 
 impl Header {
     /// Obtains the header from a Dex file.
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let f = fs::File::open(path).chain_err(|| "could not open file")?;
-        let file_size = f.metadata()
-            .chain_err(|| "could not read file metadata")?
-            .len();
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+        let f = fs::File::open(path).context("could not open file")?;
+        let file_size = f.metadata().context("could not read file metadata")?.len();
         if file_size < u64::from(HEADER_SIZE) || file_size > (u64::from(u32::max_value())) {
-            return Err(ErrorKind::InvalidFileSize(file_size).into());
+            return Err(error::InvalidFileSize { file_size }.into());
         }
-        let header = Self::from_reader(BufReader::new(f)).chain_err(|| {
-            ErrorKind::Header("there was an error reading the header of the dex file".to_owned())
+        let header = Self::from_reader(BufReader::new(f)).context(error::Header::Generic {
+            error: "there was an error reading the header of the dex file".to_owned(),
         })?;
         if file_size == u64::from(header.get_file_size()) {
             Ok(header)
         } else {
-            Err(ErrorKind::HeaderFileSizeMismatch(file_size, header.get_file_size()).into())
+            Err(error::Header::FileSizeMismatch {
+                file_size,
+                size_in_header: header.get_file_size(),
+            }.into())
         }
     }
 
     /// Obtains the header from a Dex file reader.
-    pub fn from_reader<R: Read>(mut reader: R) -> Result<Self> {
+    pub fn from_reader<R: Read>(mut reader: R) -> Result<Self, Error> {
         // Magic number
         let mut magic = [0_u8; 8];
         reader
             .read_exact(&mut magic)
-            .chain_err(|| "could not read dex magic number")?;
+            .context("could not read dex magic number")?;
         if !Self::is_magic_valid(&magic) {
-            return Err(ErrorKind::IncorrectMagic(magic).into());
+            return Err(error::Header::IncorrectMagic { dex_magic: magic }.into());
         }
         // Checksum
         let mut checksum = reader
             .read_u32::<LittleEndian>()
-            .chain_err(|| "could not read file checksum")?;
+            .context("could not read file checksum")?;
         // Signature
         let mut signature = [0_u8; 20];
         reader
             .read_exact(&mut signature)
-            .chain_err(|| "could not read file signature")?;
+            .context("could not read file signature")?;
         // File size
         let mut file_size = reader
             .read_u32::<LittleEndian>()
-            .chain_err(|| "could not read file size")?;
+            .context("could not read file size")?;
         // Header size
         let mut header_size = reader
             .read_u32::<LittleEndian>()
-            .chain_err(|| "could not read header size")?;
+            .context("could not read header size")?;
         // Endian tag
         let endian_tag = reader
             .read_u32::<LittleEndian>()
-            .chain_err(|| "could not read endian tag")?;
+            .context("could not read endian tag")?;
 
         // Check endianness
         if endian_tag == REVERSE_ENDIAN_CONSTANT {
@@ -101,12 +103,12 @@ impl Header {
             file_size = file_size.swap_bytes();
             header_size = header_size.swap_bytes();
         } else if endian_tag != ENDIAN_CONSTANT {
-            return Err(ErrorKind::InvalidEndianTag(endian_tag).into());
+            return Err(error::Header::InvalidEndianTag { endian_tag }.into());
         }
 
         // Check header size
         if header_size != HEADER_SIZE {
-            return Err(ErrorKind::IncorrectHeaderSize(header_size).into());
+            return Err(error::Header::IncorrectHeaderSize { header_size }.into());
         }
 
         if endian_tag == ENDIAN_CONSTANT {
@@ -140,7 +142,8 @@ impl Header {
         file_size: u32,
         header_size: u32,
         endian_tag: u32,
-    ) -> Result<Self> {
+    ) -> Result<Self, Error> {
+        /// Returns `Some(x)` if the boolean is `true`, `None` otherwise.
         #[inline]
         fn some_if(x: u32, b: bool) -> Option<u32> {
             if b {
@@ -154,173 +157,190 @@ impl Header {
         // Link size
         let link_size = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the link section size")?;
+            .context("could not read the link section size")?;
         // Link offset
         let link_offset = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the link section offset")?;
+            .context("could not read the link section offset")?;
         if link_size == 0 && link_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets("link_offset", link_offset, 0).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "link_offset",
+                current_offset: link_offset,
+                expected_offset: 0,
+            }.into());
         }
 
         // Map offset
         let map_offset = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the map section offset")?;
+            .context("could not read the map section offset")?;
         if map_offset == 0x0000_0000 {
-            return Err(ErrorKind::InvalidOffset(
-                "`map_offset` was 0x00000000, and it can never be zero".to_owned(),
-            ).into());
+            return Err(error::Parse::InvalidOffset {
+                desc: "`map_offset` was 0x00000000, and it can never be zero".to_owned(),
+            }.into());
         }
 
         // String IDs size
         let string_ids_size = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the string IDs list size")?;
+            .context("could not read the string IDs list size")?;
         // String IDs offset
         let string_ids_offset = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the string IDs list offset")?;
+            .context("could not read the string IDs list offset")?;
         if string_ids_size > 0 && string_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets(
-                "string_ids_offset",
-                string_ids_offset,
-                HEADER_SIZE,
-            ).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "string_ids_offset",
+                current_offset: string_ids_offset,
+                expected_offset: HEADER_SIZE,
+            }.into());
         }
         if string_ids_size == 0 && string_ids_offset != 0 {
-            return Err(
-                ErrorKind::MismatchedOffsets("string_ids_offset", string_ids_offset, 0).into(),
-            );
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "string_ids_offset",
+                current_offset: string_ids_offset,
+                expected_offset: 0,
+            }.into());
         }
         current_offset += string_ids_size * STRING_ID_ITEM_SIZE;
 
         // Types IDs size
         let type_ids_size = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the type IDs list size")?;
+            .context("could not read the type IDs list size")?;
         // Types IDs offset
         let type_ids_offset = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the type IDs list offset")?;
+            .context("could not read the type IDs list offset")?;
         if type_ids_size > 0 && type_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets(
-                "type_ids_offset",
-                type_ids_offset,
-                current_offset,
-            ).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "type_ids_offset",
+                current_offset: type_ids_offset,
+                expected_offset: current_offset,
+            }.into());
         }
         if type_ids_size == 0 && type_ids_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets("type_ids_offset", type_ids_offset, 0).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "type_ids_offset",
+                current_offset: type_ids_offset,
+                expected_offset: 0,
+            }.into());
         }
         current_offset += type_ids_size * TYPE_ID_ITEM_SIZE;
 
         // Prototype IDs size
         let prototype_ids_size = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the prototype IDs list size")?;
+            .context("could not read the prototype IDs list size")?;
         // Prototype IDs offset
         let prototype_ids_offset = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the prototype IDs list offset")?;
+            .context("could not read the prototype IDs list offset")?;
         if prototype_ids_size > 0 && prototype_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets(
-                "prototype_ids_offset",
-                prototype_ids_offset,
-                current_offset,
-            ).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "prototype_ids_offset",
+                current_offset: prototype_ids_offset,
+                expected_offset: current_offset,
+            }.into());
         }
         if prototype_ids_size == 0 && prototype_ids_offset != 0 {
-            return Err(ErrorKind::MismatchedOffsets(
-                "prototype_ids_offset",
-                prototype_ids_offset,
-                0,
-            ).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "prototype_ids_offset",
+                current_offset: prototype_ids_offset,
+                expected_offset: 0,
+            }.into());
         }
         current_offset += prototype_ids_size * PROTO_ID_ITEM_SIZE;
 
         // Field IDs size
         let field_ids_size = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the field IDs list size")?;
+            .context("could not read the field IDs list size")?;
         // Field IDs offset
         let field_ids_offset = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the field IDs list offset")?;
+            .context("could not read the field IDs list offset")?;
         if field_ids_size > 0 && field_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets(
-                "field_ids_offset",
-                field_ids_offset,
-                current_offset,
-            ).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "field_ids_offset",
+                current_offset: field_ids_offset,
+                expected_offset: current_offset,
+            }.into());
         }
         if field_ids_size == 0 && field_ids_offset != 0 {
-            return Err(
-                ErrorKind::MismatchedOffsets("field_ids_offset", field_ids_offset, 0).into(),
-            );
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "field_ids_offset",
+                current_offset: field_ids_offset,
+                expected_offset: 0,
+            }.into());
         }
         current_offset += field_ids_size * FIELD_ID_ITEM_SIZE;
 
         // Method IDs size
         let method_ids_size = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the method IDs list size")?;
+            .context("could not read the method IDs list size")?;
         // Method IDs offset
         let method_ids_offset = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the method IDs list offset")?;
+            .context("could not read the method IDs list offset")?;
         if method_ids_size > 0 && method_ids_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets(
-                "method_ids_offset",
-                method_ids_offset,
-                current_offset,
-            ).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "method_ids_offset",
+                current_offset: method_ids_offset,
+                expected_offset: current_offset,
+            }.into());
         }
         if method_ids_size == 0 && method_ids_offset != 0 {
-            return Err(
-                ErrorKind::MismatchedOffsets("method_ids_offset", method_ids_offset, 0).into(),
-            );
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "method_ids_offset",
+                current_offset: method_ids_offset,
+                expected_offset: 0,
+            }.into());
         }
         current_offset += method_ids_size * METHOD_ID_ITEM_SIZE;
 
         // Class defs size
         let class_defs_size = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the class definitions list size")?;
+            .context("could not read the class definitions list size")?;
         // Class defs offset
         let class_defs_offset = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the class definitions list offset")?;
+            .context("could not read the class definitions list offset")?;
         if class_defs_size > 0 && class_defs_offset != current_offset {
-            return Err(ErrorKind::MismatchedOffsets(
-                "class_defs_offset",
-                class_defs_offset,
-                current_offset,
-            ).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "class_defs_offset",
+                current_offset: class_defs_offset,
+                expected_offset: current_offset,
+            }.into());
         }
         if class_defs_size == 0 && class_defs_offset != 0 {
-            return Err(
-                ErrorKind::MismatchedOffsets("class_defs_offset", class_defs_offset, 0).into(),
-            );
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "class_defs_offset",
+                current_offset: class_defs_offset,
+                expected_offset: 0,
+            }.into());
         }
         current_offset += class_defs_size * CLASS_DEF_ITEM_SIZE;
 
         // Data size
         let data_size = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the data section size")?;
+            .context("could not read the data section size")?;
         if data_size & 0b11 != 0 {
-            return Err(ErrorKind::Header(format!(
-                "`data_size` must be a 4-byte multiple, but \
-                 it was {:#010x}",
-                data_size
-            )).into());
+            return Err(error::Header::Generic {
+                error: format!(
+                    "`data_size` must be a 4-byte multiple, but it was {:#010x}",
+                    data_size
+                ),
+            }.into());
         }
 
         // Data offset
         let data_offset = reader
             .read_u32::<E>()
-            .chain_err(|| "could not read the data section offset")?;
+            .context("could not read the data section offset")?;
         if data_offset != current_offset {
             // return Err(Error::mismatched_offsets("data_offset", data_offset, current_offset));
             // TODO seems that there is more information after the class definitions.
@@ -334,38 +354,42 @@ impl Header {
         }
         current_offset += data_size;
         if map_offset < data_offset || map_offset > data_offset + data_size {
-            return Err(ErrorKind::InvalidOffset(format!(
-                "`map_offset` section must be in the \
-                 `data` section (between {:#010x} and \
-                 {:#010x}) but it was at {:#010x}",
-                data_offset, current_offset, map_offset
-            )).into());
+            return Err(error::Parse::InvalidOffset {
+                desc: format!(
+                    "`map_offset` section must be in the `data` section (between {:#010x} and \
+                     {:#010x}) but it was at {:#010x}",
+                    data_offset, current_offset, map_offset
+                ),
+            }.into());
         }
         if link_size == 0 && current_offset != file_size {
-            return Err(ErrorKind::Header(format!(
-                "`data` section must end at the EOF if there \
-                 are no links in the file. Data end: \
-                 {:#010x}, `file_size`: {:#010x}",
-                current_offset, file_size
-            )).into());
+            return Err(error::Header::Generic {
+                error: format!(
+                    "`data` section must end at the EOF if there are no links in the file. Data \
+                     end: {:#010x}, `file_size`: {:#010x}",
+                    current_offset, file_size
+                ),
+            }.into());
         }
         if link_size != 0 && link_offset == 0 {
-            return Err(ErrorKind::MismatchedOffsets("link_offset", 0, current_offset).into());
+            return Err(error::Parse::OffsetMismatch {
+                offset_name: "link_offset",
+                current_offset: 0,
+                expected_offset: current_offset,
+            }.into());
         }
         if link_size != 0 && link_offset != 0 {
             if link_offset != current_offset {
-                return Err(ErrorKind::MismatchedOffsets(
-                    "link_offset",
-                    link_offset,
-                    current_offset,
-                ).into());
+                return Err(error::Parse::OffsetMismatch {
+                    offset_name: "link_offset",
+                    current_offset: link_offset,
+                    expected_offset: current_offset,
+                }.into());
             }
             if link_offset + link_size != file_size {
-                return Err(ErrorKind::Header(
-                    "`link_data` section must end at the end \
-                     of file"
-                        .to_owned(),
-                ).into());
+                return Err(error::Header::Generic {
+                    error: "`link_data` section must end at the end of file".to_owned(),
+                }.into());
             }
         }
 

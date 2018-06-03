@@ -8,7 +8,7 @@ use std::ops::Deref;
 use std::str::FromStr;
 
 use self::read::ClassData;
-use error::*;
+use error;
 
 #[derive(Debug, Clone)]
 /// Basic built-in types.
@@ -45,8 +45,8 @@ pub enum Type {
 }
 
 impl FromStr for Type {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
+    type Err = error::Parse;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut chars = s.chars();
         match chars.next() {
             Some('V') => Ok(Type::Void),
@@ -73,11 +73,17 @@ impl FromStr for Type {
                                 array_type: Box::new(type_str.parse()?),
                             });
                         }
-                        None => return Err(ErrorKind::InvalidTypeDescriptor(s.to_owned()).into()),
+                        None => {
+                            return Err(error::Parse::InvalidTypeDescriptor {
+                                descriptor: s.to_owned(),
+                            })
+                        }
                     }
                 }
             }
-            _ => Err(ErrorKind::InvalidTypeDescriptor(s.to_owned()).into()),
+            _ => Err(error::Parse::InvalidTypeDescriptor {
+                descriptor: s.to_owned(),
+            }),
         }
     }
 }
@@ -97,7 +103,7 @@ enum ShortyReturnType {
 }
 
 impl ShortyReturnType {
-    fn from_char(c: char) -> Result<Self> {
+    fn from_char(c: char) -> Result<Self, error::Parse> {
         match c {
             'V' => Ok(ShortyReturnType::Void),
             'Z' => Ok(ShortyReturnType::Boolean),
@@ -109,7 +115,7 @@ impl ShortyReturnType {
             'F' => Ok(ShortyReturnType::Float),
             'D' => Ok(ShortyReturnType::Double),
             'L' => Ok(ShortyReturnType::Reference),
-            _ => Err(ErrorKind::InvalidShortyType(c).into()),
+            _ => Err(error::Parse::InvalidShortyType { shorty_type: c }),
         }
     }
 }
@@ -161,7 +167,7 @@ enum ShortyFieldType {
 }
 
 impl ShortyFieldType {
-    fn from_char(c: char) -> Result<Self> {
+    fn from_char(c: char) -> Result<Self, error::Parse> {
         match c {
             'Z' => Ok(ShortyFieldType::Boolean),
             'B' => Ok(ShortyFieldType::Byte),
@@ -172,7 +178,7 @@ impl ShortyFieldType {
             'F' => Ok(ShortyFieldType::Float),
             'D' => Ok(ShortyFieldType::Double),
             'L' => Ok(ShortyFieldType::Reference),
-            _ => Err(ErrorKind::InvalidShortyType(c).into()),
+            _ => Err(error::Parse::InvalidShortyType { shorty_type: c }),
         }
     }
 }
@@ -185,13 +191,15 @@ pub struct ShortyDescriptor {
 }
 
 impl FromStr for ShortyDescriptor {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
+    type Err = error::Parse;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut chars = s.chars();
         let return_type = if let Some(c) = chars.next() {
             ShortyReturnType::from_char(c)?
         } else {
-            return Err(ErrorKind::InvalidShortyDescriptor(s.to_owned()).into());
+            return Err(error::Parse::InvalidShortyDescriptor {
+                descriptor: s.to_owned(),
+            });
         };
         let mut field_types = Vec::with_capacity(s.len() - 1);
         for c in chars {
@@ -598,7 +606,7 @@ impl Display for AccessFlags {
         }
 
         if self.contains(Self::ACC_DECLARED_SYNCHRONIZED) {
-            out.push_str("synchronized ");
+            out.push_str("synchronized");
         }
 
         write!(f, "{}", out.trim())

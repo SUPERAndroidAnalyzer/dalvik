@@ -1,9 +1,10 @@
 //! Representation of the Dalvik bytecodes and utilities to decode them
 
-use byteorder::{LittleEndian, ReadBytesExt};
-use error::*;
 use std::fmt::Debug;
-use std::io::Read;
+use std::io::{self, Read};
+use std::marker::PhantomData;
+
+use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 
 #[derive(Debug)]
 #[allow(missing_docs)]
@@ -675,31 +676,35 @@ impl ToString for ByteCode {
 /// Implementations of the distinct bytecodes data layouts
 /// It will read from the source and return the data destructured
 #[derive(Debug)]
-pub struct ByteCodeDecoder<R: Read + Debug> {
+pub struct ByteCodeDecoder<R: Read + Debug, B: ByteOrder = LittleEndian> {
     cursor: R,
+    byte_order: PhantomData<B>,
 }
 
-impl<R: Read + Debug> ByteCodeDecoder<R> {
+impl<R: Read + Debug, B: ByteOrder> ByteCodeDecoder<R, B> {
     /// Creates a new ByteCodeDecoder given a `Read` input
     pub fn new(cursor: R) -> Self {
-        Self { cursor }
+        Self {
+            cursor,
+            byte_order: PhantomData,
+        }
     }
 
-    fn format10x(&mut self) -> Result<()> {
+    fn format10x(&mut self) -> Result<(), io::Error> {
         let _ = self.cursor.read_u8()?;
 
         Ok(())
     }
 
-    fn format10t(&mut self) -> Result<i8> {
+    fn format10t(&mut self) -> Result<i8, io::Error> {
         Ok(self.cursor.read_i8()?)
     }
 
-    fn format11x(&mut self) -> Result<u8> {
+    fn format11x(&mut self) -> Result<u8, io::Error> {
         Ok(self.cursor.read_u8()?)
     }
 
-    fn format11n(&mut self) -> Result<(u8, i32)> {
+    fn format11n(&mut self) -> Result<(u8, i32), io::Error> {
         let current_byte = self.cursor.read_u8()?;
 
         let literal = i32::from((current_byte & 0xF0) as i8 >> 4);
@@ -708,7 +713,7 @@ impl<R: Read + Debug> ByteCodeDecoder<R> {
         Ok((register, literal))
     }
 
-    fn format12x(&mut self) -> Result<(u8, u8)> {
+    fn format12x(&mut self) -> Result<(u8, u8), io::Error> {
         let current_byte = self.cursor.read_u8()?;
 
         let source = (current_byte & 0xF0) >> 4;
@@ -717,151 +722,143 @@ impl<R: Read + Debug> ByteCodeDecoder<R> {
         Ok((dest, source))
     }
 
-    fn format20t(&mut self) -> Result<i16> {
+    fn format20t(&mut self) -> Result<i16, io::Error>
+    where
+        B: ByteOrder,
+    {
         let _ = self.cursor.read_u8()?;
-        // TODO: Make byteorder generic
-        let literal = self.cursor.read_i16::<LittleEndian>()?;
+        let literal = self.cursor.read_i16::<B>()?;
 
         Ok(literal)
     }
-
-    fn format21t(&mut self) -> Result<(u8, i16)> {
+    fn format21t(&mut self) -> Result<(u8, i16), io::Error>
+    where
+        B: ByteOrder,
+    {
         let dest = self.cursor.read_u8()?;
-        // TODO: Make byteorder generic
-        let offset = self.cursor.read_i16::<LittleEndian>()?;
+        let offset = self.cursor.read_i16::<B>()?;
 
         Ok((dest, offset))
     }
 
-    fn format21s(&mut self) -> Result<(u8, i32)> {
+    fn format21s(&mut self) -> Result<(u8, i32), io::Error> {
         let dest = self.cursor.read_u8()?;
-        // TODO: Make byteorder generic
-        let literal = self.cursor.read_i16::<LittleEndian>()?;
+        let literal = self.cursor.read_i16::<B>()?;
 
         Ok((dest, i32::from(literal)))
     }
 
-    fn format21hw(&mut self) -> Result<(u8, i32)> {
+    fn format21hw(&mut self) -> Result<(u8, i32), io::Error> {
         let dest = self.cursor.read_u8()?;
-        // TODO: Make byteorder generic
-        let literal = (i32::from(self.cursor.read_i16::<LittleEndian>()?)) << 16;
+        let literal = (i32::from(self.cursor.read_i16::<B>()?)) << 16;
 
         Ok((dest, literal))
     }
 
-    fn format21hd(&mut self) -> Result<(u8, i64)> {
+    fn format21hd(&mut self) -> Result<(u8, i64), io::Error> {
         let dest = self.cursor.read_u8()?;
-        // TODO: Make byteorder generic
-        let literal = (i64::from(self.cursor.read_i16::<LittleEndian>()?)) << 48;
+        let literal = (i64::from(self.cursor.read_i16::<B>()?)) << 48;
 
         Ok((dest, literal))
     }
 
-    fn format21c(&mut self) -> Result<(u8, u16)> {
+    fn format21c(&mut self) -> Result<(u8, u16), io::Error> {
         let dest = self.cursor.read_u8()?;
-        // TODO: Make byteorder generic
-        let literal = self.cursor.read_u16::<LittleEndian>()?;
+        let literal = self.cursor.read_u16::<B>()?;
 
         Ok((dest, literal))
     }
 
-    fn format22c(&mut self) -> Result<(u8, u8, u16)> {
+    fn format22c(&mut self) -> Result<(u8, u8, u16), io::Error> {
         let current_byte = self.cursor.read_u8()?;
 
         let source = (current_byte & 0xF0) >> 4;
         let dest = current_byte & 0xF;
-
-        // TODO: Make byteorder generic
-        let reference = self.cursor.read_u16::<LittleEndian>()?;
+        let reference = self.cursor.read_u16::<B>()?;
 
         Ok((dest, source, reference))
     }
 
-    fn format22x(&mut self) -> Result<(u8, u16)> {
+    fn format22x(&mut self) -> Result<(u8, u16), io::Error> {
         let dest = self.cursor.read_u8()?;
-        // TODO: Make byteorder generic
-        let source = self.cursor.read_u16::<LittleEndian>()?;
+        let source = self.cursor.read_u16::<B>()?;
 
         Ok((dest, source))
     }
 
-    fn format22t(&mut self) -> Result<(u8, u8, i16)> {
+    fn format22t(&mut self) -> Result<(u8, u8, i16), io::Error> {
         let current_byte = self.cursor.read_u8()?;
 
         let source = (current_byte & 0xF0) >> 4;
         let dest = current_byte & 0xF;
-        // TODO: Make byteorder generic
-        let offset = self.cursor.read_i16::<LittleEndian>()?;
+        let offset = self.cursor.read_i16::<B>()?;
 
         Ok((dest, source, offset))
     }
 
-    fn format22s(&mut self) -> Result<(u8, u8, i16)> {
+    fn format22s(&mut self) -> Result<(u8, u8, i16), io::Error> {
         self.format22t()
     }
 
-    fn format22b(&mut self) -> Result<(u8, u8, i8)> {
+    fn format22b(&mut self) -> Result<(u8, u8, i8), io::Error> {
         let dest = self.cursor.read_u8()?;
-        // TODO: Make byteorder generic
         let operand1 = self.cursor.read_u8()?;
         let literal = self.cursor.read_i8()?;
 
         Ok((dest, operand1, literal))
     }
 
-    fn format23x(&mut self) -> Result<(u8, u8, u8)> {
+    fn format23x(&mut self) -> Result<(u8, u8, u8), io::Error> {
         let dest = self.cursor.read_u8()?;
-        // TODO: Make byteorder generic
         let operand1 = self.cursor.read_u8()?;
         let operand2 = self.cursor.read_u8()?;
 
         Ok((dest, operand1, operand2))
     }
 
-    fn format30t(&mut self) -> Result<i32> {
+    fn format30t(&mut self) -> Result<i32, io::Error> {
         let _ = self.cursor.read_u8()?;
-        let literal = self.cursor.read_i32::<LittleEndian>()?;
+        let literal = self.cursor.read_i32::<B>()?;
 
         Ok(literal)
     }
 
-    fn format31i(&mut self) -> Result<(u8, i32)> {
+    fn format31i(&mut self) -> Result<(u8, i32), io::Error> {
         let dest = self.cursor.read_u8()?;
-        let literal = self.cursor.read_i32::<LittleEndian>()?;
+        let literal = self.cursor.read_i32::<B>()?;
 
         Ok((dest, literal))
     }
 
-    fn format31t(&mut self) -> Result<(u8, i32)> {
+    fn format31t(&mut self) -> Result<(u8, i32), io::Error> {
         let dest = self.cursor.read_u8()?;
-        let literal = self.cursor.read_i32::<LittleEndian>()?;
+        let literal = self.cursor.read_i32::<B>()?;
 
         Ok((dest, literal))
     }
 
-    fn format31c(&mut self) -> Result<(u8, u32)> {
+    fn format31c(&mut self) -> Result<(u8, u32), io::Error> {
         let dest = self.cursor.read_u8()?;
-        let reference = self.cursor.read_u32::<LittleEndian>()?;
+        let reference = self.cursor.read_u32::<B>()?;
 
         Ok((dest, reference))
     }
 
-    fn format32x(&mut self) -> Result<(u16, u16)> {
-        // TODO: Make byteorder generic
-        let dest = self.cursor.read_u16::<LittleEndian>()?;
-        let source = self.cursor.read_u16::<LittleEndian>()?;
+    fn format32x(&mut self) -> Result<(u16, u16), io::Error> {
+        let dest = self.cursor.read_u16::<B>()?;
+        let source = self.cursor.read_u16::<B>()?;
 
         Ok((dest, source))
     }
 
-    fn format35c(&mut self) -> Result<(Vec<u8>, u16)> {
+    fn format35c(&mut self) -> Result<(Vec<u8>, u16), io::Error> {
         let mut arguments = Vec::new();
         let first_byte = self.cursor.read_u8()?;
 
         let count = (first_byte & 0xF0) >> 4;
         let last_register = first_byte & 0xF;
 
-        let reference = self.cursor.read_u16::<LittleEndian>()?;
+        let reference = self.cursor.read_u16::<B>()?;
 
         let reg_array = self.read_4bit_array(4)?;
         arguments.extend(reg_array);
@@ -872,7 +869,7 @@ impl<R: Read + Debug> ByteCodeDecoder<R> {
         Ok((final_arguments, reference))
     }
 
-    fn format3rc(&mut self) -> Result<(u16, u8, u16)> {
+    fn format3rc(&mut self) -> Result<(u16, u8, u16), io::Error> {
         let amount = self.cursor.read_u8()?;
         let reference = self.cursor.read_u16::<LittleEndian>()?;
         let first = self.cursor.read_u16::<LittleEndian>()?;
@@ -880,29 +877,28 @@ impl<R: Read + Debug> ByteCodeDecoder<R> {
         Ok((first, amount - 1, reference))
     }
 
-    fn format45cc(&mut self) -> Result<(Vec<u8>, u16, u16)> {
+    fn format45cc(&mut self) -> Result<(Vec<u8>, u16, u16), io::Error> {
         let (registers, method_ref) = self.format35c()?;
-        let proto_ref = self.cursor.read_u16::<LittleEndian>()?;
+        let proto_ref = self.cursor.read_u16::<B>()?;
 
         Ok((registers, method_ref, proto_ref))
     }
 
-    fn format4rcc(&mut self) -> Result<(u16, u8, u16, u16)> {
+    fn format4rcc(&mut self) -> Result<(u16, u8, u16, u16), io::Error> {
         let (first, amount, method_ref) = self.format3rc()?;
-        let proto_ref = self.cursor.read_u16::<LittleEndian>()?;
+        let proto_ref = self.cursor.read_u16::<B>()?;
 
         Ok((first, amount, method_ref, proto_ref))
     }
 
-    fn format51l(&mut self) -> Result<(u8, i64)> {
-        // TODO: Make byteorder generic
+    fn format51l(&mut self) -> Result<(u8, i64), io::Error> {
         let dest = self.cursor.read_u8()?;
-        let source = self.cursor.read_i64::<LittleEndian>()?;
+        let source = self.cursor.read_i64::<B>()?;
 
         Ok((dest, source))
     }
 
-    fn read_4bit_array(&mut self, amount: u8) -> Result<Vec<u8>> {
+    fn read_4bit_array(&mut self, amount: u8) -> Result<Vec<u8>, io::Error> {
         let mut values = Vec::new();
 
         for _ in 0..(amount / 2) {
@@ -919,7 +915,7 @@ impl<R: Read + Debug> ByteCodeDecoder<R> {
     }
 }
 
-impl<R: Read + Debug> Iterator for ByteCodeDecoder<R> {
+impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
     type Item = ByteCode;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -1113,7 +1109,7 @@ mod tests {
     #[test]
     fn it_can_decode_noop() {
         let raw_opcode: &[u8] = &[0x00, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1124,7 +1120,7 @@ mod tests {
     #[test]
     fn it_can_decode_return_void() {
         let raw_opcode: &[u8] = &[0x0e, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1135,7 +1131,7 @@ mod tests {
     #[test]
     fn it_can_decode_move() {
         let raw_opcode: &[u8] = &[0x01, 0x3B];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1146,7 +1142,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_from_16() {
         let raw_opcode: &[u8] = &[0x02, 0xAA, 0x12, 0x34];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1157,7 +1153,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_16() {
         let raw_opcode: &[u8] = &[0x03, 0xAA, 0x01, 0x12, 0x34];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1168,7 +1164,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_wide() {
         let raw_opcode: &[u8] = &[0x04, 0x3B];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1179,7 +1175,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_wide_from_16() {
         let raw_opcode: &[u8] = &[0x05, 0xAA, 0x12, 0x34];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1190,7 +1186,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_wide_16() {
         let raw_opcode: &[u8] = &[0x06, 0xAA, 0x01, 0x12, 0x34];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1201,7 +1197,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_object() {
         let raw_opcode: &[u8] = &[0x07, 0x3B];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1212,7 +1208,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_object_from_16() {
         let raw_opcode: &[u8] = &[0x08, 0xAA, 0x12, 0x34];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1223,7 +1219,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_object_16() {
         let raw_opcode: &[u8] = &[0x09, 0xAA, 0x01, 0x12, 0x34];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1234,7 +1230,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_result() {
         let raw_opcode: &[u8] = &[0x0A, 0x3B];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1245,7 +1241,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_result_wide() {
         let raw_opcode: &[u8] = &[0x0B, 0x12];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1256,7 +1252,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_result_object() {
         let raw_opcode: &[u8] = &[0x0C, 0xFF];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1267,7 +1263,7 @@ mod tests {
     #[test]
     fn it_can_decode_move_exception() {
         let raw_opcode: &[u8] = &[0x0D, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1278,7 +1274,7 @@ mod tests {
     #[test]
     fn it_can_decode_return() {
         let raw_opcode: &[u8] = &[0x0F, 0x23];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1289,7 +1285,7 @@ mod tests {
     #[test]
     fn it_can_decode_return_wide() {
         let raw_opcode: &[u8] = &[0x10, 0x23];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1300,7 +1296,7 @@ mod tests {
     #[test]
     fn it_can_decode_return_object() {
         let raw_opcode: &[u8] = &[0x11, 0x23];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1311,7 +1307,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_4_neg() {
         let raw_opcode: &[u8] = &[0x12, 0xF1];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1322,7 +1318,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_4_pos() {
         let raw_opcode: &[u8] = &[0x12, 0x71];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1333,7 +1329,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_16_neg() {
         let raw_opcode: &[u8] = &[0x13, 0xF1, 0xFA, 0xFB];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1344,7 +1340,7 @@ mod tests {
     #[test]
     fn it_can_decode_const() {
         let raw_opcode: &[u8] = &[0x14, 0x44, 0xFA, 0xFB, 0x00, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1355,7 +1351,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_high_16() {
         let raw_opcode: &[u8] = &[0x15, 0x44, 0xFF, 0xFF];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1366,7 +1362,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_wide_16() {
         let raw_opcode: &[u8] = &[0x16, 0x44, 0xFF, 0xFF];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1377,7 +1373,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_wide_32() {
         let raw_opcode: &[u8] = &[0x17, 0x44, 0xFF, 0xFF, 0x00, 0x11];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1388,7 +1384,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_wide() {
         let raw_opcode: &[u8] = &[0x18, 0x01, 0x44, 0xFF, 0xFF, 0x00, 0x44, 0xFF, 0xFF, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1399,7 +1395,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_wide_high16() {
         let raw_opcode: &[u8] = &[0x19, 0x01, 0xFF, 0xFF];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1415,7 +1411,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_string() {
         let raw_opcode: &[u8] = &[0x1A, 0x01, 0xFF, 0xFF];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1428,7 +1424,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_string_jumbo() {
         let raw_opcode: &[u8] = &[0x1B, 0x01, 0xFF, 0xFF, 0x00, 0x10];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1444,7 +1440,7 @@ mod tests {
     #[test]
     fn it_can_decode_const_class() {
         let raw_opcode: &[u8] = &[0x1C, 0x01, 0x11, 0x11];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1457,7 +1453,7 @@ mod tests {
     #[test]
     fn it_can_decode_monitor_enter() {
         let raw_opcode: &[u8] = &[0x1D, 0x01];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1468,7 +1464,7 @@ mod tests {
     #[test]
     fn it_can_decode_monitor_exit() {
         let raw_opcode: &[u8] = &[0x1E, 0x9];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1479,7 +1475,7 @@ mod tests {
     #[test]
     fn it_can_decode_check_cast() {
         let raw_opcode: &[u8] = &[0x1F, 0x01, 0x11, 0x11];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1492,7 +1488,7 @@ mod tests {
     #[test]
     fn it_can_decode_instance_of() {
         let raw_opcode: &[u8] = &[0x20, 0xA2, 0x11, 0x11];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1505,7 +1501,7 @@ mod tests {
     #[test]
     fn it_can_decode_array_length() {
         let raw_opcode: &[u8] = &[0x21, 0x2A];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1518,7 +1514,7 @@ mod tests {
     #[test]
     fn it_can_decode_new_instance() {
         let raw_opcode: &[u8] = &[0x22, 0x00, 0x20, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1529,7 +1525,7 @@ mod tests {
     #[test]
     fn it_can_decode_new_array() {
         let raw_opcode: &[u8] = &[0x23, 0xA9, 0x20, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1542,7 +1538,7 @@ mod tests {
     #[test]
     fn it_can_decode_filled_new_array() {
         let raw_opcode: &[u8] = &[0x24, 0x04, 0x20, 0x00, 0x12, 0x34];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1558,7 +1554,7 @@ mod tests {
     #[test]
     fn it_can_decode_filled_new_array_three_elements() {
         let raw_opcode: &[u8] = &[0x24, 0x35, 0x20, 0x00, 0x21, 0x43];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1574,7 +1570,7 @@ mod tests {
     #[test]
     fn it_can_decode_filled_new_array_five_elements() {
         let raw_opcode: &[u8] = &[0x24, 0x55, 0x20, 0x00, 0x21, 0x43];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1593,7 +1589,7 @@ mod tests {
     #[test]
     fn it_can_decode_filled_new_array_more_than_five_elements() {
         let raw_opcode: &[u8] = &[0x24, 0x85, 0x20, 0x00, 0x21, 0x43];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1612,7 +1608,7 @@ mod tests {
     #[test]
     fn it_can_decode_filled_new_array_range() {
         let raw_opcode: &[u8] = &[0x25, 0x03, 0x22, 0x22, 0x01, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1632,7 +1628,7 @@ mod tests {
     #[test]
     fn it_can_decode_fill_array_data() {
         let raw_opcode: &[u8] = &[0x26, 0x12, 0x11, 0x22, 0x33, 0xFF];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1645,7 +1641,7 @@ mod tests {
     #[test]
     fn it_can_decode_throw() {
         let raw_opcode: &[u8] = &[0x27, 0x12];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1656,7 +1652,7 @@ mod tests {
     #[test]
     fn it_can_decode_goto() {
         let raw_opcode: &[u8] = &[0x28, 0x03];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1667,7 +1663,7 @@ mod tests {
     #[test]
     fn it_can_decode_goto16() {
         let raw_opcode: &[u8] = &[0x29, 0x00, 0x03, 0x04];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1678,7 +1674,7 @@ mod tests {
     #[test]
     fn it_can_decode_goto32() {
         let raw_opcode: &[u8] = &[0x2A, 0x00, 0x03, 0x04, 0x05, 0x06];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1689,7 +1685,7 @@ mod tests {
     #[test]
     fn it_can_decode_packed_switch() {
         let raw_opcode: &[u8] = &[0x2B, 0x04, 0x03, 0x04, 0x05, 0x06];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1702,7 +1698,7 @@ mod tests {
     #[test]
     fn it_can_decode_sparse_switch() {
         let raw_opcode: &[u8] = &[0x2C, 0x04, 0x03, 0x04, 0x05, 0x06];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1715,7 +1711,7 @@ mod tests {
     #[test]
     fn it_can_decode_cmp_little_than_float() {
         let raw_opcode: &[u8] = &[0x2D, 0x04, 0x03, 0x02];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1728,7 +1724,7 @@ mod tests {
     #[test]
     fn it_can_decode_if_ne() {
         let raw_opcode: &[u8] = &[0x33, 0x24, 0x03, 0x02];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1741,7 +1737,7 @@ mod tests {
     #[test]
     fn it_can_decode_if0_ge() {
         let raw_opcode: &[u8] = &[0x3B, 0x04, 0x03, 0x02];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1754,7 +1750,7 @@ mod tests {
     #[test]
     fn it_can_decode_array_operation() {
         let raw_opcode: &[u8] = &[0x4D, 0x04, 0x03, 0x02];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1767,7 +1763,7 @@ mod tests {
     #[test]
     fn it_can_decode_instance_operation() {
         let raw_opcode: &[u8] = &[0x55, 0x34, 0x03, 0x02];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1785,7 +1781,7 @@ mod tests {
     #[test]
     fn it_can_decode_static_operation() {
         let raw_opcode: &[u8] = &[0x6d, 0x04, 0x03, 0x02];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1798,7 +1794,7 @@ mod tests {
     #[test]
     fn it_can_decode_invoke_operation() {
         let raw_opcode: &[u8] = &[0x6f, 0x00, 0x00, 0x01, 0x01, 0x23];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1815,7 +1811,7 @@ mod tests {
     #[test]
     fn it_can_decode_invoke_range_operation() {
         let raw_opcode: &[u8] = &[0x78, 0x09, 0x00, 0x01, 0x00, 0x02];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1836,7 +1832,7 @@ mod tests {
     #[test]
     fn it_can_decode_unary_operation() {
         let raw_opcode: &[u8] = &[0x84, 0x83];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1847,7 +1843,7 @@ mod tests {
     #[test]
     fn it_can_decode_binary_operation() {
         let raw_opcode: &[u8] = &[0xa0, 0x0f, 0x20, 0x13];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1860,7 +1856,7 @@ mod tests {
     #[test]
     fn it_can_decode_binary_2addr_operation() {
         let raw_opcode: &[u8] = &[0xb9, 0x2f];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1873,7 +1869,7 @@ mod tests {
     #[test]
     fn it_can_decode_binary_literal_16_operation() {
         let raw_opcode: &[u8] = &[0xd4, 0x2f, 0xFF, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1886,7 +1882,7 @@ mod tests {
     #[test]
     fn it_can_decode_binary_literal_16_rsub_operation() {
         let raw_opcode: &[u8] = &[0xd1, 0x2f, 0xFF, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1899,7 +1895,7 @@ mod tests {
     #[test]
     fn it_can_decode_binary_literal_8_operation() {
         let raw_opcode: &[u8] = &[0xe2, 0x10, 0x43, 0x01];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1912,7 +1908,7 @@ mod tests {
     #[test]
     fn it_can_decode_invoke_polymorphic() {
         let raw_opcode: &[u8] = &[0xfa, 0x50, 0x00, 0x01, 0x21, 0x43, 0x10, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1929,7 +1925,7 @@ mod tests {
     #[test]
     fn it_can_decode_invoke_polymorphic_range() {
         let raw_opcode: &[u8] = &[0xfb, 0x04, 0x10, 0x00, 0x01, 0x00, 0x01, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1946,7 +1942,7 @@ mod tests {
     #[test]
     fn it_can_decode_invoke_custom() {
         let raw_opcode: &[u8] = &[0xfc, 0x50, 0x00, 0x01, 0x21, 0x43];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
@@ -1963,7 +1959,7 @@ mod tests {
     #[test]
     fn it_can_decode_invoke_custom_range() {
         let raw_opcode: &[u8] = &[0xfd, 0x04, 0x10, 0x00, 0x01, 0x00];
-        let mut d = ByteCodeDecoder::new(raw_opcode);
+        let mut d: ByteCodeDecoder<_, LittleEndian> = ByteCodeDecoder::new(raw_opcode);
 
         let opcode = d.nth(0).unwrap();
 
