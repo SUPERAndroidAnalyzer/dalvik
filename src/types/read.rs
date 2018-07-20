@@ -391,7 +391,8 @@ impl Value {
                         reader.read_exact(&mut bytes).context("could not read Int")?;
                         // Reading in little endian
                         Ok(Value::Int(
-                            i32::from(bytes[0]) | i32::from(bytes[1]) << 8
+                            i32::from(bytes[0])
+                                | i32::from(bytes[1]) << 8
                                 | i32::from(bytes[2] as i8) << 16,
                         ))
                     }
@@ -416,7 +417,8 @@ impl Value {
                             .context("could not read Long")?;
                         // Reading in little endian
                         Ok(Value::Long(
-                            i64::from(bytes[0]) | i64::from(bytes[1]) << 8
+                            i64::from(bytes[0])
+                                | i64::from(bytes[1]) << 8
                                 | i64::from(bytes[2] as i8) << 16,
                         ))
                     }
@@ -430,7 +432,8 @@ impl Value {
                             .context("could not read Long")?;
                         // Reading in little endian
                         Ok(Value::Long(
-                            i64::from(bytes[0]) | i64::from(bytes[1]) << 8
+                            i64::from(bytes[0])
+                                | i64::from(bytes[1]) << 8
                                 | i64::from(bytes[2]) << 16
                                 | i64::from(bytes[3]) << 24
                                 | i64::from(bytes[4] as i8) << 32,
@@ -443,7 +446,8 @@ impl Value {
                             .context("could not read Long")?;
                         // Reading in little endian
                         Ok(Value::Long(
-                            i64::from(bytes[0]) | i64::from(bytes[1]) << 8
+                            i64::from(bytes[0])
+                                | i64::from(bytes[1]) << 8
                                 | i64::from(bytes[2]) << 16
                                 | i64::from(bytes[3]) << 24
                                 | i64::from(bytes[4]) << 32
@@ -457,7 +461,8 @@ impl Value {
                             .context("could not read Long")?;
                         // Reading in little endian
                         Ok(Value::Long(
-                            i64::from(bytes[0]) | i64::from(bytes[1]) << 8
+                            i64::from(bytes[0])
+                                | i64::from(bytes[1]) << 8
                                 | i64::from(bytes[2]) << 16
                                 | i64::from(bytes[3]) << 24
                                 | i64::from(bytes[4]) << 32

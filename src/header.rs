@@ -422,8 +422,13 @@ impl Header {
 
     /// Checks if the dex magic number given is valid.
     fn is_magic_valid(magic: &[u8; 8]) -> bool {
-        magic[0..4] == [0x64, 0x65, 0x78, 0x0a] && magic[7] == 0x00 && magic[4] >= 0x30
-            && magic[5] >= 0x30 && magic[6] >= 0x30 && magic[4] <= 0x39 && magic[5] <= 0x39
+        magic[0..4] == [0x64, 0x65, 0x78, 0x0a]
+            && magic[7] == 0x00
+            && magic[4] >= 0x30
+            && magic[5] >= 0x30
+            && magic[6] >= 0x30
+            && magic[4] <= 0x39
+            && magic[5] <= 0x39
             && magic[6] <= 0x39
     }
 
