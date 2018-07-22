@@ -23,7 +23,7 @@ failure = "0.1.1"
 failure_derive = "0.1.1"
 
 [dev-dependencies]
-matches = "0.1.6"
+matches = "0.1.7"
 
 [features]
 default = []
