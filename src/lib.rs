@@ -61,7 +61,8 @@ impl Dex {
         P: AsRef<Path>,
     {
         let file = fs::File::open(path).context("could not open file")?;
-        let file_size = file.metadata()
+        let file_size = file
+            .metadata()
             .context("could not read file metadata")?
             .len();
         if file_size < u64::from(HEADER_SIZE) || file_size > u64::from(u32::max_value()) {

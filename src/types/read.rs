@@ -347,9 +347,9 @@ impl Value {
         match value_type {
             VALUE_BYTE => {
                 if arg == 0 {
-                    Ok(Value::Byte(reader
-                        .read_i8()
-                        .context("could not read Byte")?))
+                    Ok(Value::Byte(
+                        reader.read_i8().context("could not read Byte")?,
+                    ))
                 } else {
                     Err(error::Parse::InvalidValue {
                         error: format!("invalid arg ({}) for Byte value", arg),
@@ -357,35 +357,41 @@ impl Value {
                 }
             }
             VALUE_SHORT => match arg {
-                0 => Ok(Value::Short(i16::from(reader
-                    .read_i8()
-                    .context("could not read Short")?))),
-                1 => Ok(Value::Short(reader
-                    .read_i16::<LittleEndian>()
-                    .context("could not read Short")?)),
+                0 => Ok(Value::Short(i16::from(
+                    reader.read_i8().context("could not read Short")?,
+                ))),
+                1 => Ok(Value::Short(
+                    reader
+                        .read_i16::<LittleEndian>()
+                        .context("could not read Short")?,
+                )),
                 a => Err(error::Parse::InvalidValue {
                     error: format!("invalid arg ({}) for Short value", a),
                 }.into()),
             },
             VALUE_CHAR => match arg {
-                0 => Ok(Value::Char(u16::from(reader
-                    .read_u8()
-                    .context("could not read Char")?))),
-                1 => Ok(Value::Char(reader
-                    .read_u16::<LittleEndian>()
-                    .context("could not read Char")?)),
+                0 => Ok(Value::Char(u16::from(
+                    reader.read_u8().context("could not read Char")?,
+                ))),
+                1 => Ok(Value::Char(
+                    reader
+                        .read_u16::<LittleEndian>()
+                        .context("could not read Char")?,
+                )),
                 a => Err(error::Parse::InvalidValue {
                     error: format!("invalid arg ({}) for Char value", a),
                 }.into()),
             },
             VALUE_INT => {
                 match arg {
-                    0 => Ok(Value::Int(i32::from(reader
-                        .read_i8()
-                        .context("could not read Int")?))),
-                    1 => Ok(Value::Int(i32::from(reader
-                        .read_i16::<LittleEndian>()
-                        .context("could not read Int")?))),
+                    0 => Ok(Value::Int(i32::from(
+                        reader.read_i8().context("could not read Int")?,
+                    ))),
+                    1 => Ok(Value::Int(i32::from(
+                        reader
+                            .read_i16::<LittleEndian>()
+                            .context("could not read Int")?,
+                    ))),
                     2 => {
                         let mut bytes = [0_u8; 3];
                         reader.read_exact(&mut bytes).context("could not read Int")?;
@@ -396,9 +402,11 @@ impl Value {
                                 | i32::from(bytes[2] as i8) << 16,
                         ))
                     }
-                    3 => Ok(Value::Int(reader
-                        .read_i32::<LittleEndian>()
-                        .context("could not read Int")?)),
+                    3 => Ok(Value::Int(
+                        reader
+                            .read_i32::<LittleEndian>()
+                            .context("could not read Int")?,
+                    )),
                     a => Err(error::Parse::InvalidValue {
                         error: format!("invalid arg ({}) for Int value", a),
                     }.into()),
@@ -407,9 +415,11 @@ impl Value {
             VALUE_LONG => {
                 match arg {
                     0 => Ok(Value::Long(i64::from(reader.read_i8()?))),
-                    1 => Ok(Value::Long(i64::from(reader
-                        .read_i16::<LittleEndian>()
-                        .context("could not read Long")?))),
+                    1 => Ok(Value::Long(i64::from(
+                        reader
+                            .read_i16::<LittleEndian>()
+                            .context("could not read Long")?,
+                    ))),
                     2 => {
                         let mut bytes = [0_u8; 3];
                         reader
@@ -422,9 +432,11 @@ impl Value {
                                 | i64::from(bytes[2] as i8) << 16,
                         ))
                     }
-                    3 => Ok(Value::Long(i64::from(reader
-                        .read_i32::<LittleEndian>()
-                        .context("could not read Long")?))),
+                    3 => Ok(Value::Long(i64::from(
+                        reader
+                            .read_i32::<LittleEndian>()
+                            .context("could not read Long")?,
+                    ))),
                     4 => {
                         let mut bytes = [0_u8; 5];
                         reader
@@ -470,9 +482,11 @@ impl Value {
                                 | i64::from(bytes[6] as i8) << 48,
                         ))
                     }
-                    7 => Ok(Value::Long(reader
-                        .read_i64::<LittleEndian>()
-                        .context("could not read Long")?)),
+                    7 => Ok(Value::Long(
+                        reader
+                            .read_i64::<LittleEndian>()
+                            .context("could not read Long")?,
+                    )),
                     _ => unreachable!(),
                 }
             }

@@ -924,24 +924,30 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
         match byte {
             Ok(0x00) => self.format10x().ok().map(|_| ByteCode::Nop),
             Ok(0x01) => self.format12x().ok().map(|(d, s)| ByteCode::Move(d, s)),
-            Ok(0x02) => self.format22x()
+            Ok(0x02) => self
+                .format22x()
                 .ok()
                 .map(|(d, s)| ByteCode::MoveFrom16(d, s)),
             Ok(0x03) => self.format32x().ok().map(|(d, s)| ByteCode::Move16(d, s)),
             Ok(0x04) => self.format12x().ok().map(|(d, s)| ByteCode::MoveWide(d, s)),
-            Ok(0x05) => self.format22x()
+            Ok(0x05) => self
+                .format22x()
                 .ok()
                 .map(|(d, s)| ByteCode::MoveWideFrom16(d, s)),
-            Ok(0x06) => self.format32x()
+            Ok(0x06) => self
+                .format32x()
                 .ok()
                 .map(|(d, s)| ByteCode::MoveWide16(d, s)),
-            Ok(0x07) => self.format12x()
+            Ok(0x07) => self
+                .format12x()
                 .ok()
                 .map(|(d, s)| ByteCode::MoveObject(d, s)),
-            Ok(0x08) => self.format22x()
+            Ok(0x08) => self
+                .format22x()
                 .ok()
                 .map(|(d, s)| ByteCode::MoveObjectFrom16(d, s)),
-            Ok(0x09) => self.format32x()
+            Ok(0x09) => self
+                .format32x()
                 .ok()
                 .map(|(d, s)| ByteCode::MoveObject16(d, s)),
             Ok(0x0A) => self.format11x().ok().map(ByteCode::MoveResult),
@@ -952,48 +958,60 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
             Ok(0x0F) => self.format11x().ok().map(ByteCode::Return),
             Ok(0x10) => self.format11x().ok().map(ByteCode::ReturnWide),
             Ok(0x11) => self.format11x().ok().map(ByteCode::ReturnObject),
-            Ok(0x12) => self.format11n()
+            Ok(0x12) => self
+                .format11n()
                 .ok()
                 .map(|(reg, lit)| ByteCode::Const4(reg, lit)),
-            Ok(0x13) => self.format21s()
+            Ok(0x13) => self
+                .format21s()
                 .ok()
                 .map(|(reg, lit)| ByteCode::Const16(reg, lit)),
-            Ok(0x14) => self.format31i()
+            Ok(0x14) => self
+                .format31i()
                 .ok()
                 .map(|(reg, lit)| ByteCode::Const(reg, lit)),
-            Ok(0x15) => self.format21hw()
+            Ok(0x15) => self
+                .format21hw()
                 .ok()
                 .map(|(reg, lit)| ByteCode::ConstHigh16(reg, lit)),
-            Ok(0x16) => self.format21s()
+            Ok(0x16) => self
+                .format21s()
                 .ok()
                 .map(|(reg, lit)| ByteCode::ConstWide16(reg, i64::from(lit))),
-            Ok(0x17) => self.format31i()
+            Ok(0x17) => self
+                .format31i()
                 .ok()
                 .map(|(reg, lit)| ByteCode::ConstWide32(reg, i64::from(lit))),
-            Ok(0x18) => self.format51l()
+            Ok(0x18) => self
+                .format51l()
                 .ok()
                 .map(|(reg, lit)| ByteCode::ConstWide(reg, lit)),
-            Ok(0x19) => self.format21hd()
+            Ok(0x19) => self
+                .format21hd()
                 .ok()
                 .map(|(reg, lit)| ByteCode::ConstWideHigh16(reg, lit)),
             Ok(0x1A) => self.format21c().ok().map(|(reg, reference)| {
                 ByteCode::ConstString(reg, StringReference::from(reference))
             }),
-            Ok(0x1B) => self.format31c()
+            Ok(0x1B) => self
+                .format31c()
                 .ok()
                 .map(|(reg, reference)| ByteCode::ConstStringJumbo(reg, reference)),
-            Ok(0x1C) => self.format21c()
+            Ok(0x1C) => self
+                .format21c()
                 .ok()
                 .map(|(reg, reference)| ByteCode::ConstClass(reg, ClassReference::from(reference))),
             Ok(0x1D) => self.format11x().ok().map(ByteCode::MonitorEnter),
             Ok(0x1E) => self.format11x().ok().map(ByteCode::MonitorExit),
-            Ok(0x1F) => self.format21c()
+            Ok(0x1F) => self
+                .format21c()
                 .ok()
                 .map(|(reg, reference)| ByteCode::CheckCast(reg, TypeReference::from(reference))),
             Ok(0x20) => self.format22c().ok().map(|(dest, src, reference)| {
                 ByteCode::InstanceOf(dest, src, TypeReference::from(reference))
             }),
-            Ok(0x21) => self.format12x()
+            Ok(0x21) => self
+                .format12x()
                 .ok()
                 .map(|(dest, src)| ByteCode::ArrayLength(dest, src)),
             Ok(0x22) => self.format21c().ok().map(|(dest, reference)| {
@@ -1008,29 +1026,36 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
             Ok(0x25) => self.format3rc().ok().map(|(first, amount, reference)| {
                 ByteCode::FilledNewArrayRange(first, amount, TypeReference::from(reference))
             }),
-            Ok(0x26) => self.format31t()
+            Ok(0x26) => self
+                .format31t()
                 .ok()
                 .map(|(reg, offset)| ByteCode::FillArrayData(reg, offset)),
             Ok(0x27) => self.format11x().ok().map(ByteCode::Throw),
             Ok(0x28) => self.format10t().ok().map(ByteCode::Goto),
             Ok(0x29) => self.format20t().ok().map(ByteCode::Goto16),
             Ok(0x2A) => self.format30t().ok().map(ByteCode::Goto32),
-            Ok(0x2B) => self.format31t()
+            Ok(0x2B) => self
+                .format31t()
                 .ok()
                 .map(|(reg, offset)| ByteCode::PackedSwitch(reg, offset)),
-            Ok(0x2C) => self.format31t()
+            Ok(0x2C) => self
+                .format31t()
                 .ok()
                 .map(|(reg, offset)| ByteCode::SparseSwitch(reg, offset)),
-            Ok(a @ 0x2D...0x31) => self.format23x()
+            Ok(a @ 0x2D...0x31) => self
+                .format23x()
                 .ok()
                 .map(|(dest, op1, op2)| ByteCode::Compare(CompareType::from(a), dest, op1, op2)),
-            Ok(a @ 0x32...0x37) => self.format22t()
+            Ok(a @ 0x32...0x37) => self
+                .format22t()
                 .ok()
                 .map(|(dest, src, offset)| ByteCode::If(TestType::from(a), dest, src, offset)),
-            Ok(a @ 0x38...0x3D) => self.format21t()
+            Ok(a @ 0x38...0x3D) => self
+                .format21t()
                 .ok()
                 .map(|(dest, offset)| ByteCode::If0(TestType::from(a), dest, offset)),
-            Ok(a @ 0x44...0x51) => self.format23x()
+            Ok(a @ 0x44...0x51) => self
+                .format23x()
                 .ok()
                 .map(|(dest, op1, op2)| ByteCode::Array(ArrayOperation::from(a), dest, op1, op2)),
             Ok(a @ 0x52...0x5f) => self.format22c().ok().map(|(dest, op1, reference)| {
@@ -1063,7 +1088,8 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
                     FieldReference::from(reference),
                 )
             }),
-            Ok(op @ 0x7b...0x8f) => self.format12x()
+            Ok(op @ 0x7b...0x8f) => self
+                .format12x()
                 .ok()
                 .map(|(dest, src)| ByteCode::Unary(UnaryOperation::from(op), dest, src)),
             Ok(op @ 0x90...0xaf) => self.format23x().ok().map(|(dest, src1, src2)| {
@@ -1081,7 +1107,8 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
             Ok(0xfa) => self.format45cc().ok().map(|(registers, method, proto)| {
                 ByteCode::InvokePolymorphic(registers, u32::from(method), u32::from(proto))
             }),
-            Ok(0xfb) => self.format4rcc()
+            Ok(0xfb) => self
+                .format4rcc()
                 .ok()
                 .map(|(first, amount, method, proto)| {
                     ByteCode::InvokePolymorphicRange(

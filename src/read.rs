@@ -63,7 +63,8 @@ impl DexReader {
         } else {
             Vec::new()
         };
-        let _ = file.read_to_end(&mut file_contents)
+        let _ = file
+            .read_to_end(&mut file_contents)
             .context("could not read dex file contents")?;
         let mut file_cursor = Cursor::new(file_contents.into_boxed_slice());
         let header =
@@ -193,7 +194,8 @@ impl DexReader {
                 "could not read type ID at offset {:#010x}",
                 current_offset
             ))?;
-            let type_str = self.strings
+            let type_str = self
+                .strings
                 .get(index as usize)
                 .ok_or_else(|| error::Parse::UnknownStringIndex { index })?;
             self.types
@@ -223,14 +225,16 @@ impl DexReader {
             let parameters = if let Some(off) = prototype_id.parameters_offset() {
                 let current_offset = self.file_cursor.position();
                 self.file_cursor.set_position(u64::from(off));
-                let parameters = self.read_type_list::<B>()
+                let parameters = self
+                    .read_type_list::<B>()
                     .context("could not read parameter list")?;
                 self.file_cursor.set_position(current_offset);
                 Some(parameters)
             } else {
                 None
             };
-            let shorty_str = self.strings
+            let shorty_str = self
+                .strings
                 .get(prototype_id.shorty_index() as usize)
                 .ok_or_else(|| error::Parse::UnknownStringIndex {
                     index: prototype_id.shorty_index(),
@@ -240,7 +244,8 @@ impl DexReader {
                 prototype_id.shorty_index(),
                 shorty_str
             ))?;
-            let return_type = self.types
+            let return_type = self
+                .types
                 .get(prototype_id.return_type_index() as usize)
                 .ok_or_else(|| error::Parse::UnknownTypeIndex {
                     index: prototype_id.return_type_index(),
@@ -309,13 +314,12 @@ impl DexReader {
     {
         for _ in 0..self.header.get_method_ids_size() {
             let current_offset = self.file_cursor.position();
-            self.method_ids
-                .push(
-                    MethodIdData::from_reader::<_, B>(&mut self.file_cursor).context(format_err!(
-                        "could not read method ID at offset {:#010x}",
-                        current_offset
-                    ))?,
-                );
+            self.method_ids.push(
+                MethodIdData::from_reader::<_, B>(&mut self.file_cursor).context(format_err!(
+                    "could not read method ID at offset {:#010x}",
+                    current_offset
+                ))?,
+            );
         }
 
         Ok(())
