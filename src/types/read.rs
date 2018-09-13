@@ -394,7 +394,9 @@ impl Value {
                     ))),
                     2 => {
                         let mut bytes = [0_u8; 3];
-                        reader.read_exact(&mut bytes).context("could not read Int")?;
+                        reader
+                            .read_exact(&mut bytes)
+                            .context("could not read Int")?;
                         // Reading in little endian
                         Ok(Value::Int(
                             i32::from(bytes[0])
@@ -520,7 +522,8 @@ impl Value {
                 Ok(Value::String(string_index))
             }
             VALUE_TYPE => {
-                let type_index = Self::read_u32(reader, arg).context("could not read Type index")?;
+                let type_index =
+                    Self::read_u32(reader, arg).context("could not read Type index")?;
                 Ok(Value::Type(type_index))
             }
             VALUE_FIELD => {
@@ -534,7 +537,8 @@ impl Value {
                 Ok(Value::Method(method_index))
             }
             VALUE_ENUM => {
-                let enum_index = Self::read_u32(reader, arg).context("could not read Enum index")?;
+                let enum_index =
+                    Self::read_u32(reader, arg).context("could not read Enum index")?;
                 Ok(Value::Enum(enum_index))
             }
             VALUE_ARRAY => {
@@ -925,7 +929,8 @@ impl ClassData {
 
             let mut last_method_id = method_id;
             for _ in 1..method_count {
-                let (method_id_diff, _) = read_uleb128(reader).context("could not read method ID")?;
+                let (method_id_diff, _) =
+                    read_uleb128(reader).context("could not read method ID")?;
                 let (access_flags, _) =
                     read_uleb128(reader).context("could not read method access flags")?;
                 let (code_offset, _) =
@@ -1191,7 +1196,9 @@ impl CodeItem {
         let outs_size = reader
             .read_u16::<B>()
             .context("could not read outgoing words size")?;
-        let tries_size = reader.read_u16::<B>().context("could not read tries size")?;
+        let tries_size = reader
+            .read_u16::<B>()
+            .context("could not read tries size")?;
         let debug_info_offset = reader
             .read_u32::<B>()
             .context("could not read debug information offset")?;

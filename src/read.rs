@@ -164,7 +164,8 @@ impl DexReader {
 
     /// Reads an actual string.
     fn read_string(&mut self) -> Result<String, Error> {
-        let (size, _) = read_uleb128(&mut self.file_cursor).context("could not read string size")?;
+        let (size, _) =
+            read_uleb128(&mut self.file_cursor).context("could not read string size")?;
         let mut data = Vec::with_capacity(size as usize);
         if size > 0 {
             let _ = self.file_cursor.read_until(0, &mut data)?;
@@ -249,8 +250,7 @@ impl DexReader {
                 .get(prototype_id.return_type_index() as usize)
                 .ok_or_else(|| error::Parse::UnknownTypeIndex {
                     index: prototype_id.return_type_index(),
-                })?
-                .clone();
+                })?.clone();
 
             self.prototypes
                 .push(Prototype::new(shorty_descriptor, return_type, parameters));
@@ -281,8 +281,7 @@ impl DexReader {
                     .get(index as usize)
                     .ok_or_else(|| error::Parse::UnknownTypeIndex {
                         index: u32::from(index),
-                    })?
-                    .clone(),
+                    })?.clone(),
             );
         }
 
