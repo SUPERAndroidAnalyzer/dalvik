@@ -17,13 +17,13 @@ travis-ci = { repository = "SUPERAndroidAnalyzer/dalvik", branch = "master" }
 appveyor = { repository = "Razican/dalvik", branch = "master", service = "github" }
 
 [dependencies]
-byteorder = "1.2.4"
-bitflags = "1.0.3"
+byteorder = "1.2.6"
+bitflags = "1.0.4"
 failure = "0.1.2"
 failure_derive = "0.1.2"
 
 [dev-dependencies]
-matches = "0.1.7"
+matches = "0.1.8"
 
 [features]
 default = []
