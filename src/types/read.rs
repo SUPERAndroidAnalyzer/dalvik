@@ -5,10 +5,13 @@ use std::io::Read;
 use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 use failure::{Error, ResultExt};
 
-use super::{AccessFlags, AnnotationElement, Array};
-use super::{Annotation, EncodedAnnotation, Value, Visibility};
-use error;
-use read::{read_sleb128, read_uleb128, read_uleb128p1};
+use super::{
+    AccessFlags, Annotation, AnnotationElement, Array, EncodedAnnotation, Value, Visibility,
+};
+use crate::{
+    error,
+    read::{read_sleb128, read_uleb128, read_uleb128p1},
+};
 
 /// Data structure representing the `proto_id_item` type.
 #[derive(Debug, Copy, Clone)]
@@ -107,14 +110,14 @@ impl FieldIdData {
     ///
     /// Gets the index into the `type_ids` list for the definer of this field. This must be a class
     /// type, and not an array or primitive type.
-    pub fn class_index(&self) -> usize {
+    pub fn class_index(self) -> usize {
         self.class_index as usize
     }
 
     /// Gets the index of the type of the class.
     ///
     /// Gets the index into the `type_ids` list for the type of this field.
-    pub fn type_index(&self) -> usize {
+    pub fn type_index(self) -> usize {
         self.type_index as usize
     }
 
@@ -122,7 +125,7 @@ impl FieldIdData {
     ///
     /// Gets the index into the `string_ids` list for the name of this field. The string must
     /// conform to the syntax for `MemberName`.
-    pub fn name_index(&self) -> usize {
+    pub fn name_index(self) -> usize {
         self.name_index as usize
     }
 }
@@ -162,14 +165,14 @@ impl MethodIdData {
     ///
     /// Gets the index into the `type_ids` list for the definer of this method. This must be a
     /// class or array type, and not a primitive type.
-    pub fn class_index(&self) -> usize {
+    pub fn class_index(self) -> usize {
         self.class_index as usize
     }
 
     /// Gets the index of the prototype of the class.
     ///
     /// Gets the index into the `prototype_ids` list for the prototype of this method.
-    pub fn prototype_index(&self) -> usize {
+    pub fn prototype_index(self) -> usize {
         self.prototype_index as usize
     }
 
@@ -177,7 +180,7 @@ impl MethodIdData {
     ///
     /// Gets the index into the `string_ids` list for the name of this field. The string must
     /// conform to the syntax for `MemberName`.
-    pub fn name_index(&self) -> usize {
+    pub fn name_index(self) -> usize {
         self.name_index as usize
     }
 }
@@ -353,7 +356,8 @@ impl Value {
                 } else {
                     Err(error::Parse::InvalidValue {
                         error: format!("invalid arg ({}) for Byte value", arg),
-                    }.into())
+                    }
+                    .into())
                 }
             }
             VALUE_SHORT => match arg {
@@ -367,7 +371,8 @@ impl Value {
                 )),
                 a => Err(error::Parse::InvalidValue {
                     error: format!("invalid arg ({}) for Short value", a),
-                }.into()),
+                }
+                .into()),
             },
             VALUE_CHAR => match arg {
                 0 => Ok(Value::Char(u16::from(
@@ -380,7 +385,8 @@ impl Value {
                 )),
                 a => Err(error::Parse::InvalidValue {
                     error: format!("invalid arg ({}) for Char value", a),
-                }.into()),
+                }
+                .into()),
             },
             VALUE_INT => {
                 match arg {
@@ -411,7 +417,8 @@ impl Value {
                     )),
                     a => Err(error::Parse::InvalidValue {
                         error: format!("invalid arg ({}) for Int value", a),
-                    }.into()),
+                    }
+                    .into()),
                 }
             }
             VALUE_LONG => {
@@ -496,19 +503,20 @@ impl Value {
                 c @ 0...3 => {
                     let mut bytes = [0_u8; 4];
                     reader
-                        .read_exact(&mut bytes[..c as usize + 1])
+                        .read_exact(&mut bytes[..=c as usize])
                         .context("could not read Float")?;
                     Ok(Value::Float(LittleEndian::read_f32(&bytes)))
                 }
                 a => Err(error::Parse::InvalidValue {
                     error: format!("invalid arg ({}) for Float value", a),
-                }.into()),
+                }
+                .into()),
             },
             VALUE_DOUBLE => match arg {
                 c @ 0...7 => {
                     let mut bytes = [0_u8; 8];
                     reader
-                        .read_exact(&mut bytes[..c as usize + 1])
+                        .read_exact(&mut bytes[..=c as usize])
                         .context("could not read Double")?;
                     Ok(Value::Double(LittleEndian::read_f64(&bytes)))
                 }
@@ -556,11 +564,13 @@ impl Value {
                 1 => Ok(Value::Boolean(true)),
                 _ => Err(error::Parse::InvalidValue {
                     error: format!("invalid arg ({}) for Boolean value", arg),
-                }.into()),
+                }
+                .into()),
             },
             v => Err(error::Parse::InvalidValue {
                 error: format!("invalid value type {:#04x}", v),
-            }.into()),
+            }
+            .into()),
         }
     }
 
@@ -580,7 +590,8 @@ impl Value {
             3 => Ok(reader.read_u32::<LittleEndian>()?),
             a => Err(error::Parse::InvalidValue {
                 error: format!("invalid arg ({}) for u32 value", a),
-            }.into()),
+            }
+            .into()),
         }
     }
 }
@@ -655,12 +666,12 @@ pub struct FieldAnnotationsOffset {
 
 impl FieldAnnotationsOffset {
     /// Gets the index of the field with annotations in the *Field IDs* list.
-    pub fn field_index(&self) -> u32 {
+    pub fn field_index(self) -> u32 {
         self.field_id
     }
 
     /// Gets the offset of the annotations of the field.
-    pub fn offset(&self) -> u32 {
+    pub fn offset(self) -> u32 {
         self.offset
     }
 }
@@ -674,12 +685,12 @@ pub struct MethodAnnotationsOffset {
 
 impl MethodAnnotationsOffset {
     /// Gets the index of the method with annotations in the *Method IDs* list.
-    pub fn method_index(&self) -> u32 {
+    pub fn method_index(self) -> u32 {
         self.method_id
     }
 
     /// Gets the offset of the annotations of the method.
-    pub fn offset(&self) -> u32 {
+    pub fn offset(self) -> u32 {
         self.offset
     }
 }
@@ -693,12 +704,12 @@ pub struct ParameterAnnotationsOffset {
 
 impl ParameterAnnotationsOffset {
     /// Gets the index of the method with annotations in the *Method IDs* list.
-    pub fn method_index(&self) -> u32 {
+    pub fn method_index(self) -> u32 {
         self.method_id
     }
 
     /// Gets the offset of the annotations of the method.
-    pub fn offset(&self) -> u32 {
+    pub fn offset(self) -> u32 {
         self.offset
     }
 }
@@ -1290,7 +1301,7 @@ struct CatchHandler {
 
 impl CatchHandler {
     /// Reads a catch handler from a reader.
-    #[cfg_attr(feature = "cargo-clippy", allow(cast_sign_loss))]
+    #[allow(clippy::cast_sign_loss)]
     fn from_reader<R>(reader: &mut R) -> Result<(Self, u32), Error>
     where
         R: Read,
@@ -1347,9 +1358,12 @@ impl HandlerInfo {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use std::io::Cursor;
-    use types::Value;
+    use std::{f32, f64, io::Cursor};
+
+    use super::{
+        VALUE_BYTE, VALUE_CHAR, VALUE_DOUBLE, VALUE_FLOAT, VALUE_INT, VALUE_LONG, VALUE_SHORT,
+    };
+    use crate::types::Value;
 
     #[test]
     fn it_returns_error_if_value_type_is_not_valid() {
@@ -1470,7 +1484,7 @@ mod tests {
         let value_result = Value::from_reader(&mut Cursor::new(raw));
 
         match value_result.unwrap() {
-            Value::Int(res) => assert_eq!(res, 1519103),
+            Value::Int(res) => assert_eq!(res, 1_519_103),
             _ => unreachable!(),
         }
     }
@@ -1481,7 +1495,7 @@ mod tests {
         let value_result = Value::from_reader(&mut Cursor::new(raw));
 
         match value_result.unwrap() {
-            Value::Int(res) => assert_eq!(res, 587148799),
+            Value::Int(res) => assert_eq!(res, 587_148_799),
             _ => unreachable!(),
         }
     }
@@ -1534,7 +1548,7 @@ mod tests {
         let value_result = Value::from_reader(&mut Cursor::new(raw));
 
         match value_result.unwrap() {
-            Value::Long(res) => assert_eq!(res, 67305985),
+            Value::Long(res) => assert_eq!(res, 67_305_985),
             _ => unreachable!(),
         }
     }
@@ -1545,7 +1559,7 @@ mod tests {
         let value_result = Value::from_reader(&mut Cursor::new(raw));
 
         match value_result.unwrap() {
-            Value::Long(res) => assert_eq!(res, -17230332161),
+            Value::Long(res) => assert_eq!(res, -17_230_332_161),
             _ => unreachable!(),
         }
     }
@@ -1556,7 +1570,7 @@ mod tests {
         let value_result = Value::from_reader(&mut Cursor::new(raw));
 
         match value_result.unwrap() {
-            Value::Long(res) => assert_eq!(res, 4385211810303),
+            Value::Long(res) => assert_eq!(res, 4_385_211_810_303),
             _ => unreachable!(),
         }
     }
@@ -1578,7 +1592,7 @@ mod tests {
         let value_result = Value::from_reader(&mut Cursor::new(raw));
 
         match value_result.unwrap() {
-            Value::Long(res) => assert_eq!(res, 72340172821233664),
+            Value::Long(res) => assert_eq!(res, 72_340_172_821_233_664),
             _ => unreachable!(),
         }
     }
@@ -1589,7 +1603,7 @@ mod tests {
         let value_result = Value::from_reader(&mut Cursor::new(raw));
 
         match value_result.unwrap() {
-            Value::Float(res) => assert_eq!(res, 0.0),
+            Value::Float(res) => assert!((res - 0.0).abs() < f32::EPSILON),
             _ => unreachable!(),
         }
     }
@@ -1609,7 +1623,7 @@ mod tests {
         let value_result = Value::from_reader(&mut Cursor::new(raw));
 
         match value_result.unwrap() {
-            Value::Double(res) => assert_eq!(res, 0.0),
+            Value::Double(res) => assert!((res - 0.0).abs() < f64::EPSILON),
             _ => unreachable!(),
         }
     }

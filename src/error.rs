@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use sizes::HEADER_SIZE;
+use crate::sizes::HEADER_SIZE;
 
 /// Invalid file size.
 #[derive(Debug, Fail, Copy, Clone)]
@@ -62,8 +62,10 @@ pub enum Header {
 
 impl fmt::Display for Header {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::Header::*;
-        use header::{ENDIAN_CONSTANT, REVERSE_ENDIAN_CONSTANT};
+        use self::Header::{
+            FileSizeMismatch, Generic, IncorrectHeaderSize, IncorrectMagic, InvalidEndianTag,
+        };
+        use crate::header::{ENDIAN_CONSTANT, REVERSE_ENDIAN_CONSTANT};
 
         match self {
             IncorrectMagic { dex_magic } => {
@@ -107,9 +109,7 @@ pub enum Parse {
     /// Mismatched offsets found.
     #[fail(
         display = "mismatched `{}` offsets: expected {:#010x}, current offset {:#010x}",
-        offset_name,
-        expected_offset,
-        current_offset
+        offset_name, expected_offset, current_offset
     )]
     OffsetMismatch {
         /// Name of the mismatched offset.
@@ -186,8 +186,7 @@ pub enum Parse {
     /// String size mismatch.
     #[fail(
         display = "string size mismatch: expected {} characters, found {}",
-        expected_size,
-        actual_size
+        expected_size, actual_size
     )]
     StringSizeMismatch {
         /// Expected string size.

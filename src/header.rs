@@ -1,14 +1,22 @@
 //! Module containing the Dex file header.
 
-use std::io::{BufReader, Read};
-use std::path::Path;
-use std::{fmt, fs, u32};
+use std::{
+    fmt, fs,
+    io::{BufReader, Read},
+    path::Path,
+    u32,
+};
 
 use byteorder::{BigEndian, ByteOrder, LittleEndian, ReadBytesExt};
 use failure::{Error, ResultExt};
 
-use error;
-use sizes::*;
+use crate::{
+    error,
+    sizes::{
+        CLASS_DEF_ITEM_SIZE, FIELD_ID_ITEM_SIZE, HEADER_SIZE, METHOD_ID_ITEM_SIZE,
+        PROTO_ID_ITEM_SIZE, STRING_ID_ITEM_SIZE, TYPE_ID_ITEM_SIZE,
+    },
+};
 
 /// Endianness constant representing little endian file.
 pub const ENDIAN_CONSTANT: u32 = 0x12_34_56_78;
@@ -60,7 +68,8 @@ impl Header {
             Err(error::Header::FileSizeMismatch {
                 file_size,
                 size_in_header: header.get_file_size(),
-            }.into())
+            }
+            .into())
         }
     }
 
@@ -71,7 +80,7 @@ impl Header {
         reader
             .read_exact(&mut magic)
             .context("could not read dex magic number")?;
-        if !Self::is_magic_valid(&magic) {
+        if !Self::is_magic_valid(magic) {
             return Err(error::Header::IncorrectMagic { dex_magic: magic }.into());
         }
         // Checksum
@@ -167,7 +176,8 @@ impl Header {
                 offset_name: "link_offset",
                 current_offset: link_offset,
                 expected_offset: 0,
-            }.into());
+            }
+            .into());
         }
 
         // Map offset
@@ -177,7 +187,8 @@ impl Header {
         if map_offset == 0x0000_0000 {
             return Err(error::Parse::InvalidOffset {
                 desc: "`map_offset` was 0x00000000, and it can never be zero".to_owned(),
-            }.into());
+            }
+            .into());
         }
 
         // String IDs size
@@ -193,14 +204,16 @@ impl Header {
                 offset_name: "string_ids_offset",
                 current_offset: string_ids_offset,
                 expected_offset: HEADER_SIZE,
-            }.into());
+            }
+            .into());
         }
         if string_ids_size == 0 && string_ids_offset != 0 {
             return Err(error::Parse::OffsetMismatch {
                 offset_name: "string_ids_offset",
                 current_offset: string_ids_offset,
                 expected_offset: 0,
-            }.into());
+            }
+            .into());
         }
         current_offset += string_ids_size * STRING_ID_ITEM_SIZE;
 
@@ -217,14 +230,16 @@ impl Header {
                 offset_name: "type_ids_offset",
                 current_offset: type_ids_offset,
                 expected_offset: current_offset,
-            }.into());
+            }
+            .into());
         }
         if type_ids_size == 0 && type_ids_offset != 0 {
             return Err(error::Parse::OffsetMismatch {
                 offset_name: "type_ids_offset",
                 current_offset: type_ids_offset,
                 expected_offset: 0,
-            }.into());
+            }
+            .into());
         }
         current_offset += type_ids_size * TYPE_ID_ITEM_SIZE;
 
@@ -241,14 +256,16 @@ impl Header {
                 offset_name: "prototype_ids_offset",
                 current_offset: prototype_ids_offset,
                 expected_offset: current_offset,
-            }.into());
+            }
+            .into());
         }
         if prototype_ids_size == 0 && prototype_ids_offset != 0 {
             return Err(error::Parse::OffsetMismatch {
                 offset_name: "prototype_ids_offset",
                 current_offset: prototype_ids_offset,
                 expected_offset: 0,
-            }.into());
+            }
+            .into());
         }
         current_offset += prototype_ids_size * PROTO_ID_ITEM_SIZE;
 
@@ -265,14 +282,16 @@ impl Header {
                 offset_name: "field_ids_offset",
                 current_offset: field_ids_offset,
                 expected_offset: current_offset,
-            }.into());
+            }
+            .into());
         }
         if field_ids_size == 0 && field_ids_offset != 0 {
             return Err(error::Parse::OffsetMismatch {
                 offset_name: "field_ids_offset",
                 current_offset: field_ids_offset,
                 expected_offset: 0,
-            }.into());
+            }
+            .into());
         }
         current_offset += field_ids_size * FIELD_ID_ITEM_SIZE;
 
@@ -289,14 +308,16 @@ impl Header {
                 offset_name: "method_ids_offset",
                 current_offset: method_ids_offset,
                 expected_offset: current_offset,
-            }.into());
+            }
+            .into());
         }
         if method_ids_size == 0 && method_ids_offset != 0 {
             return Err(error::Parse::OffsetMismatch {
                 offset_name: "method_ids_offset",
                 current_offset: method_ids_offset,
                 expected_offset: 0,
-            }.into());
+            }
+            .into());
         }
         current_offset += method_ids_size * METHOD_ID_ITEM_SIZE;
 
@@ -313,14 +334,16 @@ impl Header {
                 offset_name: "class_defs_offset",
                 current_offset: class_defs_offset,
                 expected_offset: current_offset,
-            }.into());
+            }
+            .into());
         }
         if class_defs_size == 0 && class_defs_offset != 0 {
             return Err(error::Parse::OffsetMismatch {
                 offset_name: "class_defs_offset",
                 current_offset: class_defs_offset,
                 expected_offset: 0,
-            }.into());
+            }
+            .into());
         }
         current_offset += class_defs_size * CLASS_DEF_ITEM_SIZE;
 
@@ -334,7 +357,8 @@ impl Header {
                     "`data_size` must be a 4-byte multiple, but it was {:#010x}",
                     data_size
                 ),
-            }.into());
+            }
+            .into());
         }
 
         // Data offset
@@ -360,7 +384,8 @@ impl Header {
                      {:#010x}) but it was at {:#010x}",
                     data_offset, current_offset, map_offset
                 ),
-            }.into());
+            }
+            .into());
         }
         if link_size == 0 && current_offset != file_size {
             return Err(error::Header::Generic {
@@ -369,14 +394,16 @@ impl Header {
                      end: {:#010x}, `file_size`: {:#010x}",
                     current_offset, file_size
                 ),
-            }.into());
+            }
+            .into());
         }
         if link_size != 0 && link_offset == 0 {
             return Err(error::Parse::OffsetMismatch {
                 offset_name: "link_offset",
                 current_offset: 0,
                 expected_offset: current_offset,
-            }.into());
+            }
+            .into());
         }
         if link_size != 0 && link_offset != 0 {
             if link_offset != current_offset {
@@ -384,12 +411,14 @@ impl Header {
                     offset_name: "link_offset",
                     current_offset: link_offset,
                     expected_offset: current_offset,
-                }.into());
+                }
+                .into());
             }
             if link_offset + link_size != file_size {
                 return Err(error::Header::Generic {
                     error: "`link_data` section must end at the end of file".to_owned(),
-                }.into());
+                }
+                .into());
             }
         }
 
@@ -421,7 +450,7 @@ impl Header {
     }
 
     /// Checks if the dex magic number given is valid.
-    fn is_magic_valid(magic: &[u8; 8]) -> bool {
+    fn is_magic_valid(magic: [u8; 8]) -> bool {
         magic[0..4] == [0x64, 0x65, 0x78, 0x0a]
             && magic[7] == 0x00
             && magic[4] >= 0x30

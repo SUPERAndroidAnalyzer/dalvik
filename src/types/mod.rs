@@ -2,13 +2,16 @@
 
 pub mod read;
 
-use std::fmt;
-use std::fmt::{Display, Formatter};
-use std::ops::Deref;
-use std::str::FromStr;
+use std::{
+    fmt::{self, Display, Formatter},
+    ops::Deref,
+    str::FromStr,
+};
+
+use bitflags::bitflags;
 
 use self::read::ClassData;
-use error;
+use crate::error;
 
 #[derive(Debug, Clone)]
 /// Basic built-in types.
@@ -628,7 +631,7 @@ pub struct Class {
 
 impl Class {
     /// Creates a new class.
-    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         class_index: u32,
         access_flags: AccessFlags,
@@ -699,7 +702,7 @@ impl Class {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::AccessFlags;
 
     #[test]
     fn it_can_display_mixed_access_bitflags() {

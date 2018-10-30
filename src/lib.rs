@@ -1,10 +1,8 @@
 //! Dalvik executable file format parser.
 
-#![recursion_limit = "1024"]
-#![cfg_attr(feature = "cargo-clippy", deny(clippy))]
 #![forbid(anonymous_parameters)]
-#![cfg_attr(feature = "cargo-clippy", warn(clippy_pedantic))]
 #![deny(
+    clippy::all,
     variant_size_differences,
     unused_results,
     unused_qualifications,
@@ -17,33 +15,24 @@
     missing_debug_implementations,
     missing_copy_implementations
 )]
+#![warn(clippy::pedantic)]
 // Allowing these for now.
-#![cfg_attr(
-    feature = "cargo-clippy",
-    allow(
-        stutter,
-        similar_names,
-        cast_possible_truncation,
-        cast_possible_wrap
-    )
+#![allow(
+    clippy::stutter,
+    clippy::similar_names,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap
 )]
 
 #[macro_use]
-extern crate failure;
-#[macro_use]
 extern crate failure_derive;
-#[macro_use]
-extern crate bitflags;
-extern crate byteorder;
 
-#[cfg(test)]
-#[macro_use]
-extern crate matches;
-
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::path::Path;
-use std::{fs, u32};
+use std::{
+    fs,
+    io::{prelude::BufRead, BufReader},
+    path::Path,
+    u32,
+};
 
 use failure::{Error, ResultExt};
 
@@ -55,9 +44,8 @@ pub mod types;
 mod read;
 mod sizes;
 
-pub use header::Header;
-use read::DexReader;
-use sizes::HEADER_SIZE;
+pub use crate::header::Header;
+use crate::{read::DexReader, sizes::HEADER_SIZE};
 
 /// Dex file representation.
 #[derive(Debug)]
@@ -91,7 +79,7 @@ impl Dex {
         S: Into<Option<usize>>,
     {
         let mut dex_reader =
-            DexReader::new(reader, size.into()).context("could not create reader")?;
+            DexReader::from_read(reader, size.into()).context("could not create reader")?;
         dex_reader.read_data().context("could not read dex file")?;
 
         Ok(dex_reader.into())

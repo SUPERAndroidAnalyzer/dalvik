@@ -1,3 +1,5 @@
+#![allow(clippy::cyclomatic_complexity)]
+
 extern crate dalvik;
 
 use std::fs;
@@ -10,7 +12,7 @@ fn it_header_read() {
         header.get_magic()
     );
     assert_eq!(35, header.get_dex_version());
-    assert_eq!(0xa0576d4c, header.get_checksum());
+    assert_eq!(0xa057_6d4c, header.get_checksum());
     assert_eq!(
         &[
             0x91, 0x02, 0x73, 0x72, 0x0d, 0xda, 0xf0, 0x75, 0x5b, 0x48, 0xd8, 0x09, 0xfd, 0x6a,
@@ -19,9 +21,9 @@ fn it_header_read() {
         header.get_signature()
     );
     let file_size = fs::metadata("test.dex").unwrap().len();
-    assert_eq!(file_size, header.get_file_size() as u64);
+    assert_eq!(file_size, u64::from(header.get_file_size()));
     assert_eq!(0x70, header.get_header_size());
-    assert_eq!(0x12345678, header.get_endian_tag());
+    assert_eq!(0x1234_5678, header.get_endian_tag());
     assert_eq!(0, header.get_link_size());
     assert!(header.get_link_offset().is_none());
     assert_eq!(0x79ff8, header.get_map_offset());
@@ -37,7 +39,7 @@ fn it_header_read() {
     assert_eq!(0x33990, header.get_method_ids_offset().unwrap());
     assert_eq!(1791, header.get_class_defs_size());
     assert_eq!(0x59420, header.get_class_defs_offset().unwrap());
-    assert_eq!(2420664, header.get_data_size());
+    assert_eq!(2_420_664, header.get_data_size());
     assert_eq!(0x79ff8, header.get_data_offset());
 }
 

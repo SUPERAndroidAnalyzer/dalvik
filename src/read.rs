@@ -3,12 +3,20 @@
 use std::io::{BufRead, Cursor, Read};
 
 use byteorder::{BigEndian, ByteOrder, LittleEndian, ReadBytesExt};
-use failure::{Error, ResultExt};
+use failure::{format_err, Error, ResultExt};
 
-use error;
-use header::Header;
-use types::read::*;
-use types::*;
+use crate::{
+    error,
+    header::Header,
+    types::{
+        read::{
+            AnnotationsDirectoryOffsets, ClassData, ClassDefData, CodeItem, DebugInfo, FieldIdData,
+            MethodIdData, PrototypeIdData,
+        },
+        Annotation, AnnotationsDirectory, Array, Class, FieldAnnotations, MethodAnnotations,
+        ParameterAnnotations, Prototype, ShortyDescriptor, Type,
+    },
+};
 
 /// Structure for reading a Dex file in a fast way.
 #[derive(Debug)]
@@ -53,7 +61,7 @@ pub struct DexReader {
 
 impl DexReader {
     /// Creates a new reader with the information from the header of the file.
-    pub fn new<R, S>(mut file: R, size: S) -> Result<Self, Error>
+    pub fn from_read<R, S>(mut file: R, size: S) -> Result<Self, Error>
     where
         R: Read + ReadBytesExt,
         S: Into<Option<usize>>,
@@ -180,7 +188,8 @@ impl DexReader {
             Err(error::Parse::StringSizeMismatch {
                 expected_size: size,
                 actual_size: char_count,
-            }.into())
+            }
+            .into())
         }
     }
 
@@ -250,7 +259,8 @@ impl DexReader {
                 .get(prototype_id.return_type_index() as usize)
                 .ok_or_else(|| error::Parse::UnknownTypeIndex {
                     index: prototype_id.return_type_index(),
-                })?.clone();
+                })?
+                .clone();
 
             self.prototypes
                 .push(Prototype::new(shorty_descriptor, return_type, parameters));
@@ -281,7 +291,8 @@ impl DexReader {
                     .get(index as usize)
                     .ok_or_else(|| error::Parse::UnknownTypeIndex {
                         index: u32::from(index),
-                    })?.clone(),
+                    })?
+                    .clone(),
             );
         }
 

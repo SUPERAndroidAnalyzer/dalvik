@@ -1,8 +1,10 @@
 //! Representation of the Dalvik bytecodes and utilities to decode them
 
-use std::fmt::Debug;
-use std::io::{self, Read};
-use std::marker::PhantomData;
+use std::{
+    fmt::Debug,
+    io::{self, Read},
+    marker::PhantomData,
+};
 
 use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 
@@ -544,7 +546,7 @@ impl ToString for ByteCode {
                 )
             }
             ByteCode::FilledNewArrayRange(first_reg, amount, reference) => {
-                let str_register: Vec<String> = (*first_reg..(*first_reg + u16::from(*amount) + 1))
+                let str_register: Vec<String> = (*first_reg..=(*first_reg + u16::from(*amount)))
                     .map(|r| format!("v{}", r))
                     .collect();
                 format!(
@@ -1131,7 +1133,8 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{ByteCode, ByteCodeDecoder, LittleEndian};
+    use matches::matches;
 
     #[test]
     fn it_can_decode_noop() {
@@ -1405,7 +1408,7 @@ mod tests {
         let opcode = d.nth(0).unwrap();
 
         assert_eq!("const-wide/32 v68, #285278207", opcode.to_string());
-        assert!(matches!(opcode, ByteCode::ConstWide32(r, i) if r == 0x44 && i == 285278207));
+        assert!(matches!(opcode, ByteCode::ConstWide32(r, i) if r == 0x44 && i == 285_278_207));
     }
 
     #[test]
@@ -1416,7 +1419,9 @@ mod tests {
         let opcode = d.nth(0).unwrap();
 
         assert_eq!("const-wide v1, #72056786600853316", opcode.to_string());
-        assert!(matches!(opcode, ByteCode::ConstWide(r, i) if r == 1 && i == 72056786600853316));
+        assert!(
+            matches!(opcode, ByteCode::ConstWide(r, i) if r == 1 && i == 72_056_786_600_853_316)
+        );
     }
 
     #[test]
@@ -1432,7 +1437,7 @@ mod tests {
         );
         assert!(matches!(
             opcode,
-            ByteCode::ConstWideHigh16(r, i) if r == 1 && i == -281474976710656));
+            ByteCode::ConstWideHigh16(r, i) if r == 1 && i == -281_474_976_710_656));
     }
 
     #[test]
@@ -1461,7 +1466,7 @@ mod tests {
         );
         assert!(matches!(
             opcode,
-            ByteCode::ConstStringJumbo(r, i) if r == 1 && i == 268500991));
+            ByteCode::ConstStringJumbo(r, i) if r == 1 && i == 268_500_991));
     }
 
     #[test]
@@ -1575,7 +1580,7 @@ mod tests {
             ByteCode::FilledNewArray(
                 ref registers,
                 reference
-            ) if registers.len() == 0 && reference == 32));
+            ) if registers.is_empty() && reference == 32));
     }
 
     #[test]
@@ -1662,7 +1667,7 @@ mod tests {
         assert_eq!("fill-array-data v18, -13426159", opcode.to_string());
         assert!(matches!(
             opcode,
-            ByteCode::FillArrayData(reg, offset) if reg == 18 && offset == -13426159));
+            ByteCode::FillArrayData(reg, offset) if reg == 18 && offset == -13_426_159));
     }
 
     #[test]
@@ -1706,7 +1711,7 @@ mod tests {
         let opcode = d.nth(0).unwrap();
 
         assert_eq!("goto/32 100992003", opcode.to_string());
-        assert!(matches!(opcode, ByteCode::Goto32(offset) if offset == 100992003));
+        assert!(matches!(opcode, ByteCode::Goto32(offset) if offset == 100_992_003));
     }
 
     #[test]
@@ -1719,7 +1724,7 @@ mod tests {
         assert_eq!("packed-switch v4, 100992003", opcode.to_string());
         assert!(matches!(
             opcode,
-            ByteCode::PackedSwitch(reg, offset) if reg == 4 && offset == 100992003));
+            ByteCode::PackedSwitch(reg, offset) if reg == 4 && offset == 100_992_003));
     }
 
     #[test]
@@ -1732,7 +1737,7 @@ mod tests {
         assert_eq!("sparse-switch v4, 100992003", opcode.to_string());
         assert!(matches!(
             opcode,
-            ByteCode::SparseSwitch(reg, offset) if reg == 4 && offset == 100992003));
+            ByteCode::SparseSwitch(reg, offset) if reg == 4 && offset == 100_992_003));
     }
 
     #[test]
