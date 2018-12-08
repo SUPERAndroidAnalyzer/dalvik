@@ -3,7 +3,7 @@
 action="$1"
 
 # Run unit and integration tests.
-elif [ "$action" = "test" ]; then
+if [ "$action" = "test" ]; then
   cargo test --verbose
 
 # Check formatting.
