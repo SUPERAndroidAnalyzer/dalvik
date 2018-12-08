@@ -15,7 +15,10 @@ categories = ["parser-implementations"]
 
 [badges]
 travis-ci = { repository = "SUPERAndroidAnalyzer/dalvik", branch = "master" }
-appveyor = { repository = "Razican/dalvik", branch = "master", service = "github" }
+codecov = { repository = "SUPERAndroidAnalyzer/dalvik", branch = "master", service = "github" }
+is-it-maintained-issue-resolution = { repository = "SUPERAndroidAnalyzer/dalvik" }
+is-it-maintained-open-issues = { repository = "SUPERAndroidAnalyzer/dalvik" }
+maintenance = { status = "experimental" }
 
 [dependencies]
 byteorder = "1.2.7"
