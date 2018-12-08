@@ -35,7 +35,11 @@ elif [ "$action" = "upload_code_coverage" ]; then
     sudo make install &&
     cd ../.. &&
     rm -rf kcov-master &&
-    for file in target/debug/super_analyzer*[^\.d]; do
+    for file in target/debug/dalvik-*[^\.d]; do
+      mkdir -p "target/cov/$(basename $file)";
+      kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file";
+    done &&
+        for file in target/debug/lib-*[^\.d]; do
       mkdir -p "target/cov/$(basename $file)";
       kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file";
     done &&
@@ -46,7 +50,7 @@ elif [ "$action" = "upload_code_coverage" ]; then
 # Upload development documentation for the develop branch.
 elif [ "$action" = "documentation" ]; then
   cargo doc -v --document-private-items &&
-  echo "<meta http-equiv=refresh content=0;url=super/index.html>" > target/doc/index.html
+  echo "<meta http-equiv=refresh content=0;url=dalvik/index.html>" > target/doc/index.html
 
 fi
 exit $?
