@@ -2,86 +2,77 @@ language: rust
 cache: cargo
 dist: trusty
 sudo: true
-os:
-  - linux
-  - osx
+
 addons:
   apt:
     packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-      - cmake
-      - gcc
-      - binutils-dev
-      - libiberty-dev
-      - zlib1g-dev
-matrix:
-  fast_finish: true
+    - libcurl4-openssl-dev
+    - libelf-dev
+    - libdw-dev
+    - cmake
+    - gcc
+    - binutils-dev
+    - libiberty-dev
+    - zlib1g-dev
+
+# Run builds in Linux, MacOS X and Windows
+os:
+- linux
+- osx
+- windows
 
 # Run builds for all the supported trains
 rust:
-  - nightly
-  - beta
-#  - stable
-#  - 1.31.0
+- 1.31.0
+- stable
+- beta
+- nightly
 
-# Install clippy and rustfmt
-before_script:
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
-        rustup component add clippy-preview rustfmt-preview;
-      fi
+stages:
+- test
+- deploy
 
-# The main build
+# Extra jobs to include
+jobs:
+  include:
+  # Upload documentation
+  - name: "Documentation upload"
+    os: linux
+    rust: stable
+    stage: deploy
+    env: CACHE_NAME=DOCS
+    script: ./travis-helper.sh documentation
+    deploy: &pages
+      provider: pages
+      github-token: $GH_TOKEN
+      local-dir: target/doc/
+      skip_cleanup: true
+      keep-history: true
+      on:
+        repo: SUPERAndroidAnalyzer/dalvik
+        branch: develop
+
+matrix:
+  fast_finish: true
+  allow_failures:
+  - os: windows
+
+# Run the multiple tests.
 script:
-  - cargo build
-  - cargo package
-  - cargo test
-  - cargo bench
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
-        cargo clippy
-      fi
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
-        cargo fmt -- --check
-      fi
+- ./travis-helper.sh fmt_check
+- ./travis-helper.sh clippy_check
+- ./travis-helper.sh test
 
+# Upload code coverage report
 after_success:
-  # Coverage report
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
-        wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
-        tar xzf master.tar.gz &&
-        cd kcov-master &&
-        mkdir build &&
-        cd build &&
-        cmake .. &&
-        make &&
-        sudo make install &&
-        cd ../.. &&
-        rm -rf kcov-master &&
-        for file in target/debug/lib-*[^\.d] target/debug/dalvik-*; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
-        bash <(curl -s https://codecov.io/bash) &&
-        echo "Uploaded code coverage"
-      fi
-  # Documentation upload
-  - |
-      if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" && "$TRAVIS_PULL_REQUEST" = "false" && "$TRAVIS_BRANCH" == "develop" ]]; then
-        cargo rustdoc -- --no-defaults --passes collapse-docs --passes unindent-comments --passes strip-priv-imports &&
-        echo "<meta http-equiv=refresh content=0;url=dalvik/index.html>" > target/doc/index.html &&
-        git clone https://github.com/davisp/ghp-import.git &&
-        ./ghp-import/ghp_import.py -n -p -f -m "Documentation upload" -r https://"$GH_TOKEN"@github.com/"$TRAVIS_REPO_SLUG.git" target/doc &&
-        echo "Uploaded documentation"
-      fi
+- ./travis-helper.sh upload_code_coverage
 
 notifications:
   email:
     recipients:
-      - razican@protonmail.ch
-      - brunoop@protonmail.ch
-      - sergiodlo@protonmail.com
-      - jaimesr@protonmail.ch
+    - razican@protonmail.ch
+    - brunoop@protonmail.ch
+    - sergiodlo@protonmail.com
+    - jaimesr@protonmail.ch
     on_success: change
-on_failure: always
+    on_failure: always
