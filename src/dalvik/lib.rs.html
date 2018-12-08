@@ -1,49 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `src/lib.rs`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang">
-
-    <title>lib.rs.html -- source</title>
-
-    <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css">
-    
-
-    
-    
-</head>
-<body class="rustdoc source">
-    <!--[if lte IE 8]>
-    <div class="warning">
-        This old browser is unsupported and will most likely display funky
-        things.
-    </div>
-    <![endif]-->
-
-    
-
-    <nav class="sidebar">
-        
-        
-    </nav>
-
-    <nav class="sub">
-        <form class="search-form js-only">
-            <div class="search-container">
-                <input class="search-input" name="search"
-                       autocomplete="off"
-                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
-                       type="search">
-            </div>
-        </form>
-    </nav>
-
-    <section id='main' class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -147,55 +102,61 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Dalvik executable file format parser.</span>
 
-<span class="comment">// #![forbid(deprecated, overflowing_literals, stable_features, trivial_casts,</span>
-<span class="comment">// unconditional_recursion,</span>
-<span class="comment">//     plugin_as_library, unused_allocation, trivial_numeric_casts, unused_features, while_truem,</span>
-<span class="comment">//     unused_parens, unused_comparisons, unused_extern_crates, unused_import_braces,</span>
-<span class="comment">// unused_results,</span>
-<span class="comment">//     improper_ctypes, non_shorthand_field_patterns, private_no_mangle_fns,</span>
-<span class="comment">// private_no_mangle_statics,</span>
-<span class="comment">//     filter_map, used_underscore_binding, option_map_unwrap_or, option_map_unwrap_or_else,</span>
-<span class="comment">//     mutex_integer, mut_mut, mem_forget, print_stdout)]</span>
-<span class="comment">// #![deny(unused_qualifications, unused, unused_attributes)]</span>
-<span class="attribute">#<span class="op">!</span>[<span class="ident">warn</span>(<span class="ident">missing_docs</span>, <span class="ident">variant_size_differences</span>, <span class="ident">enum_glob_use</span>, <span class="ident">if_not_else</span>,
-    <span class="ident">invalid_upcast_comparisons</span>, <span class="ident">items_after_statements</span>, <span class="ident">non_ascii_literal</span>, <span class="ident">nonminimal_bool</span>,
-    <span class="ident">pub_enum_variant_names</span>, <span class="ident">shadow_reuse</span>, <span class="ident">shadow_same</span>, <span class="ident">shadow_unrelated</span>, <span class="ident">similar_names</span>,
-    <span class="ident">single_match_else</span>, <span class="ident">string_add</span>, <span class="ident">string_add_assign</span>, <span class="ident">unicode_not_nfc</span>, <span class="ident">unseparated_literal_suffix</span>,
-    <span class="ident">use_debug</span>, <span class="ident">wrong_pub_self_convention</span>)]</span>
-<span class="comment">// Allowing these at least for now.</span>
-<span class="attribute">#<span class="op">!</span>[<span class="ident">allow</span>(<span class="ident">missing_docs_in_private_items</span>, <span class="ident">unknown_lints</span>, <span class="ident">stutter</span>, <span class="ident">option_unwrap_used</span>,
-    <span class="ident">result_unwrap_used</span>, <span class="ident">integer_arithmetic</span>, <span class="ident">cast_possible_truncation</span>, <span class="ident">cast_possible_wrap</span>,
-    <span class="ident">indexing_slicing</span>, <span class="ident">cast_precision_loss</span>, <span class="ident">cast_sign_loss</span>)]</span>
+<span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">anonymous_parameters</span>)]</span>
+<span class="attribute">#![<span class="ident">deny</span>(
+    <span class="ident">clippy</span>::<span class="ident">all</span>,
+    <span class="ident">variant_size_differences</span>,
+    <span class="ident">unused_results</span>,
+    <span class="ident">unused_qualifications</span>,
+    <span class="ident">unused_import_braces</span>,
+    <span class="ident">unsafe_code</span>,
+    <span class="ident">trivial_numeric_casts</span>,
+    <span class="ident">trivial_casts</span>,
+    <span class="ident">missing_docs</span>,
+    <span class="ident">unused_extern_crates</span>,
+    <span class="ident">missing_debug_implementations</span>,
+    <span class="ident">missing_copy_implementations</span>
+)]</span>
+<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">clippy</span>::<span class="ident">pedantic</span>)]</span>
+<span class="comment">// Allowing these for now.</span>
+<span class="attribute">#![<span class="ident">allow</span>(
+    <span class="ident">clippy</span>::<span class="ident">stutter</span>,
+    <span class="ident">clippy</span>::<span class="ident">similar_names</span>,
+    <span class="ident">clippy</span>::<span class="ident">cast_possible_truncation</span>,
+    <span class="ident">clippy</span>::<span class="ident">cast_possible_wrap</span>
+)]</span>
 
-<span class="comment">// `error_chain!` can recurse deeply</span>
-<span class="attribute">#<span class="op">!</span>[<span class="ident">recursion_limit</span> <span class="op">=</span> <span class="string">&quot;1024&quot;</span>]</span>
-
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">byteorder</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">bitflags</span>;
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">error_chain</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">failure_derive</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs</span>, <span class="ident">u32</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">BufReader</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">fs</span>,
+    <span class="ident">io</span>::{<span class="ident">prelude</span>::<span class="ident">BufRead</span>, <span class="ident">BufReader</span>},
+    <span class="ident">path</span>::<span class="ident">Path</span>,
+    <span class="ident">u32</span>,
+};
 
+<span class="kw">use</span> <span class="ident">failure</span>::{<span class="ident">Error</span>, <span class="ident">ResultExt</span>};
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bytecode</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">header</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
 
-<span class="kw">mod</span> <span class="ident">sizes</span>;
 <span class="kw">mod</span> <span class="ident">read</span>;
+<span class="kw">mod</span> <span class="ident">sizes</span>;
 
-<span class="kw">use</span> <span class="ident">error</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">header</span>::<span class="ident">Header</span>;
-<span class="kw">use</span> <span class="ident">read</span>::<span class="ident">DexReader</span>;
-<span class="kw">use</span> <span class="ident">sizes</span>::<span class="ident">HEADER_SIZE</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">header</span>::<span class="ident">Header</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">read</span>::<span class="ident">DexReader</span>, <span class="ident">sizes</span>::<span class="ident">HEADER_SIZE</span>};
 
 <span class="doccomment">/// Dex file representation.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -207,30 +168,36 @@
 
 <span class="kw">impl</span> <span class="ident">Dex</span> {
     <span class="doccomment">/// Reads the Dex data structure from the given path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dex</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">path</span>).<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not open file&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">file_size</span> <span class="op">=</span> <span class="ident">file</span>.<span class="ident">metadata</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read file metadata&quot;</span>)<span class="question-mark">?</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_file</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">path</span>).<span class="ident">context</span>(<span class="string">&quot;could not open file&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">file_size</span> <span class="op">=</span> <span class="ident">file</span>
+            .<span class="ident">metadata</span>()
+            .<span class="ident">context</span>(<span class="string">&quot;could not read file metadata&quot;</span>)<span class="question-mark">?</span>
             .<span class="ident">len</span>();
-        <span class="kw">if</span> <span class="ident">file_size</span> <span class="op">&lt;</span> <span class="ident">HEADER_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">||</span> <span class="ident">file_size</span> <span class="op">&gt;</span> <span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">u64</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">InvalidFileSize</span>(<span class="ident">file_size</span>).<span class="ident">into</span>());
+        <span class="kw">if</span> <span class="ident">file_size</span> <span class="op">&lt;</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">HEADER_SIZE</span>) <span class="op">||</span> <span class="ident">file_size</span> <span class="op">&gt;</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">u32</span>::<span class="ident">max_value</span>()) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">InvalidFileSize</span> { <span class="ident">file_size</span> }.<span class="ident">into</span>());
         }
-        <span class="ident">Dex</span>::<span class="ident">from_reader</span>(<span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">file</span>), <span class="prelude-val">Some</span>(<span class="ident">file_size</span> <span class="kw">as</span> <span class="ident">usize</span>))
+        <span class="self">Self</span>::<span class="ident">from_reader</span>(<span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">file</span>), <span class="ident">file_size</span> <span class="kw">as</span> <span class="ident">usize</span>)
     }
 
     <span class="doccomment">/// Loads a new Dex data structure from the given reader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_reader</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BufRead</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="ident">R</span>, <span class="ident">size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Dex</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dex_reader</span> <span class="op">=</span> <span class="ident">DexReader</span>::<span class="ident">new</span>(<span class="ident">reader</span>, <span class="ident">size</span>)
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not create reader&quot;</span>)<span class="question-mark">?</span>;
-        <span class="ident">dex_reader</span>
-            .<span class="ident">read_data</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read dex file&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_reader</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="ident">R</span>, <span class="ident">size</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">R</span>: <span class="ident">BufRead</span>,
+        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dex_reader</span> <span class="op">=</span>
+            <span class="ident">DexReader</span>::<span class="ident">from_read</span>(<span class="ident">reader</span>, <span class="ident">size</span>.<span class="ident">into</span>()).<span class="ident">context</span>(<span class="string">&quot;could not create reader&quot;</span>)<span class="question-mark">?</span>;
+        <span class="ident">dex_reader</span>.<span class="ident">read_data</span>().<span class="ident">context</span>(<span class="string">&quot;could not read dex file&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">dex_reader</span>.<span class="ident">into</span>())
     }
 
     <span class="comment">// /// Ads the file in the given path to the current Dex data structure.</span>
-    <span class="comment">// pub fn add_file&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; Result&lt;()&gt; {</span>
+    <span class="comment">// pub fn add_file&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; Result&lt;(), Error&gt; {</span>
     <span class="comment">//     unimplemented!() // TODO</span>
     <span class="comment">// }</span>
     <span class="comment">//</span>
@@ -248,70 +215,9 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DexReader</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Dex</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">reader</span>: <span class="ident">DexReader</span>) <span class="op">-&gt;</span> <span class="ident">Dex</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">_reader</span>: <span class="ident">DexReader</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="macro">unimplemented</span><span class="macro">!</span>()
     }
 }
 </pre>
-</section>
-    <section id='search' class="content hidden"></section>
-
-    <section class="footer"></section>
-
-    <aside id="help" class="hidden">
-        <div>
-            <h1 class="hidden">Help</h1>
-
-            <div class="shortcuts">
-                <h2>Keyboard Shortcuts</h2>
-
-                <dl>
-                    <dt>?</dt>
-                    <dd>Show this help dialog</dd>
-                    <dt>S</dt>
-                    <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
-                    <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
-                    <dd>Move down in search results</dd>
-                    <dt>&#9166;</dt>
-                    <dd>Go to active search result</dd>
-                    <dt>+</dt>
-                    <dd>Collapse/expand all sections</dd>
-                </dl>
-            </div>
-
-            <div class="infos">
-                <h2>Search Tricks</h2>
-
-                <p>
-                    Prefix searches with a type followed by a colon (e.g.
-                    <code>fn:</code>) to restrict the search to a given type.
-                </p>
-
-                <p>
-                    Accepted types are: <code>fn</code>, <code>mod</code>,
-                    <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>type</code>, <code>macro</code>,
-                    and <code>const</code>.
-                </p>
-
-                <p>
-                    Search functions by type signature (e.g.
-                    <code>vec -> usize</code> or <code>* -> vec</code>)
-                </p>
-            </div>
-        </div>
-    </aside>
-
-    
-
-    <script>
-        window.rootPath = "../../";
-        window.currentCrate = "dalvik";
-    </script>
-    <script src="../../jquery.js"></script>
-    <script src="../../main.js"></script>
-    <script defer src="../../search-index.js"></script>
-</body>
-</html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "dalvik";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

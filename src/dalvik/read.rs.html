@@ -1,49 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `src/read.rs`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang">
-
-    <title>read.rs.html -- source</title>
-
-    <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css">
-    
-
-    
-    
-</head>
-<body class="rustdoc source">
-    <!--[if lte IE 8]>
-    <div class="warning">
-        This old browser is unsupported and will most likely display funky
-        things.
-    </div>
-    <![endif]-->
-
-    
-
-    <nav class="sidebar">
-        
-        
-    </nav>
-
-    <nav class="sub">
-        <form class="search-form js-only">
-            <div class="search-container">
-                <input class="search-input" name="search"
-                       autocomplete="off"
-                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
-                       type="search">
-            </div>
-        </form>
-    </nav>
-
-    <section id='main' class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -623,17 +578,94 @@
 <span id="578">578</span>
 <span id="579">579</span>
 <span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Dex file reader module.</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">BufRead</span>, <span class="ident">Read</span>, <span class="ident">Cursor</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">BufRead</span>, <span class="ident">Cursor</span>, <span class="ident">Read</span>};
 
-<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">ByteOrder</span>, <span class="ident">ReadBytesExt</span>, <span class="ident">LittleEndian</span>, <span class="ident">BigEndian</span>};
+<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">BigEndian</span>, <span class="ident">ByteOrder</span>, <span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>};
+<span class="kw">use</span> <span class="ident">failure</span>::{<span class="ident">format_err</span>, <span class="ident">Error</span>, <span class="ident">ResultExt</span>};
 
-<span class="kw">use</span> <span class="ident">header</span>::<span class="ident">Header</span>;
-<span class="kw">use</span> <span class="ident">error</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">types</span>::<span class="ident">read</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">types</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">error</span>,
+    <span class="ident">header</span>::<span class="ident">Header</span>,
+    <span class="ident">types</span>::{
+        <span class="ident">read</span>::{
+            <span class="ident">AnnotationsDirectoryOffsets</span>, <span class="ident">ClassData</span>, <span class="ident">ClassDefData</span>, <span class="ident">CodeItem</span>, <span class="ident">DebugInfo</span>, <span class="ident">FieldIdData</span>,
+            <span class="ident">MethodIdData</span>, <span class="ident">PrototypeIdData</span>,
+        },
+        <span class="ident">Annotation</span>, <span class="ident">AnnotationsDirectory</span>, <span class="ident">Array</span>, <span class="ident">Class</span>, <span class="ident">FieldAnnotations</span>, <span class="ident">MethodAnnotations</span>,
+        <span class="ident">ParameterAnnotations</span>, <span class="ident">Prototype</span>, <span class="ident">ShortyDescriptor</span>, <span class="ident">Type</span>,
+    },
+};
 
 <span class="doccomment">/// Structure for reading a Dex file in a fast way.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -678,43 +710,48 @@
 
 <span class="kw">impl</span> <span class="ident">DexReader</span> {
     <span class="doccomment">/// Creates a new reader with the information from the header of the file.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">file</span>: <span class="ident">R</span>, <span class="ident">size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DexReader</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_contents</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>) <span class="op">=</span> <span class="ident">size</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_read</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">file</span>: <span class="ident">R</span>, <span class="ident">size</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">ReadBytesExt</span>,
+        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_contents</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>) <span class="op">=</span> <span class="ident">size</span>.<span class="ident">into</span>() {
             <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">size</span>)
         } <span class="kw">else</span> {
             <span class="ident">Vec</span>::<span class="ident">new</span>()
         };
-        <span class="ident">file</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file_contents</span>)
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read dex file contents&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">file_contents</span>.<span class="ident">into_boxed_slice</span>());
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">Header</span>::<span class="ident">from_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cursor</span>)
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read dex file header&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">file</span>
+            .<span class="ident">read_to_end</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file_contents</span>)
+            .<span class="ident">context</span>(<span class="string">&quot;could not read dex file contents&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_cursor</span> <span class="op">=</span> <span class="ident">Cursor</span>::<span class="ident">new</span>(<span class="ident">file_contents</span>.<span class="ident">into_boxed_slice</span>());
+        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span>
+            <span class="ident">Header</span>::<span class="ident">from_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">file_cursor</span>).<span class="ident">context</span>(<span class="string">&quot;could not read dex file header&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">strings</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">header</span>.<span class="ident">get_string_ids_size</span>() <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">header</span>.<span class="ident">get_type_ids_size</span>() <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">let</span> <span class="ident">prototypes</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">header</span>.<span class="ident">get_prototype_ids_size</span>() <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">let</span> <span class="ident">field_ids</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">header</span>.<span class="ident">get_field_ids_size</span>() <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">let</span> <span class="ident">method_ids</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">header</span>.<span class="ident">get_method_ids_size</span>() <span class="kw">as</span> <span class="ident">usize</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">DexReader</span> {
-               <span class="ident">file_cursor</span>: <span class="ident">cursor</span>,
-               <span class="ident">header</span>: <span class="ident">header</span>,
-               <span class="ident">strings</span>: <span class="ident">strings</span>,
-               <span class="ident">types</span>: <span class="ident">types</span>,
-               <span class="ident">prototypes</span>: <span class="ident">prototypes</span>,
-               <span class="ident">field_ids</span>: <span class="ident">field_ids</span>,
-               <span class="ident">method_ids</span>: <span class="ident">method_ids</span>,
-               <span class="ident">classes</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-               <span class="ident">annotation_set_ref_list</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-               <span class="ident">annotation_sets</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-               <span class="ident">code_segments</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-               <span class="ident">debug_info</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-               <span class="comment">// annotations: Vec::new(),</span>
-               <span class="ident">arrays</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-               <span class="ident">annotations_directories</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-           })
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
+            <span class="ident">file_cursor</span>,
+            <span class="ident">header</span>,
+            <span class="ident">strings</span>,
+            <span class="ident">types</span>,
+            <span class="ident">prototypes</span>,
+            <span class="ident">field_ids</span>,
+            <span class="ident">method_ids</span>,
+            <span class="ident">classes</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">annotation_set_ref_list</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">annotation_sets</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">code_segments</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">debug_info</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="comment">// annotations: Vec::new(),</span>
+            <span class="ident">arrays</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">annotations_directories</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+        })
     }
 
     <span class="doccomment">/// Reads data from a whole file and stores its information.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_data</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_data</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">is_little_endian</span>() {
             <span class="self">self</span>.<span class="ident">read_endian_data</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()
         } <span class="kw">else</span> {
@@ -723,53 +760,57 @@
     }
 
     <span class="doccomment">/// Reads the data in the correct endianness.</span>
-    <span class="kw">fn</span> <span class="ident">read_endian_data</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_endian_data</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">B</span>: <span class="ident">ByteOrder</span>,
+    {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_string_ids_offset</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
             <span class="self">self</span>.<span class="ident">read_string_list</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read string list&quot;</span>)<span class="question-mark">?</span>;
+                .<span class="ident">context</span>(<span class="string">&quot;could not read string list&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_type_ids_offset</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
             <span class="self">self</span>.<span class="ident">read_all_types</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read type list&quot;</span>)<span class="question-mark">?</span>;
+                .<span class="ident">context</span>(<span class="string">&quot;could not read type list&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_prototype_ids_offset</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
             <span class="self">self</span>.<span class="ident">read_prototype_list</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read prototype list&quot;</span>)<span class="question-mark">?</span>;
+                .<span class="ident">context</span>(<span class="string">&quot;could not read prototype list&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_field_ids_offset</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
             <span class="self">self</span>.<span class="ident">read_field_id_list</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read field ID list&quot;</span>)<span class="question-mark">?</span>;
+                .<span class="ident">context</span>(<span class="string">&quot;could not read field ID list&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_method_ids_offset</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
             <span class="self">self</span>.<span class="ident">read_method_id_list</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read method ID list&quot;</span>)<span class="question-mark">?</span>;
+                .<span class="ident">context</span>(<span class="string">&quot;could not read method ID list&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_class_defs_offset</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
             <span class="self">self</span>.<span class="ident">read_class_list</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read class list&quot;</span>)<span class="question-mark">?</span>;
+                .<span class="ident">context</span>(<span class="string">&quot;could not read class list&quot;</span>)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Reads the list of strings.</span>
-    <span class="kw">fn</span> <span class="ident">read_string_list</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_string_ids_size</span>() {
+    <span class="kw">fn</span> <span class="ident">read_string_list</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">B</span>: <span class="ident">ByteOrder</span>,
+    {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_string_ids_size</span>() {
             <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>
-                .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read string offset from string ID at offset {:#010x}&quot;</span>,
-                            <span class="ident">current_offset</span>)
-                })<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                <span class="string">&quot;could not read string offset from string ID at offset {:#010x}&quot;</span>,
+                <span class="ident">current_offset</span>
+            ))<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
             <span class="kw">let</span> <span class="ident">str_data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_string</span>()<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">strings</span>.<span class="ident">push</span>(<span class="ident">str_data</span>);
             <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">current_offset</span>);
@@ -779,85 +820,95 @@
     }
 
     <span class="doccomment">/// Reads an actual string.</span>
-    <span class="kw">fn</span> <span class="ident">read_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">size</span>, _) <span class="op">=</span> <span class="ident">read_uleb128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read string size&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn</span> <span class="ident">read_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> (<span class="ident">size</span>, <span class="kw">_</span>) <span class="op">=</span>
+            <span class="ident">read_uleb128</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>).<span class="ident">context</span>(<span class="string">&quot;could not read string size&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="kw">if</span> <span class="ident">size</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">read_until</span>(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">data</span>)<span class="question-mark">?</span>;
-            <span class="ident">data</span>.<span class="ident">pop</span>();
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">read_until</span>(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">data</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">pop</span>();
         }
 
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">data</span>)
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;error decoding UTF-8 from string data&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">data</span>).<span class="ident">context</span>(<span class="string">&quot;error decoding UTF-8 from string data&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">char_count</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
         <span class="kw">if</span> <span class="ident">char_count</span> <span class="op">==</span> <span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">string</span>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">StringSizeMismatch</span>(<span class="ident">size</span>, <span class="ident">char_count</span>).<span class="ident">into</span>())
+            <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">StringSizeMismatch</span> {
+                <span class="ident">expected_size</span>: <span class="ident">size</span>,
+                <span class="ident">actual_size</span>: <span class="ident">char_count</span>,
+            }
+            .<span class="ident">into</span>())
         }
     }
 
     <span class="doccomment">/// Reads the list of types.</span>
-    <span class="kw">fn</span> <span class="ident">read_all_types</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_type_ids_size</span>() {
+    <span class="kw">fn</span> <span class="ident">read_all_types</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">B</span>: <span class="ident">ByteOrder</span>,
+    {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_type_ids_size</span>() {
             <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">file_cursor</span>
-                    .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                    .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                                   <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read type ID at offset {:#010x}&quot;</span>,
-                                           <span class="ident">current_offset</span>)
-                               })<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">type_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">strings</span>
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                <span class="string">&quot;could not read type ID at offset {:#010x}&quot;</span>,
+                <span class="ident">current_offset</span>
+            ))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">type_str</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">strings</span>
                 .<span class="ident">get</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">ErrorKind</span>::<span class="ident">UnknownStringIndex</span>(<span class="ident">index</span>))<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">types</span>.<span class="ident">push</span>(<span class="ident">type_str</span>.<span class="ident">parse</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read type descriptor from string at index {} (`{}`)&quot;</span>,
-                            <span class="ident">index</span>,
-                            <span class="ident">type_str</span>)
-                })<span class="question-mark">?</span>);
+                .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">UnknownStringIndex</span> { <span class="ident">index</span> })<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">types</span>
+                .<span class="ident">push</span>(<span class="ident">type_str</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                    <span class="string">&quot;could not read type descriptor from string at index {} (`{}`)&quot;</span>,
+                    <span class="ident">index</span>,
+                    <span class="ident">type_str</span>
+                ))<span class="question-mark">?</span>);
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Reads the list of prototype IDs.</span>
-    <span class="kw">fn</span> <span class="ident">read_prototype_list</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_prototype_ids_size</span>() {
+    <span class="kw">fn</span> <span class="ident">read_prototype_list</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">B</span>: <span class="ident">ByteOrder</span>,
+    {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_prototype_ids_size</span>() {
             <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="kw">let</span> <span class="ident">prototype_id</span> <span class="op">=</span> <span class="ident">PrototypeIdData</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span>_, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
-                .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                               <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read prototype ID at offset {:#010x}&quot;</span>,
-                                       <span class="ident">current_offset</span>)
-                           })<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">prototype_id</span> <span class="op">=</span> <span class="ident">PrototypeIdData</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
+                .<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                    <span class="string">&quot;could not read prototype ID at offset {:#010x}&quot;</span>,
+                    <span class="ident">current_offset</span>
+                ))<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="ident">prototype_id</span>.<span class="ident">parameters_offset</span>() {
                 <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">off</span> <span class="kw">as</span> <span class="ident">u64</span>);
-                <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read_type_list</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                    .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read parameter list&quot;</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">off</span>));
+                <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">read_type_list</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
+                    .<span class="ident">context</span>(<span class="string">&quot;could not read parameter list&quot;</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">current_offset</span>);
                 <span class="prelude-val">Some</span>(<span class="ident">parameters</span>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
-            <span class="kw">let</span> <span class="ident">shorty_str</span> <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">strings</span>
-                    .<span class="ident">get</span>(<span class="ident">prototype_id</span>.<span class="ident">shorty_index</span>() <span class="kw">as</span> <span class="ident">usize</span>)
-                    .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">ErrorKind</span>::<span class="ident">UnknownStringIndex</span>(<span class="ident">prototype_id</span>.<span class="ident">shorty_index</span>()))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">shorty_descriptor</span> <span class="op">=</span> <span class="ident">shorty_str</span>.<span class="ident">parse</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read shorty descriptor from string at index {} (`{}`)&quot;</span>,
-                            <span class="ident">prototype_id</span>.<span class="ident">shorty_index</span>(),
-                            <span class="ident">shorty_str</span>)
+            <span class="kw">let</span> <span class="ident">shorty_str</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">strings</span>
+                .<span class="ident">get</span>(<span class="ident">prototype_id</span>.<span class="ident">shorty_index</span>() <span class="kw">as</span> <span class="ident">usize</span>)
+                .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">UnknownStringIndex</span> {
+                    <span class="ident">index</span>: <span class="ident">prototype_id</span>.<span class="ident">shorty_index</span>(),
                 })<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">types</span>
+            <span class="kw">let</span> <span class="ident">shorty_descriptor</span> <span class="op">=</span> <span class="ident">shorty_str</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">ShortyDescriptor</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                <span class="string">&quot;could not read shorty descriptor from string at index {} (`{}`)&quot;</span>,
+                <span class="ident">prototype_id</span>.<span class="ident">shorty_index</span>(),
+                <span class="ident">shorty_str</span>
+            ))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">types</span>
                 .<span class="ident">get</span>(<span class="ident">prototype_id</span>.<span class="ident">return_type_index</span>() <span class="kw">as</span> <span class="ident">usize</span>)
-                .<span class="ident">ok_or_else</span>(<span class="op">||</span> {
-                                <span class="ident">ErrorKind</span>::<span class="ident">UnknownTypeIndex</span>(<span class="ident">prototype_id</span>.<span class="ident">return_type_index</span>() <span class="kw">as</span> <span class="ident">u16</span>)
-                            })<span class="question-mark">?</span>
+                .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">UnknownTypeIndex</span> {
+                    <span class="ident">index</span>: <span class="ident">prototype_id</span>.<span class="ident">return_type_index</span>(),
+                })<span class="question-mark">?</span>
                 .<span class="ident">clone</span>();
 
             <span class="self">self</span>.<span class="ident">prototypes</span>
@@ -867,197 +918,222 @@
     }
 
     <span class="doccomment">/// Reads a list of types.</span>
-    <span class="kw">fn</span> <span class="ident">read_type_list</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Type</span>]<span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_type_list</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Type</span>]<span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">B</span>: <span class="ident">ByteOrder</span>,
+    {
         <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>
-            .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                           <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;error reading the size of the type list at offset {:#010x}&quot;</span>,
-                                   <span class="ident">current_offset</span>)
-                       })<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+            <span class="string">&quot;error reading the size of the type list at offset {:#010x}&quot;</span>,
+            <span class="ident">current_offset</span>
+        ))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">type_list</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="ident">size</span> {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">size</span> {
             <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>
-                .<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;error reading type index for type list item at offset {:#010x}&quot;</span>,
-                            <span class="ident">current_offset</span>)
-                })<span class="question-mark">?</span>;
-            <span class="ident">type_list</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">types</span>
-                               .<span class="ident">get</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                               .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">ErrorKind</span>::<span class="ident">UnknownTypeIndex</span>(<span class="ident">index</span>)))<span class="question-mark">?</span>
-                               .<span class="ident">clone</span>());
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">read_u16</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                <span class="string">&quot;error reading type index for type list item at offset {:#010x}&quot;</span>,
+                <span class="ident">current_offset</span>
+            ))<span class="question-mark">?</span>;
+            <span class="ident">type_list</span>.<span class="ident">push</span>(
+                <span class="self">self</span>.<span class="ident">types</span>
+                    .<span class="ident">get</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>)
+                    .<span class="ident">ok_or_else</span>(<span class="op">||</span> <span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">UnknownTypeIndex</span> {
+                        <span class="ident">index</span>: <span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">index</span>),
+                    })<span class="question-mark">?</span>
+                    .<span class="ident">clone</span>(),
+            );
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">type_list</span>.<span class="ident">into_boxed_slice</span>())
     }
 
     <span class="doccomment">/// Reads the list of field IDs.</span>
-    <span class="kw">fn</span> <span class="ident">read_field_id_list</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_field_ids_size</span>() {
+    <span class="kw">fn</span> <span class="ident">read_field_id_list</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">B</span>: <span class="ident">ByteOrder</span>,
+    {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_field_ids_size</span>() {
             <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="self">self</span>.<span class="ident">field_ids</span>
-                .<span class="ident">push</span>(<span class="ident">FieldIdData</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span>_, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
-                          .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                                         <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read field ID at offset {:#010x}&quot;</span>,
-                                                 <span class="ident">current_offset</span>)
-                                     })<span class="question-mark">?</span>);
+            <span class="self">self</span>.<span class="ident">field_ids</span>.<span class="ident">push</span>(
+                <span class="ident">FieldIdData</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>).<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                    <span class="string">&quot;could not read field ID at offset {:#010x}&quot;</span>,
+                    <span class="ident">current_offset</span>
+                ))<span class="question-mark">?</span>,
+            );
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Reads the list of method IDs.</span>
-    <span class="kw">fn</span> <span class="ident">read_method_id_list</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_method_ids_size</span>() {
+    <span class="kw">fn</span> <span class="ident">read_method_id_list</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">B</span>: <span class="ident">ByteOrder</span>,
+    {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_method_ids_size</span>() {
             <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="self">self</span>.<span class="ident">method_ids</span>
-                .<span class="ident">push</span>(<span class="ident">MethodIdData</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span>_, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
-                          .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                                         <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read method ID at offset {:#010x}&quot;</span>,
-                                                 <span class="ident">current_offset</span>)
-                                     })<span class="question-mark">?</span>);
+            <span class="self">self</span>.<span class="ident">method_ids</span>.<span class="ident">push</span>(
+                <span class="ident">MethodIdData</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>).<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                    <span class="string">&quot;could not read method ID at offset {:#010x}&quot;</span>,
+                    <span class="ident">current_offset</span>
+                ))<span class="question-mark">?</span>,
+            );
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Reads the list of classes.</span>
-    <span class="kw">fn</span> <span class="ident">read_class_list</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_class_defs_size</span>() {
+    <span class="kw">fn</span> <span class="ident">read_class_list</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">B</span>: <span class="ident">ByteOrder</span>,
+    {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">header</span>.<span class="ident">get_class_defs_size</span>() {
             <span class="kw">let</span> <span class="ident">class_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="kw">let</span> <span class="ident">class_def</span> <span class="op">=</span> <span class="ident">ClassDefData</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span>_, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
-                .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                               <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read class definition data at offset {:#010x}&quot;</span>,
-                                       <span class="ident">class_offset</span>)
-                           })<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">class_def</span> <span class="op">=</span>
+                <span class="ident">ClassDefData</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>).<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                    <span class="string">&quot;could not read class definition data at offset {:#010x}&quot;</span>,
+                    <span class="ident">class_offset</span>
+                ))<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">new_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
             <span class="kw">let</span> <span class="ident">interfaces</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="ident">class_def</span>.<span class="ident">interfaces_offset</span>() {
-                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
-                <span class="self">self</span>.<span class="ident">read_type_list</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">chain_err</span>(<span class="op">||</span> {
-                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read interfaces list at offset {:#010x} for class at offset \
-                             {:#010x}&quot;</span>, <span class="ident">offset</span>, <span class="ident">class_offset</span>)
-                    })<span class="question-mark">?</span>
-                <span class="comment">// TODO check that all are classes (Fully Qualified Names) and no duplicates.</span>
+                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
+                <span class="self">self</span>.<span class="ident">read_type_list</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                    <span class="string">&quot;could not read interfaces list at offset {:#010x} for class at offset \
+                     {:#010x}&quot;</span>,
+                    <span class="ident">offset</span>,
+                    <span class="ident">class_offset</span>
+                ))<span class="question-mark">?</span>
+            <span class="comment">// TODO check that all are classes (Fully Qualified Names) and no duplicates.</span>
             } <span class="kw">else</span> {
                 <span class="ident">Vec</span>::<span class="ident">new</span>().<span class="ident">into_boxed_slice</span>()
             };
             <span class="kw">let</span> <span class="ident">annotations</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="ident">class_def</span>.<span class="ident">annotations_offset</span>() {
-                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">read_annotations_directory</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                         .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                             <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read annotation list at offset {:#010x} for class \
-                                      at offset {:#010x}&quot;</span>, <span class="ident">offset</span>, <span class="ident">class_offset</span>)
-                                  })<span class="question-mark">?</span>)
+                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">read_annotations_directory</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                    <span class="string">&quot;could not read annotation list at offset {:#010x} for class at offset \
+                     {:#010x}&quot;</span>,
+                    <span class="ident">offset</span>,
+                    <span class="ident">class_offset</span>
+                ))<span class="question-mark">?</span>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
             <span class="kw">let</span> <span class="ident">class_data</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="ident">class_def</span>.<span class="ident">class_data_offset</span>() {
-                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
-                <span class="prelude-val">Some</span>(<span class="ident">ClassData</span>::<span class="ident">from_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
-                         .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read class data at offset {:#010x} for \
-                                                 class at offset {:#010x}&quot;</span>,
-                                                <span class="ident">offset</span>,
-                                                <span class="ident">class_offset</span>)
-                                    })<span class="question-mark">?</span>)
+                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
+                <span class="prelude-val">Some</span>(
+                    <span class="ident">ClassData</span>::<span class="ident">from_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>).<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                        <span class="string">&quot;could not read class data at offset {:#010x} for class at offset \
+                         {:#010x}&quot;</span>,
+                        <span class="ident">offset</span>,
+                        <span class="ident">class_offset</span>
+                    ))<span class="question-mark">?</span>,
+                )
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
             <span class="kw">let</span> <span class="ident">static_values</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>) <span class="op">=</span> <span class="ident">class_def</span>.<span class="ident">static_values_offset</span>() {
-                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
-                <span class="prelude-val">Some</span>(<span class="ident">Array</span>::<span class="ident">from_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
-                         .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read encoded array at offset {:#010x}&quot;</span>,
-                                                <span class="ident">offset</span>)
-                                    })<span class="question-mark">?</span>)
+                <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">offset</span>));
+                <span class="prelude-val">Some</span>(
+                    <span class="ident">Array</span>::<span class="ident">from_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>).<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                        <span class="string">&quot;could not read encoded array at offset {:#010x}&quot;</span>,
+                        <span class="ident">offset</span>
+                    ))<span class="question-mark">?</span>,
+                )
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
             <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">new_offset</span>);
 
-            <span class="self">self</span>.<span class="ident">classes</span>
-                .<span class="ident">push</span>(<span class="ident">Class</span>::<span class="ident">new</span>(<span class="ident">class_def</span>.<span class="ident">class_index</span>(),
-                                 <span class="ident">class_def</span>.<span class="ident">access_flags</span>(),
-                                 <span class="ident">class_def</span>.<span class="ident">superclass_index</span>(),
-                                 <span class="ident">interfaces</span>,
-                                 <span class="ident">class_def</span>.<span class="ident">source_file_index</span>(),
-                                 <span class="ident">annotations</span>,
-                                 <span class="ident">class_data</span>,
-                                 <span class="ident">static_values</span>));
+            <span class="self">self</span>.<span class="ident">classes</span>.<span class="ident">push</span>(<span class="ident">Class</span>::<span class="ident">new</span>(
+                <span class="ident">class_def</span>.<span class="ident">class_index</span>(),
+                <span class="ident">class_def</span>.<span class="ident">access_flags</span>(),
+                <span class="ident">class_def</span>.<span class="ident">superclass_index</span>(),
+                <span class="ident">interfaces</span>,
+                <span class="ident">class_def</span>.<span class="ident">source_file_index</span>(),
+                <span class="ident">annotations</span>,
+                <span class="ident">class_data</span>,
+                <span class="ident">static_values</span>,
+            ));
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Reads an annotations directory.</span>
-    <span class="kw">fn</span> <span class="ident">read_annotations_directory</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AnnotationsDirectory</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_annotations_directory</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AnnotationsDirectory</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="ident">AnnotationsDirectoryOffsets</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span>_, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
-            .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                           <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read annotation directory at offset {:#010x}&quot;</span>,
-                                   <span class="ident">current_offset</span>)
-                       })<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">read</span> <span class="op">=</span> <span class="ident">AnnotationsDirectoryOffsets</span>::<span class="ident">from_reader</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
+            .<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                <span class="string">&quot;could not read annotation directory at offset {:#010x}&quot;</span>,
+                <span class="ident">current_offset</span>
+            ))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">class_annotations</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="ident">read</span>.<span class="ident">class_annotations_offset</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">off</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">off</span>));
             <span class="self">self</span>.<span class="ident">read_annotation_set</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read class annotations set&quot;</span>)<span class="question-mark">?</span>
+                .<span class="ident">context</span>(<span class="string">&quot;could not read class annotations set&quot;</span>)<span class="question-mark">?</span>
         } <span class="kw">else</span> {
             <span class="ident">Vec</span>::<span class="ident">new</span>().<span class="ident">into_boxed_slice</span>()
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">field_annotations</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">read</span>.<span class="ident">field_annotations</span>().<span class="ident">len</span>());
         <span class="kw">for</span> <span class="ident">fa_off</span> <span class="kw">in</span> <span class="ident">read</span>.<span class="ident">field_annotations</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">fa_off</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">u64</span>);
-            <span class="ident">field_annotations</span>.<span class="ident">push</span>(
-                <span class="ident">FieldAnnotations</span>::<span class="ident">new</span>(<span class="ident">fa_off</span>.<span class="ident">field_index</span>(), <span class="self">self</span>.<span class="ident">read_annotation_set</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read field annotations set&quot;</span>)<span class="question-mark">?</span>));
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">fa_off</span>.<span class="ident">offset</span>()));
+            <span class="ident">field_annotations</span>.<span class="ident">push</span>(<span class="ident">FieldAnnotations</span>::<span class="ident">new</span>(
+                <span class="ident">fa_off</span>.<span class="ident">field_index</span>(),
+                <span class="self">self</span>.<span class="ident">read_annotation_set</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
+                    .<span class="ident">context</span>(<span class="string">&quot;could not read field annotations set&quot;</span>)<span class="question-mark">?</span>,
+            ));
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">method_annotations</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">read</span>.<span class="ident">method_annotations</span>().<span class="ident">len</span>());
         <span class="kw">for</span> <span class="ident">ma_off</span> <span class="kw">in</span> <span class="ident">read</span>.<span class="ident">method_annotations</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">ma_off</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">u64</span>);
-            <span class="ident">method_annotations</span>.<span class="ident">push</span>(
-                <span class="ident">MethodAnnotations</span>::<span class="ident">new</span>(<span class="ident">ma_off</span>.<span class="ident">method_index</span>(), <span class="self">self</span>.<span class="ident">read_annotation_set</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read method annotations set&quot;</span>)<span class="question-mark">?</span>));
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">ma_off</span>.<span class="ident">offset</span>()));
+            <span class="ident">method_annotations</span>.<span class="ident">push</span>(<span class="ident">MethodAnnotations</span>::<span class="ident">new</span>(
+                <span class="ident">ma_off</span>.<span class="ident">method_index</span>(),
+                <span class="self">self</span>.<span class="ident">read_annotation_set</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
+                    .<span class="ident">context</span>(<span class="string">&quot;could not read method annotations set&quot;</span>)<span class="question-mark">?</span>,
+            ));
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameter_annotations</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">read</span>.<span class="ident">parameter_annotations</span>().<span class="ident">len</span>());
         <span class="kw">for</span> <span class="ident">pa_off</span> <span class="kw">in</span> <span class="ident">read</span>.<span class="ident">parameter_annotations</span>() {
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">pa_off</span>.<span class="ident">offset</span>() <span class="kw">as</span> <span class="ident">u64</span>);
-            <span class="ident">parameter_annotations</span>.<span class="ident">push</span>(
-                <span class="ident">ParameterAnnotations</span>::<span class="ident">new</span>(<span class="ident">pa_off</span>.<span class="ident">method_index</span>(), <span class="self">self</span>.<span class="ident">read_annotation_set</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read parameter annotations set&quot;</span>)<span class="question-mark">?</span>));
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">pa_off</span>.<span class="ident">offset</span>()));
+            <span class="ident">parameter_annotations</span>.<span class="ident">push</span>(<span class="ident">ParameterAnnotations</span>::<span class="ident">new</span>(
+                <span class="ident">pa_off</span>.<span class="ident">method_index</span>(),
+                <span class="self">self</span>.<span class="ident">read_annotation_set</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
+                    .<span class="ident">context</span>(<span class="string">&quot;could not read parameter annotations set&quot;</span>)<span class="question-mark">?</span>,
+            ));
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">AnnotationsDirectory</span>::<span class="ident">new</span>(<span class="ident">class_annotations</span>,
-                                     <span class="ident">field_annotations</span>.<span class="ident">into_boxed_slice</span>(),
-                                     <span class="ident">method_annotations</span>.<span class="ident">into_boxed_slice</span>(),
-                                     <span class="ident">parameter_annotations</span>.<span class="ident">into_boxed_slice</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">AnnotationsDirectory</span>::<span class="ident">new</span>(
+            <span class="ident">class_annotations</span>,
+            <span class="ident">field_annotations</span>.<span class="ident">into_boxed_slice</span>(),
+            <span class="ident">method_annotations</span>.<span class="ident">into_boxed_slice</span>(),
+            <span class="ident">parameter_annotations</span>.<span class="ident">into_boxed_slice</span>(),
+        ))
     }
 
     <span class="doccomment">/// Reads an annotation set.</span>
-    <span class="kw">fn</span> <span class="ident">read_annotation_set</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Annotation</span>]<span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_annotation_set</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Annotation</span>]<span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">B</span>: <span class="ident">ByteOrder</span>,
+    {
         <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>
-            .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                           <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;error reading anotation set size at offset {:#010x}&quot;</span>,
-                                   <span class="ident">current_offset</span>)
-                       })<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+            <span class="string">&quot;error reading anotation set size at offset {:#010x}&quot;</span>,
+            <span class="ident">current_offset</span>
+        ))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">annotation_set</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="ident">size</span> {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">size</span> {
             <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="kw">let</span> <span class="ident">annotation_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>
-                .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                               <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;error reading anotation offset at offset {:#010x}&quot;</span>,
-                                       <span class="ident">current_offset</span>)
-                           })<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">annotation_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+                <span class="string">&quot;error reading anotation offset at offset {:#010x}&quot;</span>,
+                <span class="ident">current_offset</span>
+            ))<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">annotation_offset</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">annotation_offset</span>));
             <span class="ident">annotation_set</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">read_annotation</span>()<span class="question-mark">?</span>);
             <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">set_position</span>(<span class="ident">current_offset</span>);
         }
@@ -1066,23 +1142,24 @@
     }
 
     <span class="doccomment">/// Reads an annotation.</span>
-    <span class="kw">fn</span> <span class="ident">read_annotation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Annotation</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_annotation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Annotation</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">file_cursor</span>.<span class="ident">position</span>();
-        <span class="kw">let</span> <span class="ident">annotation</span> <span class="op">=</span> <span class="ident">Annotation</span>::<span class="ident">from_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>)
-            .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                           <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read annotation at offset {:#010x}&quot;</span>, {
-                    <span class="ident">current_offset</span>
-                })
-                       })<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">annotation</span> <span class="op">=</span> <span class="ident">Annotation</span>::<span class="ident">from_reader</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">file_cursor</span>).<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(
+            <span class="string">&quot;could not read annotation at offset {:#010x}&quot;</span>,
+            <span class="ident">current_offset</span>
+        ))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">annotation</span>)
     }
 
     <span class="comment">// /// Reads the map of the dex file.</span>
-    <span class="comment">// fn read_map&lt;B: ByteOrder&gt;(&amp;mut self) -&gt; Result&lt;()&gt; {</span>
-    <span class="comment">//     let map = Map::from_reader::&lt;_, E&gt;(&amp;mut self.reader, &amp;mut self.offset_map).chain_err(|| {</span>
-    <span class="comment">//             format!(&quot;error reading map at offset {:#010x}&quot;, self.current_offset)</span>
-    <span class="comment">//         })?;</span>
+    <span class="comment">// fn read_map&lt;B&gt;(&amp;mut self) -&gt; Result&lt;(), Error&gt;</span>
+    <span class="comment">// where</span>
+    <span class="comment">//     B: ByteOrder,</span>
+    <span class="comment">// {</span>
+    <span class="comment">//     let map = Map::from_reader::&lt;_, E&gt;(&amp;mut self.reader, &amp;mut self.offset_map).context(</span>
+    <span class="comment">//         format_err!(&quot;error reading map at offset {:#010x}&quot;, self.current_offset),</span>
+    <span class="comment">//     )?;</span>
     <span class="comment">//     if let Some(count) = map.get_num_items_for(ItemType::TypeList) {</span>
     <span class="comment">//         self.type_lists.reserve_exact(count);</span>
     <span class="comment">//     }</span>
@@ -1107,40 +1184,45 @@
     <span class="comment">// }</span>
 
     <span class="comment">// /// Reads a list of annotation sets.</span>
-    <span class="comment">// fn read_annotation_set_list&lt;B: ByteOrder&gt;(&amp;mut self) -&gt; Result&lt;()&gt; {</span>
-    <span class="comment">//     let size = self.reader</span>
-    <span class="comment">//         .read_u32::&lt;E&gt;()</span>
-    <span class="comment">//         .chain_err(|| {</span>
-    <span class="comment">//             format!(&quot;error reading annotation set list size at offset {:#010x}&quot;,</span>
-    <span class="comment">//                     self.current_offset)</span>
-    <span class="comment">//         })?;</span>
+    <span class="comment">// fn read_annotation_set_list&lt;B&gt;(&amp;mut self) -&gt; Result&lt;(), Error&gt;</span>
+    <span class="comment">// where</span>
+    <span class="comment">//     B: ByteOrder,</span>
+    <span class="comment">// {</span>
+    <span class="comment">//     let size = self.reader.read_u32::&lt;E&gt;().context(format_err!(</span>
+    <span class="comment">//         &quot;error reading annotation set list size at offset {:#010x}&quot;,</span>
+    <span class="comment">//         self.current_offset</span>
+    <span class="comment">//     ))?;</span>
     <span class="comment">//     let mut annotation_set_list = Vec::with_capacity(size as usize);</span>
     <span class="comment">//</span>
     <span class="comment">//     for _ in 0..size {</span>
-    <span class="comment">//         let annotation_set_offset = self.reader</span>
-    <span class="comment">//             .read_u32::&lt;E&gt;()</span>
-    <span class="comment">//             .chain_err(|| {</span>
-    <span class="comment">//                 format!(&quot;could not read annotation set offset for an anotation set in the \</span>
-    <span class="comment">//                         anotation set list at offset {:#010x}&quot;,</span>
-    <span class="comment">//                         self.current_offset)</span>
-    <span class="comment">//             })?;</span>
-    <span class="comment">//         self.offset_map.insert(annotation_set_offset, OffsetType::AnnotationSet);</span>
+    <span class="comment">//         let annotation_set_offset = self.reader.read_u32::&lt;E&gt;().context(format_err!(</span>
+    <span class="comment">//             &quot;could not read annotation set offset for an anotation set in the anotation set \</span>
+    <span class="comment">//              list at offset {:#010x}&quot;,</span>
+    <span class="comment">//             self.current_offset</span>
+    <span class="comment">//         ))?;</span>
+    <span class="comment">//         self.offset_map</span>
+    <span class="comment">//             .insert(annotation_set_offset, OffsetType::AnnotationSet);</span>
     <span class="comment">//         annotation_set_list.push(annotation_set_offset);</span>
     <span class="comment">//     }</span>
-    <span class="comment">//     self.annotation_set_ref_list.push(annotation_set_list.into_boxed_slice());</span>
+    <span class="comment">//     self.annotation_set_ref_list</span>
+    <span class="comment">//         .push(annotation_set_list.into_boxed_slice());</span>
     <span class="comment">//     self.current_offset += 4 + ANNOTATION_SET_REF_SIZE * size;</span>
     <span class="comment">//</span>
     <span class="comment">//     Ok(())</span>
     <span class="comment">// }</span>
 
     <span class="comment">// /// Reads code information.</span>
-    <span class="comment">// fn read_code_item&lt;B: ByteOrder&gt;(&amp;mut self) -&gt; Result&lt;()&gt; {</span>
-    <span class="comment">//     let (code_item, read) = CodeItem::from_reader::&lt;_, E&gt;(&amp;mut self.reader,</span>
-    <span class="comment">//                                                           &amp;mut self.offset_map)</span>
-    <span class="comment">// .chain_err(|| {</span>
-    <span class="comment">//             format!(&quot;could not read code item at offset {:#010x}&quot;,</span>
-    <span class="comment">//                     self.current_offset)</span>
-    <span class="comment">//         })?;</span>
+    <span class="comment">// fn read_code_item&lt;B&gt;(&amp;mut self) -&gt; Result&lt;(), Error&gt;</span>
+    <span class="comment">// where</span>
+    <span class="comment">//     B: ByteOrder,</span>
+    <span class="comment">// {</span>
+    <span class="comment">//     let (code_item, read) = CodeItem::from_reader::&lt;_, E&gt;(</span>
+    <span class="comment">//         &amp;mut self.reader,</span>
+    <span class="comment">//         &amp;mut self.offset_map,</span>
+    <span class="comment">//     ).context(format_err!(</span>
+    <span class="comment">//         &quot;could not read code item at offset {:#010x}&quot;,</span>
+    <span class="comment">//         self.current_offset</span>
+    <span class="comment">//     ))?;</span>
     <span class="comment">//     self.code_segments.push((self.current_offset, code_item));</span>
     <span class="comment">//     self.current_offset += read;</span>
     <span class="comment">//</span>
@@ -1148,11 +1230,11 @@
     <span class="comment">// }</span>
 
     <span class="comment">// /// Reads debug information.</span>
-    <span class="comment">// fn read_debug_info(&amp;mut self) -&gt; Result&lt;()&gt; {</span>
-    <span class="comment">//     let (debug_info, read) = DebugInfo::from_reader(&amp;mut self.reader).chain_err(|| {</span>
-    <span class="comment">//             format!(&quot;could not read debug information at offset {:#010x}&quot;,</span>
-    <span class="comment">//                     self.current_offset)</span>
-    <span class="comment">//         })?;</span>
+    <span class="comment">// fn read_debug_info(&amp;mut self) -&gt; Result&lt;(), Error&gt; {</span>
+    <span class="comment">//     let (debug_info, read) = DebugInfo::from_reader(&amp;mut self.reader).context(format_err!(</span>
+    <span class="comment">//         &quot;could not read debug information at offset {:#010x}&quot;,</span>
+    <span class="comment">//         self.current_offset</span>
+    <span class="comment">//     ))?;</span>
     <span class="comment">//     self.debug_info.push((self.current_offset, debug_info));</span>
     <span class="comment">//     self.current_offset += read;</span>
     <span class="comment">//</span>
@@ -1163,18 +1245,21 @@
 <span class="doccomment">/// Reads a uleb128 from a reader.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns the u32 represented by the uleb128 and the number of bytes read.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_uleb128</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u32</span>)<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_uleb128</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u32</span>), <span class="ident">Error</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Read</span>,
+{
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">byte</span>) <span class="kw">in</span> <span class="ident">reader</span>.<span class="ident">bytes</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">byte</span>.<span class="ident">chain_err</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;could not read byte {}&quot;</span>, <span class="ident">i</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> (<span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b01111111</span>) <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">byte</span>.<span class="ident">context</span>(<span class="macro">format_err</span><span class="macro">!</span>(<span class="string">&quot;could not read byte {}&quot;</span>, <span class="ident">i</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b0111_1111</span>);
         <span class="kw">match</span> <span class="ident">i</span> {
             <span class="number">0</span>...<span class="number">4</span> <span class="op">=&gt;</span> <span class="ident">result</span> <span class="op">|=</span> <span class="ident">payload</span> <span class="op">&lt;&lt;</span> (<span class="ident">i</span> <span class="op">*</span> <span class="number">7</span>),
-            _ <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">InvalidLeb128</span>.<span class="ident">into</span>()),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">InvalidLeb128</span>.<span class="ident">into</span>()),
         }
 
-        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b10000000</span> <span class="op">==</span> <span class="number">0x00</span> {
+        <span class="kw">if</span> <span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b1000_0000</span> <span class="op">==</span> <span class="number">0x00</span> {
             <span class="ident">read</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
             <span class="kw">break</span>;
         }
@@ -1185,7 +1270,10 @@
 <span class="doccomment">/// Reads a uleb128p1 from a reader.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns the u32 represented by the uleb128p1 and the number of bytes read.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_uleb128p1</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u32</span>)<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_uleb128p1</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u32</span>), <span class="ident">Error</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Read</span>,
+{
     <span class="kw">let</span> (<span class="ident">uleb128</span>, <span class="ident">read</span>) <span class="op">=</span> <span class="ident">read_uleb128</span>(<span class="ident">reader</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((<span class="ident">uleb128</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>), <span class="ident">read</span>))
 }
@@ -1193,7 +1281,10 @@
 <span class="doccomment">/// Reads a sleb128 from a reader.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns the i32 represented by the sleb128 and the number of bytes read.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_sleb128</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">i32</span>, <span class="ident">u32</span>)<span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_sleb128</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">i32</span>, <span class="ident">u32</span>), <span class="ident">Error</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Read</span>,
+{
     <span class="kw">let</span> (<span class="ident">uleb128</span>, <span class="ident">read</span>) <span class="op">=</span> <span class="ident">read_uleb128</span>(<span class="ident">reader</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">s_bits</span> <span class="op">=</span> <span class="ident">read</span> <span class="op">*</span> <span class="number">7</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signed</span> <span class="op">=</span> <span class="ident">uleb128</span> <span class="kw">as</span> <span class="ident">i32</span>;
@@ -1205,65 +1296,4 @@
     <span class="prelude-val">Ok</span>((<span class="ident">signed</span>, <span class="ident">read</span>))
 }
 </pre>
-</section>
-    <section id='search' class="content hidden"></section>
-
-    <section class="footer"></section>
-
-    <aside id="help" class="hidden">
-        <div>
-            <h1 class="hidden">Help</h1>
-
-            <div class="shortcuts">
-                <h2>Keyboard Shortcuts</h2>
-
-                <dl>
-                    <dt>?</dt>
-                    <dd>Show this help dialog</dd>
-                    <dt>S</dt>
-                    <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
-                    <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
-                    <dd>Move down in search results</dd>
-                    <dt>&#9166;</dt>
-                    <dd>Go to active search result</dd>
-                    <dt>+</dt>
-                    <dd>Collapse/expand all sections</dd>
-                </dl>
-            </div>
-
-            <div class="infos">
-                <h2>Search Tricks</h2>
-
-                <p>
-                    Prefix searches with a type followed by a colon (e.g.
-                    <code>fn:</code>) to restrict the search to a given type.
-                </p>
-
-                <p>
-                    Accepted types are: <code>fn</code>, <code>mod</code>,
-                    <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>type</code>, <code>macro</code>,
-                    and <code>const</code>.
-                </p>
-
-                <p>
-                    Search functions by type signature (e.g.
-                    <code>vec -> usize</code> or <code>* -> vec</code>)
-                </p>
-            </div>
-        </div>
-    </aside>
-
-    
-
-    <script>
-        window.rootPath = "../../";
-        window.currentCrate = "dalvik";
-    </script>
-    <script src="../../jquery.js"></script>
-    <script src="../../main.js"></script>
-    <script defer src="../../search-index.js"></script>
-</body>
-</html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "dalvik";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

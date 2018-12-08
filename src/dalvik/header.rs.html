@@ -1,49 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `src/header.rs`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang">
-
-    <title>header.rs.html -- source</title>
-
-    <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css">
-    
-
-    
-    
-</head>
-<body class="rustdoc source">
-    <!--[if lte IE 8]>
-    <div class="warning">
-        This old browser is unsupported and will most likely display funky
-        things.
-    </div>
-    <![endif]-->
-
-    
-
-    <nav class="sidebar">
-        
-        
-    </nav>
-
-    <nav class="sub">
-        <form class="search-form js-only">
-            <div class="search-container">
-                <input class="search-input" name="search"
-                       autocomplete="off"
-                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
-                       type="search">
-            </div>
-        </form>
-    </nav>
-
-    <section id='main' class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/header.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>header.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -661,24 +616,120 @@
 <span id="616">616</span>
 <span id="617">617</span>
 <span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Module containing the Dex file header.</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">fs</span>, <span class="ident">u32</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">BufReader</span>, <span class="ident">Read</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">fmt</span>, <span class="ident">fs</span>,
+    <span class="ident">io</span>::{<span class="ident">BufReader</span>, <span class="ident">Read</span>},
+    <span class="ident">path</span>::<span class="ident">Path</span>,
+    <span class="ident">u32</span>,
+};
 
-<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">LittleEndian</span>, <span class="ident">BigEndian</span>, <span class="ident">ByteOrder</span>, <span class="ident">ReadBytesExt</span>};
+<span class="kw">use</span> <span class="ident">byteorder</span>::{<span class="ident">BigEndian</span>, <span class="ident">ByteOrder</span>, <span class="ident">LittleEndian</span>, <span class="ident">ReadBytesExt</span>};
+<span class="kw">use</span> <span class="ident">failure</span>::{<span class="ident">Error</span>, <span class="ident">ResultExt</span>};
 
-<span class="kw">use</span> <span class="ident">error</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">sizes</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">error</span>,
+    <span class="ident">sizes</span>::{
+        <span class="ident">CLASS_DEF_ITEM_SIZE</span>, <span class="ident">FIELD_ID_ITEM_SIZE</span>, <span class="ident">HEADER_SIZE</span>, <span class="ident">METHOD_ID_ITEM_SIZE</span>,
+        <span class="ident">PROTO_ID_ITEM_SIZE</span>, <span class="ident">STRING_ID_ITEM_SIZE</span>, <span class="ident">TYPE_ID_ITEM_SIZE</span>,
+    },
+};
 
 <span class="doccomment">/// Endianness constant representing little endian file.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENDIAN_CONSTANT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x12345678</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENDIAN_CONSTANT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x12_34_56_78</span>;
 <span class="doccomment">/// Endianness constant representing big endian file.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REVERSE_ENDIAN_CONSTANT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x78563412</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REVERSE_ENDIAN_CONSTANT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x78_56_34_12</span>;
 
 <span class="doccomment">/// Dex header representantion structure.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Header</span> {
     <span class="ident">magic</span>: [<span class="ident">u8</span>; <span class="number">8</span>],
     <span class="ident">checksum</span>: <span class="ident">u32</span>,
@@ -707,57 +758,57 @@
 
 <span class="kw">impl</span> <span class="ident">Header</span> {
     <span class="doccomment">/// Obtains the header from a Dex file.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Header</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">path</span>).<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not open file&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">file_size</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">metadata</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read file metadata&quot;</span>)<span class="question-mark">?</span>
-            .<span class="ident">len</span>();
-        <span class="kw">if</span> <span class="ident">file_size</span> <span class="op">&lt;</span> <span class="ident">HEADER_SIZE</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">||</span> <span class="ident">file_size</span> <span class="op">&gt;</span> (<span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">u64</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">InvalidFileSize</span>(<span class="ident">file_size</span>).<span class="ident">into</span>());
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">path</span>).<span class="ident">context</span>(<span class="string">&quot;could not open file&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">file_size</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">metadata</span>().<span class="ident">context</span>(<span class="string">&quot;could not read file metadata&quot;</span>)<span class="question-mark">?</span>.<span class="ident">len</span>();
+        <span class="kw">if</span> <span class="ident">file_size</span> <span class="op">&lt;</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">HEADER_SIZE</span>) <span class="op">||</span> <span class="ident">file_size</span> <span class="op">&gt;</span> (<span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">u32</span>::<span class="ident">max_value</span>())) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">InvalidFileSize</span> { <span class="ident">file_size</span> }.<span class="ident">into</span>());
         }
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">Header</span>::<span class="ident">from_reader</span>(<span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">f</span>))
-            .<span class="ident">chain_err</span>(<span class="op">||</span> {
-                           <span class="ident">ErrorKind</span>::<span class="ident">Header</span>(<span class="string">&quot;there was an error reading the header of the dex file&quot;</span>
-                                                 .<span class="ident">to_owned</span>())
-                       })<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">file_size</span> <span class="op">==</span> <span class="ident">header</span>.<span class="ident">get_file_size</span>() <span class="kw">as</span> <span class="ident">u64</span> {
+        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">from_reader</span>(<span class="ident">BufReader</span>::<span class="ident">new</span>(<span class="ident">f</span>)).<span class="ident">context</span>(<span class="ident">error</span>::<span class="ident">Header</span>::<span class="ident">Generic</span> {
+            <span class="ident">error</span>: <span class="string">&quot;there was an error reading the header of the dex file&quot;</span>.<span class="ident">to_owned</span>(),
+        })<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">file_size</span> <span class="op">==</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">header</span>.<span class="ident">get_file_size</span>()) {
             <span class="prelude-val">Ok</span>(<span class="ident">header</span>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">HeaderFileSizeMismatch</span>(<span class="ident">file_size</span>, <span class="ident">header</span>.<span class="ident">get_file_size</span>()).<span class="ident">into</span>())
+            <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Header</span>::<span class="ident">FileSizeMismatch</span> {
+                <span class="ident">file_size</span>,
+                <span class="ident">size_in_header</span>: <span class="ident">header</span>.<span class="ident">get_file_size</span>(),
+            }
+            .<span class="ident">into</span>())
         }
     }
 
     <span class="doccomment">/// Obtains the header from a Dex file reader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_reader</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">reader</span>: <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Header</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_reader</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">reader</span>: <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="comment">// Magic number</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">magic</span> <span class="op">=</span> [<span class="number">0_u8</span>; <span class="number">8</span>];
         <span class="ident">reader</span>
             .<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">magic</span>)
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read dex magic number&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">Header</span>::<span class="ident">is_magic_valid</span>(<span class="kw-2">&amp;</span><span class="ident">magic</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">IncorrectMagic</span>(<span class="ident">magic</span>).<span class="ident">into</span>());
+            .<span class="ident">context</span>(<span class="string">&quot;could not read dex magic number&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="op">!</span><span class="self">Self</span>::<span class="ident">is_magic_valid</span>(<span class="ident">magic</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Header</span>::<span class="ident">IncorrectMagic</span> { <span class="ident">dex_magic</span>: <span class="ident">magic</span> }.<span class="ident">into</span>());
         }
         <span class="comment">// Checksum</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checksum</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read file checksum&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read file checksum&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Signature</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signature</span> <span class="op">=</span> [<span class="number">0_u8</span>; <span class="number">20</span>];
         <span class="ident">reader</span>
             .<span class="ident">read_exact</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">signature</span>)
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read file signature&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read file signature&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// File size</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read file size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read file size&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Header size</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">header_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read header size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read header size&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Endian tag</span>
         <span class="kw">let</span> <span class="ident">endian_tag</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">LittleEndian</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read endian tag&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read endian tag&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Check endianness</span>
         <span class="kw">if</span> <span class="ident">endian_tag</span> <span class="op">==</span> <span class="ident">REVERSE_ENDIAN_CONSTANT</span> {
@@ -766,286 +817,353 @@
             <span class="ident">file_size</span> <span class="op">=</span> <span class="ident">file_size</span>.<span class="ident">swap_bytes</span>();
             <span class="ident">header_size</span> <span class="op">=</span> <span class="ident">header_size</span>.<span class="ident">swap_bytes</span>();
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">endian_tag</span> <span class="op">!=</span> <span class="ident">ENDIAN_CONSTANT</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">InvalidEndianTag</span>(<span class="ident">endian_tag</span>).<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Header</span>::<span class="ident">InvalidEndianTag</span> { <span class="ident">endian_tag</span> }.<span class="ident">into</span>());
         }
 
         <span class="comment">// Check header size</span>
         <span class="kw">if</span> <span class="ident">header_size</span> <span class="op">!=</span> <span class="ident">HEADER_SIZE</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">IncorrectHeaderSize</span>(<span class="ident">header_size</span>).<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Header</span>::<span class="ident">IncorrectHeaderSize</span> { <span class="ident">header_size</span> }.<span class="ident">into</span>());
         }
 
         <span class="kw">if</span> <span class="ident">endian_tag</span> <span class="op">==</span> <span class="ident">ENDIAN_CONSTANT</span> {
-            <span class="ident">Header</span>::<span class="ident">read_data</span>::<span class="op">&lt;</span>_, <span class="ident">LittleEndian</span><span class="op">&gt;</span>(<span class="ident">reader</span>,
-                                                 <span class="ident">magic</span>,
-                                                 <span class="ident">checksum</span>,
-                                                 <span class="ident">signature</span>,
-                                                 <span class="ident">file_size</span>,
-                                                 <span class="ident">header_size</span>,
-                                                 <span class="ident">ENDIAN_CONSTANT</span>)
+            <span class="self">Self</span>::<span class="ident">read_data</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">LittleEndian</span><span class="op">&gt;</span>(
+                <span class="ident">reader</span>,
+                <span class="ident">magic</span>,
+                <span class="ident">checksum</span>,
+                <span class="ident">signature</span>,
+                <span class="ident">file_size</span>,
+                <span class="ident">header_size</span>,
+                <span class="ident">ENDIAN_CONSTANT</span>,
+            )
         } <span class="kw">else</span> {
-            <span class="ident">Header</span>::<span class="ident">read_data</span>::<span class="op">&lt;</span>_, <span class="ident">BigEndian</span><span class="op">&gt;</span>(<span class="ident">reader</span>,
-                                              <span class="ident">magic</span>,
-                                              <span class="ident">checksum</span>,
-                                              <span class="ident">signature</span>,
-                                              <span class="ident">file_size</span>,
-                                              <span class="ident">header_size</span>,
-                                              <span class="ident">REVERSE_ENDIAN_CONSTANT</span>)
+            <span class="self">Self</span>::<span class="ident">read_data</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">BigEndian</span><span class="op">&gt;</span>(
+                <span class="ident">reader</span>,
+                <span class="ident">magic</span>,
+                <span class="ident">checksum</span>,
+                <span class="ident">signature</span>,
+                <span class="ident">file_size</span>,
+                <span class="ident">header_size</span>,
+                <span class="ident">REVERSE_ENDIAN_CONSTANT</span>,
+            )
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">read_data</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span>, <span class="ident">E</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">reader</span>: <span class="ident">R</span>,
-                                        <span class="ident">magic</span>: [<span class="ident">u8</span>; <span class="number">8</span>],
-                                        <span class="ident">checksum</span>: <span class="ident">u32</span>,
-                                        <span class="ident">signature</span>: [<span class="ident">u8</span>; <span class="number">20</span>],
-                                        <span class="ident">file_size</span>: <span class="ident">u32</span>,
-                                        <span class="ident">header_size</span>: <span class="ident">u32</span>,
-                                        <span class="ident">endian_tag</span>: <span class="ident">u32</span>)
-                                        <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Header</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_data</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span>, <span class="ident">E</span>: <span class="ident">ByteOrder</span><span class="op">&gt;</span>(
+        <span class="kw-2">mut</span> <span class="ident">reader</span>: <span class="ident">R</span>,
+        <span class="ident">magic</span>: [<span class="ident">u8</span>; <span class="number">8</span>],
+        <span class="ident">checksum</span>: <span class="ident">u32</span>,
+        <span class="ident">signature</span>: [<span class="ident">u8</span>; <span class="number">20</span>],
+        <span class="ident">file_size</span>: <span class="ident">u32</span>,
+        <span class="ident">header_size</span>: <span class="ident">u32</span>,
+        <span class="ident">endian_tag</span>: <span class="ident">u32</span>,
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="doccomment">/// Returns `Some(x)` if the boolean is `true`, `None` otherwise.</span>
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">some_if</span>(<span class="ident">x</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="ident">b</span> { <span class="prelude-val">Some</span>(<span class="ident">x</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> }
+            <span class="kw">if</span> <span class="ident">b</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">x</span>)
+            } <span class="kw">else</span> {
+                <span class="prelude-val">None</span>
+            }
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_offset</span> <span class="op">=</span> <span class="ident">HEADER_SIZE</span>;
 
         <span class="comment">// Link size</span>
         <span class="kw">let</span> <span class="ident">link_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the link section size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the link section size&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Link offset</span>
         <span class="kw">let</span> <span class="ident">link_offset</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the link section offset&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the link section offset&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">link_size</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">link_offset</span> <span class="op">!=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;link_offset&quot;</span>, <span class="ident">link_offset</span>, <span class="number">0</span>).<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;link_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">link_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="number">0</span>,
+            }
+            .<span class="ident">into</span>());
         }
 
         <span class="comment">// Map offset</span>
         <span class="kw">let</span> <span class="ident">map_offset</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the map section offset&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">map_offset</span> <span class="op">==</span> <span class="number">0x00000000</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">InvalidOffset</span>(<span class="string">&quot;`map_offset` was 0x00000000, and it can never \
-                                                 be zero&quot;</span>
-                                                        .<span class="ident">to_owned</span>())
-                               .<span class="ident">into</span>());
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the map section offset&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">map_offset</span> <span class="op">==</span> <span class="number">0x0000_0000</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">InvalidOffset</span> {
+                <span class="ident">desc</span>: <span class="string">&quot;`map_offset` was 0x00000000, and it can never be zero&quot;</span>.<span class="ident">to_owned</span>(),
+            }
+            .<span class="ident">into</span>());
         }
 
         <span class="comment">// String IDs size</span>
         <span class="kw">let</span> <span class="ident">string_ids_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the string IDs list size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the string IDs list size&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// String IDs offset</span>
         <span class="kw">let</span> <span class="ident">string_ids_offset</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the string IDs list offset&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the string IDs list offset&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">string_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">string_ids_offset</span> <span class="op">!=</span> <span class="ident">current_offset</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;string_ids_offset&quot;</span>,
-                                                    <span class="ident">string_ids_offset</span>,
-                                                    <span class="ident">HEADER_SIZE</span>)
-                               .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;string_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">string_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="ident">HEADER_SIZE</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="kw">if</span> <span class="ident">string_ids_size</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">string_ids_offset</span> <span class="op">!=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;string_ids_offset&quot;</span>, <span class="ident">string_ids_offset</span>, <span class="number">0</span>)
-                           .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;string_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">string_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="number">0</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="ident">current_offset</span> <span class="op">+=</span> <span class="ident">string_ids_size</span> <span class="op">*</span> <span class="ident">STRING_ID_ITEM_SIZE</span>;
 
         <span class="comment">// Types IDs size</span>
         <span class="kw">let</span> <span class="ident">type_ids_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the type IDs list size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the type IDs list size&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Types IDs offset</span>
         <span class="kw">let</span> <span class="ident">type_ids_offset</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the type IDs list offset&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the type IDs list offset&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">type_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">type_ids_offset</span> <span class="op">!=</span> <span class="ident">current_offset</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;type_ids_offset&quot;</span>,
-                                                    <span class="ident">type_ids_offset</span>,
-                                                    <span class="ident">current_offset</span>)
-                               .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;type_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">type_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="ident">current_offset</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="kw">if</span> <span class="ident">type_ids_size</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">type_ids_offset</span> <span class="op">!=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;type_ids_offset&quot;</span>, <span class="ident">type_ids_offset</span>, <span class="number">0</span>).<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;type_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">type_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="number">0</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="ident">current_offset</span> <span class="op">+=</span> <span class="ident">type_ids_size</span> <span class="op">*</span> <span class="ident">TYPE_ID_ITEM_SIZE</span>;
 
         <span class="comment">// Prototype IDs size</span>
         <span class="kw">let</span> <span class="ident">prototype_ids_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the prototype IDs list size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the prototype IDs list size&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Prototype IDs offset</span>
-        <span class="kw">let</span> <span class="ident">prototype_ids_offset</span> <span class="op">=</span>
-            <span class="ident">reader</span>
-                .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the prototype IDs list offset&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">prototype_ids_offset</span> <span class="op">=</span> <span class="ident">reader</span>
+            .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the prototype IDs list offset&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">prototype_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">prototype_ids_offset</span> <span class="op">!=</span> <span class="ident">current_offset</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;prototype_ids_offset&quot;</span>,
-                                                    <span class="ident">prototype_ids_offset</span>,
-                                                    <span class="ident">current_offset</span>)
-                               .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;prototype_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">prototype_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="ident">current_offset</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="kw">if</span> <span class="ident">prototype_ids_size</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">prototype_ids_offset</span> <span class="op">!=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;prototype_ids_offset&quot;</span>,
-                                                    <span class="ident">prototype_ids_offset</span>,
-                                                    <span class="number">0</span>)
-                               .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;prototype_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">prototype_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="number">0</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="ident">current_offset</span> <span class="op">+=</span> <span class="ident">prototype_ids_size</span> <span class="op">*</span> <span class="ident">PROTO_ID_ITEM_SIZE</span>;
 
         <span class="comment">// Field IDs size</span>
         <span class="kw">let</span> <span class="ident">field_ids_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the field IDs list size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the field IDs list size&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Field IDs offset</span>
         <span class="kw">let</span> <span class="ident">field_ids_offset</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the field IDs list offset&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the field IDs list offset&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">field_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">field_ids_offset</span> <span class="op">!=</span> <span class="ident">current_offset</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;field_ids_offset&quot;</span>,
-                                                    <span class="ident">field_ids_offset</span>,
-                                                    <span class="ident">current_offset</span>)
-                               .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;field_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">field_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="ident">current_offset</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="kw">if</span> <span class="ident">field_ids_size</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">field_ids_offset</span> <span class="op">!=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;field_ids_offset&quot;</span>, <span class="ident">field_ids_offset</span>, <span class="number">0</span>)
-                           .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;field_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">field_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="number">0</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="ident">current_offset</span> <span class="op">+=</span> <span class="ident">field_ids_size</span> <span class="op">*</span> <span class="ident">FIELD_ID_ITEM_SIZE</span>;
 
         <span class="comment">// Method IDs size</span>
         <span class="kw">let</span> <span class="ident">method_ids_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the method IDs list size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the method IDs list size&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Method IDs offset</span>
         <span class="kw">let</span> <span class="ident">method_ids_offset</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the method IDs list offset&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the method IDs list offset&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">method_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">method_ids_offset</span> <span class="op">!=</span> <span class="ident">current_offset</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;method_ids_offset&quot;</span>,
-                                                    <span class="ident">method_ids_offset</span>,
-                                                    <span class="ident">current_offset</span>)
-                               .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;method_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">method_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="ident">current_offset</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="kw">if</span> <span class="ident">method_ids_size</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">method_ids_offset</span> <span class="op">!=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;method_ids_offset&quot;</span>, <span class="ident">method_ids_offset</span>, <span class="number">0</span>)
-                           .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;method_ids_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">method_ids_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="number">0</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="ident">current_offset</span> <span class="op">+=</span> <span class="ident">method_ids_size</span> <span class="op">*</span> <span class="ident">METHOD_ID_ITEM_SIZE</span>;
 
         <span class="comment">// Class defs size</span>
         <span class="kw">let</span> <span class="ident">class_defs_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the class definitions list size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the class definitions list size&quot;</span>)<span class="question-mark">?</span>;
         <span class="comment">// Class defs offset</span>
-        <span class="kw">let</span> <span class="ident">class_defs_offset</span> <span class="op">=</span>
-            <span class="ident">reader</span>
-                .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-                .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the class definitions list offset&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">class_defs_offset</span> <span class="op">=</span> <span class="ident">reader</span>
+            .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the class definitions list offset&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">class_defs_size</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">class_defs_offset</span> <span class="op">!=</span> <span class="ident">current_offset</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;class_defs_offset&quot;</span>,
-                                                    <span class="ident">class_defs_offset</span>,
-                                                    <span class="ident">current_offset</span>)
-                               .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;class_defs_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">class_defs_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="ident">current_offset</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="kw">if</span> <span class="ident">class_defs_size</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">class_defs_offset</span> <span class="op">!=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;class_defs_offset&quot;</span>, <span class="ident">class_defs_offset</span>, <span class="number">0</span>)
-                           .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;class_defs_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="ident">class_defs_offset</span>,
+                <span class="ident">expected_offset</span>: <span class="number">0</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="ident">current_offset</span> <span class="op">+=</span> <span class="ident">class_defs_size</span> <span class="op">*</span> <span class="ident">CLASS_DEF_ITEM_SIZE</span>;
 
         <span class="comment">// Data size</span>
         <span class="kw">let</span> <span class="ident">data_size</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the data section size&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the data section size&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">data_size</span> <span class="op">&amp;</span> <span class="number">0b11</span> <span class="op">!=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">Header</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;`data_size` must be a 4-byte multiple, but \
-                                                  it was {:#010x}&quot;</span>,
-                                                 <span class="ident">data_size</span>))
-                               .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Header</span>::<span class="ident">Generic</span> {
+                <span class="ident">error</span>: <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;`data_size` must be a 4-byte multiple, but it was {:#010x}&quot;</span>,
+                    <span class="ident">data_size</span>
+                ),
+            }
+            .<span class="ident">into</span>());
         }
 
         <span class="comment">// Data offset</span>
         <span class="kw">let</span> <span class="ident">data_offset</span> <span class="op">=</span> <span class="ident">reader</span>
             .<span class="ident">read_u32</span>::<span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>()
-            .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="string">&quot;could not read the data section offset&quot;</span>)<span class="question-mark">?</span>;
+            .<span class="ident">context</span>(<span class="string">&quot;could not read the data section offset&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">data_offset</span> <span class="op">!=</span> <span class="ident">current_offset</span> {
             <span class="comment">// return Err(Error::mismatched_offsets(&quot;data_offset&quot;, data_offset, current_offset));</span>
             <span class="comment">// TODO seems that there is more information after the class definitions.</span>
             <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>) {
-                <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{} bytes of unknown data were found.&quot;</span>,
-                         <span class="ident">data_offset</span> <span class="op">-</span> <span class="ident">current_offset</span>);
+                <span class="macro">println</span><span class="macro">!</span>(
+                    <span class="string">&quot;{} bytes of unknown data were found.&quot;</span>,
+                    <span class="ident">data_offset</span> <span class="op">-</span> <span class="ident">current_offset</span>
+                );
             }
             <span class="ident">current_offset</span> <span class="op">=</span> <span class="ident">data_offset</span>;
         }
         <span class="ident">current_offset</span> <span class="op">+=</span> <span class="ident">data_size</span>;
         <span class="kw">if</span> <span class="ident">map_offset</span> <span class="op">&lt;</span> <span class="ident">data_offset</span> <span class="op">||</span> <span class="ident">map_offset</span> <span class="op">&gt;</span> <span class="ident">data_offset</span> <span class="op">+</span> <span class="ident">data_size</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">InvalidOffset</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;`map_offset` section must be in the \
-                                                         `data` section (between {:#010x} and \
-                                                         {:#010x}) but it was at {:#010x}&quot;</span>,
-                                                        <span class="ident">data_offset</span>,
-                                                        <span class="ident">current_offset</span>,
-                                                        <span class="ident">map_offset</span>))
-                               .<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">InvalidOffset</span> {
+                <span class="ident">desc</span>: <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;`map_offset` section must be in the `data` section (between {:#010x} and \
+                     {:#010x}) but it was at {:#010x}&quot;</span>,
+                    <span class="ident">data_offset</span>, <span class="ident">current_offset</span>, <span class="ident">map_offset</span>
+                ),
+            }
+            .<span class="ident">into</span>());
         }
         <span class="kw">if</span> <span class="ident">link_size</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">current_offset</span> <span class="op">!=</span> <span class="ident">file_size</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">Header</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;`data` section must end at the EOF if there \
-                                                  are no links in the file. Data end: \
-                                                  {:#010x}, `file_size`: {:#010x}&quot;</span>,
-                                                 <span class="ident">current_offset</span>,
-                                                 <span class="ident">file_size</span>))
-                               .<span class="ident">into</span>());
-
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Header</span>::<span class="ident">Generic</span> {
+                <span class="ident">error</span>: <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;`data` section must end at the EOF if there are no links in the file. Data \
+                     end: {:#010x}, `file_size`: {:#010x}&quot;</span>,
+                    <span class="ident">current_offset</span>, <span class="ident">file_size</span>
+                ),
+            }
+            .<span class="ident">into</span>());
         }
         <span class="kw">if</span> <span class="ident">link_size</span> <span class="op">!=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">link_offset</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;link_offset&quot;</span>, <span class="number">0</span>, <span class="ident">current_offset</span>).<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                <span class="ident">offset_name</span>: <span class="string">&quot;link_offset&quot;</span>,
+                <span class="ident">current_offset</span>: <span class="number">0</span>,
+                <span class="ident">expected_offset</span>: <span class="ident">current_offset</span>,
+            }
+            .<span class="ident">into</span>());
         }
         <span class="kw">if</span> <span class="ident">link_size</span> <span class="op">!=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">link_offset</span> <span class="op">!=</span> <span class="number">0</span> {
             <span class="kw">if</span> <span class="ident">link_offset</span> <span class="op">!=</span> <span class="ident">current_offset</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">MismatchedOffsets</span>(<span class="string">&quot;link_offset&quot;</span>,
-                                                        <span class="ident">link_offset</span>,
-                                                        <span class="ident">current_offset</span>)
-                                   .<span class="ident">into</span>());
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Parse</span>::<span class="ident">OffsetMismatch</span> {
+                    <span class="ident">offset_name</span>: <span class="string">&quot;link_offset&quot;</span>,
+                    <span class="ident">current_offset</span>: <span class="ident">link_offset</span>,
+                    <span class="ident">expected_offset</span>: <span class="ident">current_offset</span>,
+                }
+                .<span class="ident">into</span>());
             }
             <span class="kw">if</span> <span class="ident">link_offset</span> <span class="op">+</span> <span class="ident">link_size</span> <span class="op">!=</span> <span class="ident">file_size</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">Header</span>(<span class="string">&quot;`link_data` section must end at the end \
-                                                       of file&quot;</span>
-                                                     .<span class="ident">to_owned</span>())
-                                   .<span class="ident">into</span>());
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>::<span class="ident">Header</span>::<span class="ident">Generic</span> {
+                    <span class="ident">error</span>: <span class="string">&quot;`link_data` section must end at the end of file&quot;</span>.<span class="ident">to_owned</span>(),
+                }
+                .<span class="ident">into</span>());
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Header</span> {
-               <span class="ident">magic</span>: <span class="ident">magic</span>,
-               <span class="ident">checksum</span>: <span class="ident">checksum</span>,
-               <span class="ident">signature</span>: <span class="ident">signature</span>,
-               <span class="ident">file_size</span>: <span class="ident">file_size</span>,
-               <span class="ident">header_size</span>: <span class="ident">header_size</span>,
-               <span class="ident">endian_tag</span>: <span class="ident">endian_tag</span>,
-               <span class="ident">link_size</span>: <span class="ident">link_size</span>,
-               <span class="ident">link_offset</span>: <span class="ident">some_if</span>(<span class="ident">link_offset</span>, <span class="ident">link_offset</span> <span class="op">!=</span> <span class="number">0</span>),
-               <span class="ident">map_offset</span>: <span class="ident">map_offset</span>,
-               <span class="ident">string_ids_size</span>: <span class="ident">string_ids_size</span>,
-               <span class="ident">string_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">string_ids_offset</span>, <span class="ident">string_ids_offset</span> <span class="op">&gt;</span> <span class="number">0</span>),
-               <span class="ident">type_ids_size</span>: <span class="ident">type_ids_size</span>,
-               <span class="ident">type_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">type_ids_offset</span>, <span class="ident">type_ids_offset</span> <span class="op">&gt;</span> <span class="number">0</span>),
-               <span class="ident">prototype_ids_size</span>: <span class="ident">prototype_ids_size</span>,
-               <span class="ident">prototype_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">prototype_ids_offset</span>, <span class="ident">prototype_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span>),
-               <span class="ident">field_ids_size</span>: <span class="ident">field_ids_size</span>,
-               <span class="ident">field_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">field_ids_offset</span>, <span class="ident">field_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span>),
-               <span class="ident">method_ids_size</span>: <span class="ident">method_ids_size</span>,
-               <span class="ident">method_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">method_ids_offset</span>, <span class="ident">method_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span>),
-               <span class="ident">class_defs_size</span>: <span class="ident">class_defs_size</span>,
-               <span class="ident">class_defs_offset</span>: <span class="ident">some_if</span>(<span class="ident">class_defs_offset</span>, <span class="ident">class_defs_size</span> <span class="op">&gt;</span> <span class="number">0</span>),
-               <span class="ident">data_size</span>: <span class="ident">data_size</span>,
-               <span class="ident">data_offset</span>: <span class="ident">data_offset</span>,
-           })
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
+            <span class="ident">magic</span>,
+            <span class="ident">checksum</span>,
+            <span class="ident">signature</span>,
+            <span class="ident">file_size</span>,
+            <span class="ident">header_size</span>,
+            <span class="ident">endian_tag</span>,
+            <span class="ident">link_size</span>,
+            <span class="ident">link_offset</span>: <span class="ident">some_if</span>(<span class="ident">link_offset</span>, <span class="ident">link_offset</span> <span class="op">!=</span> <span class="number">0</span>),
+            <span class="ident">map_offset</span>,
+            <span class="ident">string_ids_size</span>,
+            <span class="ident">string_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">string_ids_offset</span>, <span class="ident">string_ids_offset</span> <span class="op">&gt;</span> <span class="number">0</span>),
+            <span class="ident">type_ids_size</span>,
+            <span class="ident">type_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">type_ids_offset</span>, <span class="ident">type_ids_offset</span> <span class="op">&gt;</span> <span class="number">0</span>),
+            <span class="ident">prototype_ids_size</span>,
+            <span class="ident">prototype_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">prototype_ids_offset</span>, <span class="ident">prototype_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span>),
+            <span class="ident">field_ids_size</span>,
+            <span class="ident">field_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">field_ids_offset</span>, <span class="ident">field_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span>),
+            <span class="ident">method_ids_size</span>,
+            <span class="ident">method_ids_offset</span>: <span class="ident">some_if</span>(<span class="ident">method_ids_offset</span>, <span class="ident">method_ids_size</span> <span class="op">&gt;</span> <span class="number">0</span>),
+            <span class="ident">class_defs_size</span>,
+            <span class="ident">class_defs_offset</span>: <span class="ident">some_if</span>(<span class="ident">class_defs_offset</span>, <span class="ident">class_defs_size</span> <span class="op">&gt;</span> <span class="number">0</span>),
+            <span class="ident">data_size</span>,
+            <span class="ident">data_offset</span>,
+        })
     }
 
     <span class="doccomment">/// Checks if the dex magic number given is valid.</span>
-    <span class="kw">fn</span> <span class="ident">is_magic_valid</span>(<span class="ident">magic</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="number">8</span>]) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="kw-2">&amp;</span><span class="ident">magic</span>[<span class="number">0</span>..<span class="number">4</span>] <span class="op">==</span> <span class="kw-2">&amp;</span>[<span class="number">0x64</span>, <span class="number">0x65</span>, <span class="number">0x78</span>, <span class="number">0x0a</span>] <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">7</span>] <span class="op">==</span> <span class="number">0x00</span> <span class="op">&amp;&amp;</span>
-        <span class="ident">magic</span>[<span class="number">4</span>] <span class="op">&gt;=</span> <span class="number">0x30</span> <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">5</span>] <span class="op">&gt;=</span> <span class="number">0x30</span> <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">6</span>] <span class="op">&gt;=</span> <span class="number">0x30</span> <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">4</span>] <span class="op">&lt;=</span> <span class="number">0x39</span> <span class="op">&amp;&amp;</span>
-        <span class="ident">magic</span>[<span class="number">5</span>] <span class="op">&lt;=</span> <span class="number">0x39</span> <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">6</span>] <span class="op">&lt;=</span> <span class="number">0x39</span>
+    <span class="kw">fn</span> <span class="ident">is_magic_valid</span>(<span class="ident">magic</span>: [<span class="ident">u8</span>; <span class="number">8</span>]) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="ident">magic</span>[<span class="number">0</span>..<span class="number">4</span>] <span class="op">==</span> [<span class="number">0x64</span>, <span class="number">0x65</span>, <span class="number">0x78</span>, <span class="number">0x0a</span>]
+            <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">7</span>] <span class="op">==</span> <span class="number">0x00</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">4</span>] <span class="op">&gt;=</span> <span class="number">0x30</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">5</span>] <span class="op">&gt;=</span> <span class="number">0x30</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">6</span>] <span class="op">&gt;=</span> <span class="number">0x30</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">4</span>] <span class="op">&lt;=</span> <span class="number">0x39</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">5</span>] <span class="op">&lt;=</span> <span class="number">0x39</span>
+            <span class="op">&amp;&amp;</span> <span class="ident">magic</span>[<span class="number">6</span>] <span class="op">&lt;=</span> <span class="number">0x39</span>
     }
 
     <span class="doccomment">/// Gets the magic value.</span>
@@ -1197,149 +1315,97 @@
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Header</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>,
-               <span class="string">&quot;Header {{ magic: [ {} ] (version: {}), checksum: {:#x}, SHA-1 signature: {}, \
-                file_size: {} bytes, header_size: {} bytes, endian_tag: {:#x} ({} endian), {}, \
-                map_offset: {:#x}, {}, {}, {}, {}, {}, {}, data_size: {} bytes, data_offset: \
-                {:#x} }}&quot;</span>,
-               {
-                   <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">magic_vec</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">8</span>);
-                   <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">magic</span> {
-                       <span class="ident">magic_vec</span>.<span class="ident">push</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#02x}&quot;</span>, <span class="ident">b</span>))
-                   }
-                   <span class="ident">magic_vec</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
-               },
-               <span class="self">self</span>.<span class="ident">get_dex_version</span>(),
-               <span class="self">self</span>.<span class="ident">checksum</span>,
-               {
-                   <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">with_capacity</span>(<span class="number">40</span>);
-                   <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signature</span> {
-                       <span class="ident">signature</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:02x}&quot;</span>, <span class="ident">b</span>))
-                   }
-                   <span class="ident">signature</span>
-               },
-               <span class="self">self</span>.<span class="ident">file_size</span>,
-               <span class="self">self</span>.<span class="ident">header_size</span>,
-               <span class="self">self</span>.<span class="ident">endian_tag</span>,
-               <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_little_endian</span>() {
-                   <span class="string">&quot;little&quot;</span>
-               } <span class="kw">else</span> {
-                   <span class="string">&quot;big&quot;</span>
-               },
-               <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">link_offset</span> {
-                   <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;link_size: {} bytes, link_offset: {:#x}&quot;</span>,
-                           <span class="self">self</span>.<span class="ident">link_size</span>,
-                           <span class="ident">off</span>)
-               } <span class="kw">else</span> {
-                   <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no link section&quot;</span>)
-               },
-               <span class="self">self</span>.<span class="ident">map_offset</span>,
-               <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">string_ids_offset</span> {
-                   <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;string_ids_size: {} strings, string_ids_offset: {:#x}&quot;</span>,
-                           <span class="self">self</span>.<span class="ident">string_ids_size</span>,
-                           <span class="ident">off</span>)
-               } <span class="kw">else</span> {
-                   <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no strings&quot;</span>)
-               },
-               <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">type_ids_offset</span> {
-                   <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;type_ids_size: {} types, type_ids_offset: {:#x}&quot;</span>,
-                           <span class="self">self</span>.<span class="ident">type_ids_size</span>,
-                           <span class="ident">off</span>)
-               } <span class="kw">else</span> {
-                   <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no types&quot;</span>)
-               },
-               <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prototype_ids_offset</span> {
-                   <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;prototype_ids_size: {} types, prototype_ids_offset: {:#x}&quot;</span>,
-                           <span class="self">self</span>.<span class="ident">prototype_ids_size</span>,
-                           <span class="ident">off</span>)
-               } <span class="kw">else</span> {
-                   <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no prototypes&quot;</span>)
-               },
-               <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">field_ids_offset</span> {
-                   <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;field_ids_size: {} types, field_ids_offset: {:#x}&quot;</span>,
-                           <span class="self">self</span>.<span class="ident">field_ids_size</span>,
-                           <span class="ident">off</span>)
-               } <span class="kw">else</span> {
-                   <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no fields&quot;</span>)
-               },
-               <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">method_ids_offset</span> {
-                   <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;method_ids_size: {} types, method_ids_offset: {:#x}&quot;</span>,
-                           <span class="self">self</span>.<span class="ident">method_ids_size</span>,
-                           <span class="ident">off</span>)
-               } <span class="kw">else</span> {
-                   <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no methods&quot;</span>)
-               },
-               <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">class_defs_offset</span> {
-                   <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;class_defs_size: {} classes, class_defs_offset: {:#x}&quot;</span>,
-                           <span class="self">self</span>.<span class="ident">class_defs_size</span>,
-                           <span class="ident">off</span>)
-               } <span class="kw">else</span> {
-                   <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no classes&quot;</span>)
-               },
-               <span class="self">self</span>.<span class="ident">data_size</span>,
-               <span class="self">self</span>.<span class="ident">data_offset</span>)
+        <span class="macro">write</span><span class="macro">!</span>(
+            <span class="ident">f</span>,
+            <span class="string">&quot;Header {{ magic: [ {} ] (version: {}), checksum: {:#x}, SHA-1 signature: {}, \
+             file_size: {} bytes, header_size: {} bytes, endian_tag: {:#x} ({} endian), {}, \
+             map_offset: {:#x}, {}, {}, {}, {}, {}, {}, data_size: {} bytes, data_offset: \
+             {:#x} }}&quot;</span>,
+            {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">magic_vec</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">8</span>);
+                <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">magic</span> {
+                    <span class="ident">magic_vec</span>.<span class="ident">push</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#02x}&quot;</span>, <span class="ident">b</span>))
+                }
+                <span class="ident">magic_vec</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
+            },
+            <span class="self">self</span>.<span class="ident">get_dex_version</span>(),
+            <span class="self">self</span>.<span class="ident">checksum</span>,
+            {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">with_capacity</span>(<span class="number">40</span>);
+                <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signature</span> {
+                    <span class="ident">signature</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:02x}&quot;</span>, <span class="ident">b</span>))
+                }
+                <span class="ident">signature</span>
+            },
+            <span class="self">self</span>.<span class="ident">file_size</span>,
+            <span class="self">self</span>.<span class="ident">header_size</span>,
+            <span class="self">self</span>.<span class="ident">endian_tag</span>,
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_little_endian</span>() {
+                <span class="string">&quot;little&quot;</span>
+            } <span class="kw">else</span> {
+                <span class="string">&quot;big&quot;</span>
+            },
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">link_offset</span> {
+                <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;link_size: {} bytes, link_offset: {:#x}&quot;</span>,
+                    <span class="self">self</span>.<span class="ident">link_size</span>, <span class="ident">off</span>
+                )
+            } <span class="kw">else</span> {
+                <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no link section&quot;</span>)
+            },
+            <span class="self">self</span>.<span class="ident">map_offset</span>,
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">string_ids_offset</span> {
+                <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;string_ids_size: {} strings, string_ids_offset: {:#x}&quot;</span>,
+                    <span class="self">self</span>.<span class="ident">string_ids_size</span>, <span class="ident">off</span>
+                )
+            } <span class="kw">else</span> {
+                <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no strings&quot;</span>)
+            },
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">type_ids_offset</span> {
+                <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;type_ids_size: {} types, type_ids_offset: {:#x}&quot;</span>,
+                    <span class="self">self</span>.<span class="ident">type_ids_size</span>, <span class="ident">off</span>
+                )
+            } <span class="kw">else</span> {
+                <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no types&quot;</span>)
+            },
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prototype_ids_offset</span> {
+                <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;prototype_ids_size: {} types, prototype_ids_offset: {:#x}&quot;</span>,
+                    <span class="self">self</span>.<span class="ident">prototype_ids_size</span>, <span class="ident">off</span>
+                )
+            } <span class="kw">else</span> {
+                <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no prototypes&quot;</span>)
+            },
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">field_ids_offset</span> {
+                <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;field_ids_size: {} types, field_ids_offset: {:#x}&quot;</span>,
+                    <span class="self">self</span>.<span class="ident">field_ids_size</span>, <span class="ident">off</span>
+                )
+            } <span class="kw">else</span> {
+                <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no fields&quot;</span>)
+            },
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">method_ids_offset</span> {
+                <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;method_ids_size: {} types, method_ids_offset: {:#x}&quot;</span>,
+                    <span class="self">self</span>.<span class="ident">method_ids_size</span>, <span class="ident">off</span>
+                )
+            } <span class="kw">else</span> {
+                <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no methods&quot;</span>)
+            },
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">off</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">class_defs_offset</span> {
+                <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;class_defs_size: {} classes, class_defs_offset: {:#x}&quot;</span>,
+                    <span class="self">self</span>.<span class="ident">class_defs_size</span>, <span class="ident">off</span>
+                )
+            } <span class="kw">else</span> {
+                <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;no classes&quot;</span>)
+            },
+            <span class="self">self</span>.<span class="ident">data_size</span>,
+            <span class="self">self</span>.<span class="ident">data_offset</span>
+        )
     }
 }
 </pre>
-</section>
-    <section id='search' class="content hidden"></section>
-
-    <section class="footer"></section>
-
-    <aside id="help" class="hidden">
-        <div>
-            <h1 class="hidden">Help</h1>
-
-            <div class="shortcuts">
-                <h2>Keyboard Shortcuts</h2>
-
-                <dl>
-                    <dt>?</dt>
-                    <dd>Show this help dialog</dd>
-                    <dt>S</dt>
-                    <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
-                    <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
-                    <dd>Move down in search results</dd>
-                    <dt>&#9166;</dt>
-                    <dd>Go to active search result</dd>
-                    <dt>+</dt>
-                    <dd>Collapse/expand all sections</dd>
-                </dl>
-            </div>
-
-            <div class="infos">
-                <h2>Search Tricks</h2>
-
-                <p>
-                    Prefix searches with a type followed by a colon (e.g.
-                    <code>fn:</code>) to restrict the search to a given type.
-                </p>
-
-                <p>
-                    Accepted types are: <code>fn</code>, <code>mod</code>,
-                    <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>type</code>, <code>macro</code>,
-                    and <code>const</code>.
-                </p>
-
-                <p>
-                    Search functions by type signature (e.g.
-                    <code>vec -> usize</code> or <code>* -> vec</code>)
-                </p>
-            </div>
-        </div>
-    </aside>
-
-    
-
-    <script>
-        window.rootPath = "../../";
-        window.currentCrate = "dalvik";
-    </script>
-    <script src="../../jquery.js"></script>
-    <script src="../../main.js"></script>
-    <script defer src="../../search-index.js"></script>
-</body>
-</html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "dalvik";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>
