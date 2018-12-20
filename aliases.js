@@ -5,7 +5,6 @@ ALIASES['bitflags'] = {};
 ALIASES['byteorder'] = {};
 ALIASES['cfg_if'] = {};
 ALIASES['dalvik'] = {};
-ALIASES['dalvik'] = {};
 ALIASES['failure'] = {};
 ALIASES['failure_derive'] = {};
 ALIASES['libc'] = {};
