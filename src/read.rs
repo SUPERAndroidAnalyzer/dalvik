@@ -472,7 +472,7 @@ impl DexReader {
     {
         let current_offset = self.file_cursor.position();
         let size = self.file_cursor.read_u32::<B>().context(format_err!(
-            "error reading anotation set size at offset {:#010x}",
+            "error reading annotation set size at offset {:#010x}",
             current_offset
         ))?;
         let mut annotation_set = Vec::with_capacity(size as usize);
@@ -480,7 +480,7 @@ impl DexReader {
         for _ in 0..size {
             let current_offset = self.file_cursor.position();
             let annotation_offset = self.file_cursor.read_u32::<B>().context(format_err!(
-                "error reading anotation offset at offset {:#010x}",
+                "error reading annotation offset at offset {:#010x}",
                 current_offset
             ))?;
             let current_offset = self.file_cursor.position();
@@ -547,8 +547,8 @@ impl DexReader {
     //
     //     for _ in 0..size {
     //         let annotation_set_offset = self.reader.read_u32::<E>().context(format_err!(
-    //             "could not read annotation set offset for an anotation set in the anotation set \
-    //              list at offset {:#010x}",
+    //             "could not read annotation set offset for an annotation set in the annotation \
+    //              set list at offset {:#010x}",
     //             self.current_offset
     //         ))?;
     //         self.offset_map

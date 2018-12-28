@@ -24,9 +24,6 @@
     clippy::cast_possible_wrap
 )]
 
-#[macro_use]
-extern crate failure_derive;
-
 use std::{
     fs,
     io::{prelude::BufRead, BufReader},

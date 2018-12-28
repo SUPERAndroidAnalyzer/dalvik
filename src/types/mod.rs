@@ -274,7 +274,7 @@ pub enum Value {
     Field(u32),
     /// Method with the index into the prototype IDs list.
     Method(u32),
-    /// Enum with the index into the fiels IDs list.
+    /// Enum with the index into the fields IDs list.
     Enum(u32),
     /// An array of values.
     Array(Array),
@@ -519,7 +519,7 @@ bitflags! {
         const ACC_ABSTRACT = 0x400;
         /// Strict.
         const ACC_STRICT = 0x800;
-        /// Syntetic.
+        /// Synthetic.
         const ACC_SYNTHETIC = 0x1000;
         /// Annotation.
         const ACC_ANNOTATION = 0x2000;

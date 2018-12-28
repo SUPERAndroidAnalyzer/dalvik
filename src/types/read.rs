@@ -30,7 +30,7 @@ impl PrototypeIdData {
     {
         let shorty_index = reader
             .read_u32::<B>()
-            .context("could not read the sorty_index field")?;
+            .context("could not read the shorty_index field")?;
         let return_type_index = reader
             .read_u32::<B>()
             .context("could not read the return_type_index field")?;
@@ -714,8 +714,8 @@ impl ParameterAnnotationsOffset {
     }
 }
 
+/// Offsets of the annotations in the annotations directory.
 #[derive(Debug)]
-/// Ofsets of the annotations in the annotations directory.
 pub struct AnnotationsDirectoryOffsets {
     class_annotations_offset: Option<u32>,
     field_annotations: Box<[FieldAnnotationsOffset]>,

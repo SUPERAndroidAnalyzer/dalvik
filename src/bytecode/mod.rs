@@ -675,8 +675,9 @@ impl ToString for ByteCode {
     }
 }
 
-/// Implementations of the distinct bytecodes data layouts
-/// It will read from the source and return the data destructured
+/// Implementations of the distinct bytecodes data layouts.
+///
+/// It will read from the source and return the data de-structured.
 #[derive(Debug)]
 pub struct ByteCodeDecoder<R: Read + Debug, B: ByteOrder = LittleEndian> {
     cursor: R,
@@ -1097,8 +1098,8 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
             Ok(op @ 0x90...0xaf) => self.format23x().ok().map(|(dest, src1, src2)| {
                 ByteCode::Binary(BinaryOperation::from(op), dest, src1, src2)
             }),
-            Ok(op @ 0xb0...0xcf) => self.format12x().ok().map(|(srcdest, src)| {
-                ByteCode::Binary2Addr(BinaryOperation::from(op), srcdest, src)
+            Ok(op @ 0xb0...0xcf) => self.format12x().ok().map(|(src_dest, src)| {
+                ByteCode::Binary2Addr(BinaryOperation::from(op), src_dest, src)
             }),
             Ok(op @ 0xd0...0xd7) => self.format22s().ok().map(|(dest, src, literal)| {
                 ByteCode::BinaryLit16(BinaryOperation::from(op), dest, src, literal)
@@ -1895,7 +1896,7 @@ mod tests {
         assert_eq!("shr-int/2addr v15, v2", opcode.to_string());
         assert!(matches!(
             opcode,
-            ByteCode::Binary2Addr(_, destsrc, src) if destsrc == 15 &&  src == 2));
+            ByteCode::Binary2Addr(_, dest_src, src) if dest_src == 15 &&  src == 2));
     }
 
     #[test]

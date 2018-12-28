@@ -23,7 +23,7 @@ pub const ENDIAN_CONSTANT: u32 = 0x12_34_56_78;
 /// Endianness constant representing big endian file.
 pub const REVERSE_ENDIAN_CONSTANT: u32 = 0x78_56_34_12;
 
-/// Dex header representantion structure.
+/// Dex header representation structure.
 #[derive(Clone, Copy)]
 pub struct Header {
     magic: [u8; 8],
@@ -590,7 +590,7 @@ impl Header {
         self.data_size
     }
 
-    /// Gets the data secrion offset.
+    /// Gets the data section offset.
     pub fn get_data_offset(&self) -> u32 {
         self.data_offset
     }

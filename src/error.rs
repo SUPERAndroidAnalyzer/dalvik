@@ -2,6 +2,8 @@
 
 use std::fmt;
 
+use failure::Fail;
+
 use crate::sizes::HEADER_SIZE;
 
 /// Invalid file size.
@@ -24,7 +26,7 @@ impl fmt::Display for InvalidFileSize {
     }
 }
 
-/// Errors comming from header parsing.
+/// Errors coming from header parsing.
 #[derive(Debug, Fail)]
 pub enum Header {
     /// Incorrect dex magic number.
@@ -134,7 +136,7 @@ pub enum Parse {
         index: u32,
     },
 
-    /// Invalid type decriptor.
+    /// Invalid type descriptor.
     #[fail(display = "invalid type descriptor: `{}`", descriptor)]
     InvalidTypeDescriptor {
         /// The invalid descriptor found in the file.
@@ -148,7 +150,7 @@ pub enum Parse {
         shorty_type: char,
     },
 
-    /// Invalid shorty decriptor.
+    /// Invalid shorty descriptor.
     #[fail(display = "invalid shorty descriptor: `{}`", descriptor)]
     InvalidShortyDescriptor {
         /// The invalid descriptor found in the file.
