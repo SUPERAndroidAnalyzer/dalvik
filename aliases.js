@@ -1,10 +1,14 @@
 var ALIASES = {};
 ALIASES['backtrace'] = {};
+ALIASES['backtrace'] = {};
+ALIASES['backtrace_sys'] = {};
 ALIASES['backtrace_sys'] = {};
 ALIASES['bitflags'] = {};
 ALIASES['byteorder'] = {};
 ALIASES['cfg_if'] = {};
 ALIASES['dalvik'] = {};
+ALIASES['dalvik'] = {};
+ALIASES['failure'] = {};
 ALIASES['failure'] = {};
 ALIASES['failure_derive'] = {};
 ALIASES['libc'] = {};

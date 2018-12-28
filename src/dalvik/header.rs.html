@@ -728,7 +728,7 @@
 <span class="doccomment">/// Endianness constant representing big endian file.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REVERSE_ENDIAN_CONSTANT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x78_56_34_12</span>;
 
-<span class="doccomment">/// Dex header representantion structure.</span>
+<span class="doccomment">/// Dex header representation structure.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Header</span> {
     <span class="ident">magic</span>: [<span class="ident">u8</span>; <span class="number">8</span>],
@@ -1295,7 +1295,7 @@
         <span class="self">self</span>.<span class="ident">data_size</span>
     }
 
-    <span class="doccomment">/// Gets the data secrion offset.</span>
+    <span class="doccomment">/// Gets the data section offset.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_data_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
         <span class="self">self</span>.<span class="ident">data_offset</span>
     }

@@ -206,10 +206,14 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Errors module</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+
+<span class="kw">use</span> <span class="ident">failure</span>::<span class="ident">Fail</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">sizes</span>::<span class="ident">HEADER_SIZE</span>;
 
@@ -233,7 +237,7 @@
     }
 }
 
-<span class="doccomment">/// Errors comming from header parsing.</span>
+<span class="doccomment">/// Errors coming from header parsing.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Fail</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Header</span> {
     <span class="doccomment">/// Incorrect dex magic number.</span>
@@ -343,7 +347,7 @@
         <span class="ident">index</span>: <span class="ident">u32</span>,
     },
 
-    <span class="doccomment">/// Invalid type decriptor.</span>
+    <span class="doccomment">/// Invalid type descriptor.</span>
     <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;invalid type descriptor: `{}`&quot;</span>, <span class="ident">descriptor</span>)]</span>
     <span class="ident">InvalidTypeDescriptor</span> {
         <span class="doccomment">/// The invalid descriptor found in the file.</span>
@@ -357,7 +361,7 @@
         <span class="ident">shorty_type</span>: <span class="ident">char</span>,
     },
 
-    <span class="doccomment">/// Invalid shorty decriptor.</span>
+    <span class="doccomment">/// Invalid shorty descriptor.</span>
     <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;invalid shorty descriptor: `{}`&quot;</span>, <span class="ident">descriptor</span>)]</span>
     <span class="ident">InvalidShortyDescriptor</span> {
         <span class="doccomment">/// The invalid descriptor found in the file.</span>
