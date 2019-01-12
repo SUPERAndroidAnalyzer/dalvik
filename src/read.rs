@@ -352,8 +352,7 @@ impl DexReader {
             let interfaces = if let Some(offset) = class_def.interfaces_offset() {
                 self.file_cursor.set_position(u64::from(offset));
                 self.read_type_list::<B>().context(format_err!(
-                    "could not read interfaces list at offset {:#010x} for class at offset \
-                     {:#010x}",
+                    "could not read interfaces list at offset {:#010x} for class at offset {:#010x}",
                     offset,
                     class_offset
                 ))?
@@ -364,8 +363,7 @@ impl DexReader {
             let annotations = if let Some(offset) = class_def.annotations_offset() {
                 self.file_cursor.set_position(u64::from(offset));
                 Some(self.read_annotations_directory::<B>().context(format_err!(
-                    "could not read annotation list at offset {:#010x} for class at offset \
-                     {:#010x}",
+                    "could not read annotation list at offset {:#010x} for class at offset {:#010x}",
                     offset,
                     class_offset
                 ))?)
@@ -376,8 +374,7 @@ impl DexReader {
                 self.file_cursor.set_position(u64::from(offset));
                 Some(
                     ClassData::from_reader(&mut self.file_cursor).context(format_err!(
-                        "could not read class data at offset {:#010x} for class at offset \
-                         {:#010x}",
+                        "could not read class data at offset {:#010x} for class at offset {:#010x}",
                         offset,
                         class_offset
                     ))?,
@@ -618,15 +615,37 @@ where
     Ok((result, read as u32))
 }
 
+/// U32p1 definition.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum U32p1 {
+    MinusOne,
+    U32(u32),
+}
+
+impl Into<Option<u32>> for U32p1 {
+    fn into(self) -> Option<u32> {
+        if let U32p1::U32(n) = self {
+            Some(n)
+        } else {
+            None
+        }
+    }
+}
+
 /// Reads a uleb128p1 from a reader.
 ///
 /// Returns the u32 represented by the uleb128p1 and the number of bytes read.
-pub fn read_uleb128p1<R>(reader: &mut R) -> Result<(u32, u32), Error>
+pub fn read_uleb128p1<R>(reader: &mut R) -> Result<(U32p1, u32), Error>
 where
     R: Read,
 {
     let (uleb128, read) = read_uleb128(reader)?;
-    Ok((uleb128.wrapping_sub(1), read))
+    let res = if uleb128 == 0 {
+        U32p1::MinusOne
+    } else {
+        U32p1::U32(uleb128.wrapping_sub(1))
+    };
+    Ok((res, read))
 }
 
 /// Reads a sleb128 from a reader.
@@ -640,9 +659,63 @@ where
     let s_bits = read * 7;
     let mut signed = uleb128 as i32;
 
-    if (signed & 1 << s_bits) != 0 {
-        signed |= -1 << s_bits;
+    if (signed & (1 << (s_bits - 1))) != 0 {
+        signed |= -1 << s_bits; // Sign extension
     }
 
     Ok((signed, read))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{read_sleb128, read_uleb128, read_uleb128p1, U32p1};
+    use std::io::Cursor;
+
+    #[test]
+    fn ut_sleb128() {
+        assert_eq!(read_sleb128(&mut Cursor::new(&[0x00_u8])).unwrap().0, 0);
+        assert_eq!(read_sleb128(&mut Cursor::new(&[0x01_u8])).unwrap().0, 1);
+        assert_eq!(read_sleb128(&mut Cursor::new(&[0x7f_u8])).unwrap().0, -1);
+        assert_eq!(
+            read_sleb128(&mut Cursor::new(&[0x80_u8, 0x7f_u8]))
+                .unwrap()
+                .0,
+            -128
+        );
+    }
+
+    #[test]
+    fn ut_uleb128() {
+        assert_eq!(read_uleb128(&mut Cursor::new(&[0x00_u8])).unwrap().0, 0);
+        assert_eq!(read_uleb128(&mut Cursor::new(&[0x01_u8])).unwrap().0, 1);
+        assert_eq!(read_uleb128(&mut Cursor::new(&[0x7f_u8])).unwrap().0, 127);
+        assert_eq!(
+            read_uleb128(&mut Cursor::new(&[0x80_u8, 0x7f_u8]))
+                .unwrap()
+                .0,
+            16256
+        );
+    }
+
+    #[test]
+    fn ut_uleb128p1() {
+        assert_eq!(
+            read_uleb128p1(&mut Cursor::new(&[0x00_u8])).unwrap().0,
+            U32p1::MinusOne
+        );
+        assert_eq!(
+            read_uleb128p1(&mut Cursor::new(&[0x01_u8])).unwrap().0,
+            U32p1::U32(0)
+        );
+        assert_eq!(
+            read_uleb128p1(&mut Cursor::new(&[0x7f_u8])).unwrap().0,
+            U32p1::U32(126)
+        );
+        assert_eq!(
+            read_uleb128p1(&mut Cursor::new(&[0x80_u8, 0x7f_u8]))
+                .unwrap()
+                .0,
+            U32p1::U32(16255)
+        );
+    }
 }

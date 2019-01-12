@@ -7,9 +7,7 @@ license = "MIT/Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/SUPERAndroidAnalyzer/dalvik"
 documentation = "http://superanalyzer.rocks/dalvik"
-description = """
-Dalvik parser in pure Rust.
-"""
+description = "Dalvik parser in pure Rust."
 keywords = ["dalvik", "parser", "android", "dex"]
 categories = ["parser-implementations"]
 
@@ -23,7 +21,7 @@ maintenance = { status = "experimental" }
 [dependencies]
 byteorder = "1.2.7"
 bitflags = "1.0.4"
-failure = { version = "0.1.5", features = ["derive"] }
+failure = "0.1.5"
 
 [dev-dependencies]
 matches = "0.1.8"

@@ -972,7 +972,7 @@ impl ClassData {
 #[derive(Debug)]
 pub struct DebugInfo {
     line_start: u32,
-    parameter_names: Vec<u32>,
+    parameter_names: Vec<Option<u32>>,
     bytecode: DebugBytecode,
 }
 
@@ -993,7 +993,7 @@ impl DebugInfo {
             let (name_index, read_i) =
                 read_uleb128p1(reader).context("could not read parameter name index")?;
             read += read_i;
-            parameter_names.push(name_index);
+            parameter_names.push(name_index.into());
         }
 
         let (bytecode, read_b) =
@@ -1017,7 +1017,7 @@ impl DebugInfo {
 
     /// Gets the list of IDs of parameter names affected by the debug information structure in the
     /// string list.
-    pub fn parameter_names(&self) -> &[u32] {
+    pub fn parameter_names(&self) -> &[Option<u32>] {
         &self.parameter_names
     }
 }
@@ -1062,14 +1062,14 @@ enum DebugInstruction {
     },
     StartLocal {
         register_num: u32,
-        name_id: u32,
-        type_id: u32,
+        name_id: Option<u32>,
+        type_id: Option<u32>,
     },
     StartLocalExtended {
         register_num: u32,
-        name_id: u32,
-        type_id: u32,
-        sig_id: u32,
+        name_id: Option<u32>,
+        type_id: Option<u32>,
+        sig_id: Option<u32>,
     },
     EndLocal {
         register_num: u32,
@@ -1124,8 +1124,8 @@ impl DebugInstruction {
 
                 DebugInstruction::StartLocal {
                     register_num,
-                    name_id,
-                    type_id,
+                    name_id: name_id.into(),
+                    type_id: type_id.into(),
                 }
             }
             0x04_u8 => {
@@ -1145,9 +1145,9 @@ impl DebugInstruction {
 
                 DebugInstruction::StartLocalExtended {
                     register_num,
-                    name_id,
-                    type_id,
-                    sig_id,
+                    name_id: name_id.into(),
+                    type_id: type_id.into(),
+                    sig_id: sig_id.into(),
                 }
             }
             0x05_u8 => {
