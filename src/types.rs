@@ -79,7 +79,7 @@ impl FromStr for Type {
                         None => {
                             return Err(error::Parse::InvalidTypeDescriptor {
                                 descriptor: s.to_owned(),
-                            })
+                            });
                         }
                     }
                 }
