@@ -24,39 +24,39 @@ pub struct DexReader {
     /// Reader to use to read data.
     ///
     /// Header must already be read before creating the object.
-    file_cursor: Cursor<Box<[u8]>>,
+    pub(crate) file_cursor: Cursor<Box<[u8]>>,
     /// Header of the dex file.
-    header: Header,
+    pub(crate) header: Header,
     /// String list.
-    strings: Vec<String>,
+    pub(crate) strings: Vec<String>,
     /// Type list.
-    types: Vec<Type>,
+    pub(crate) types: Vec<Type>,
     /// Prototype ID list.
-    prototypes: Vec<Prototype>,
+    pub(crate) prototypes: Vec<Prototype>,
     /// Field ID list.
     ///
     /// This list creates 1:1 relations between field indexes and field information offsets in the
     /// dex file.
-    field_ids: Vec<FieldIdData>,
+    pub(crate) field_ids: Vec<FieldIdData>,
     /// Method ID list.
-    method_ids: Vec<MethodIdData>,
+    pub(crate) method_ids: Vec<MethodIdData>,
     /// List of classes.
-    classes: Vec<Class>,
+    pub(crate) classes: Vec<Class>,
 
     /// List of lists of references to annotation set offsets.
-    annotation_set_ref_list: Vec<Box<[u32]>>,
+    pub(crate) annotation_set_ref_list: Vec<Box<[u32]>>,
     /// Set of annotations.
-    annotation_sets: Vec<Box<[u32]>>,
+    pub(crate) annotation_sets: Vec<Box<[u32]>>,
     /// Code segment list.
-    code_segments: Vec<(u32, CodeItem)>,
+    pub(crate) code_segments: Vec<(u32, CodeItem)>,
     /// Debug information list.
-    debug_info: Vec<(u32, DebugInfo)>,
+    pub(crate) debug_info: Vec<(u32, DebugInfo)>,
     // /// Annotation list.
     // annotations: Vec<(u32, AnnotationItem)>,
     /// Array list.
-    arrays: Vec<(u32, Array)>,
+    pub(crate) arrays: Vec<(u32, Array)>,
     /// Annotations directories.
-    annotations_directories: Vec<(u32, AnnotationsDirectory)>,
+    pub(crate) annotations_directories: Vec<(u32, AnnotationsDirectory)>,
 }
 
 impl DexReader {
@@ -172,8 +172,7 @@ impl DexReader {
 
     /// Reads an actual string.
     fn read_string(&mut self) -> Result<String, Error> {
-        let (size, _) =
-            read_uleb128(&mut self.file_cursor).context("could not read string size")?;
+        let (size, _) = uleb128(&mut self.file_cursor).context("could not read string size")?;
         let mut data = Vec::with_capacity(size as usize);
         if size > 0 {
             let _ = self.file_cursor.read_until(0, &mut data)?;
@@ -593,7 +592,7 @@ impl DexReader {
 /// Reads a uleb128 from a reader.
 ///
 /// Returns the u32 represented by the uleb128 and the number of bytes read.
-pub fn read_uleb128<R>(reader: &mut R) -> Result<(u32, u32), Error>
+pub fn uleb128<R>(reader: &mut R) -> Result<(u32, u32), Error>
 where
     R: Read,
 {
@@ -635,11 +634,11 @@ impl Into<Option<u32>> for U32p1 {
 /// Reads a uleb128p1 from a reader.
 ///
 /// Returns the u32 represented by the uleb128p1 and the number of bytes read.
-pub fn read_uleb128p1<R>(reader: &mut R) -> Result<(U32p1, u32), Error>
+pub fn uleb128p1<R>(reader: &mut R) -> Result<(U32p1, u32), Error>
 where
     R: Read,
 {
-    let (uleb128, read) = read_uleb128(reader)?;
+    let (uleb128, read) = uleb128(reader)?;
     let res = if uleb128 == 0 {
         U32p1::MinusOne
     } else {
@@ -651,11 +650,11 @@ where
 /// Reads a sleb128 from a reader.
 ///
 /// Returns the i32 represented by the sleb128 and the number of bytes read.
-pub fn read_sleb128<R>(reader: &mut R) -> Result<(i32, u32), Error>
+pub fn sleb128<R>(reader: &mut R) -> Result<(i32, u32), Error>
 where
     R: Read,
 {
-    let (uleb128, read) = read_uleb128(reader)?;
+    let (uleb128, read) = uleb128(reader)?;
     let s_bits = read * 7;
     let mut signed = uleb128 as i32;
 
@@ -668,31 +667,27 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{read_sleb128, read_uleb128, read_uleb128p1, U32p1};
+    use super::{sleb128, uleb128, uleb128p1, U32p1};
     use std::io::Cursor;
 
     #[test]
     fn ut_sleb128() {
-        assert_eq!(read_sleb128(&mut Cursor::new(&[0x00_u8])).unwrap().0, 0);
-        assert_eq!(read_sleb128(&mut Cursor::new(&[0x01_u8])).unwrap().0, 1);
-        assert_eq!(read_sleb128(&mut Cursor::new(&[0x7f_u8])).unwrap().0, -1);
+        assert_eq!(sleb128(&mut Cursor::new(&[0x00_u8])).unwrap().0, 0);
+        assert_eq!(sleb128(&mut Cursor::new(&[0x01_u8])).unwrap().0, 1);
+        assert_eq!(sleb128(&mut Cursor::new(&[0x7f_u8])).unwrap().0, -1);
         assert_eq!(
-            read_sleb128(&mut Cursor::new(&[0x80_u8, 0x7f_u8]))
-                .unwrap()
-                .0,
+            sleb128(&mut Cursor::new(&[0x80_u8, 0x7f_u8])).unwrap().0,
             -128
         );
     }
 
     #[test]
     fn ut_uleb128() {
-        assert_eq!(read_uleb128(&mut Cursor::new(&[0x00_u8])).unwrap().0, 0);
-        assert_eq!(read_uleb128(&mut Cursor::new(&[0x01_u8])).unwrap().0, 1);
-        assert_eq!(read_uleb128(&mut Cursor::new(&[0x7f_u8])).unwrap().0, 127);
+        assert_eq!(uleb128(&mut Cursor::new(&[0x00_u8])).unwrap().0, 0);
+        assert_eq!(uleb128(&mut Cursor::new(&[0x01_u8])).unwrap().0, 1);
+        assert_eq!(uleb128(&mut Cursor::new(&[0x7f_u8])).unwrap().0, 127);
         assert_eq!(
-            read_uleb128(&mut Cursor::new(&[0x80_u8, 0x7f_u8]))
-                .unwrap()
-                .0,
+            uleb128(&mut Cursor::new(&[0x80_u8, 0x7f_u8])).unwrap().0,
             16256
         );
     }
@@ -700,21 +695,19 @@ mod tests {
     #[test]
     fn ut_uleb128p1() {
         assert_eq!(
-            read_uleb128p1(&mut Cursor::new(&[0x00_u8])).unwrap().0,
+            uleb128p1(&mut Cursor::new(&[0x00_u8])).unwrap().0,
             U32p1::MinusOne
         );
         assert_eq!(
-            read_uleb128p1(&mut Cursor::new(&[0x01_u8])).unwrap().0,
+            uleb128p1(&mut Cursor::new(&[0x01_u8])).unwrap().0,
             U32p1::U32(0)
         );
         assert_eq!(
-            read_uleb128p1(&mut Cursor::new(&[0x7f_u8])).unwrap().0,
+            uleb128p1(&mut Cursor::new(&[0x7f_u8])).unwrap().0,
             U32p1::U32(126)
         );
         assert_eq!(
-            read_uleb128p1(&mut Cursor::new(&[0x80_u8, 0x7f_u8]))
-                .unwrap()
-                .0,
+            uleb128p1(&mut Cursor::new(&[0x80_u8, 0x7f_u8])).unwrap().0,
             U32p1::U32(16255)
         );
     }

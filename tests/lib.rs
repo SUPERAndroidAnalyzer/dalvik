@@ -50,7 +50,7 @@ fn it_header_read() {
 // }
 
 #[test]
-#[should_panic]
+// #[should_panic]
 fn it_file_read() {
     dalvik::Dex::from_file("test.dex").unwrap();
 }
