@@ -91,6 +91,27 @@ impl FromStr for Type {
     }
 }
 
+impl Display for Type {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            Type::Void => write!(f, "void"),
+            Type::Boolean => write!(f, "boolean"),
+            Type::Byte => write!(f, "byte"),
+            Type::Short => write!(f, "short"),
+            Type::Char => write!(f, "char"),
+            Type::Int => write!(f, "int"),
+            Type::Long => write!(f, "long"),
+            Type::Float => write!(f, "float"),
+            Type::Double => write!(f, "double"),
+            Type::FullyQualifiedName(name) => write!(f, "{}", name),
+            Type::Array {
+                dimensions,
+                array_type,
+            } => write!(f, "{}[{}]", array_type, dimensions),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 enum ShortyReturnType {
     Void,
@@ -250,7 +271,7 @@ pub enum Visibility {
 }
 
 /// Value of a variable.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Value {
     /// Byte.
     Byte(i8),
@@ -287,13 +308,13 @@ pub enum Value {
 }
 
 /// Array.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Array {
     inner: Box<[Value]>,
 }
 
 /// Annotation element.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AnnotationElement {
     name: u32,
     value: Value,
@@ -315,7 +336,7 @@ impl Deref for AnnotationElement {
 }
 
 /// Annotation.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EncodedAnnotation {
     type_id: u32,
     elements: Box<[AnnotationElement]>,
@@ -334,7 +355,7 @@ impl EncodedAnnotation {
 }
 
 /// Annotation item
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Annotation {
     visibility: Visibility,
     annotation: EncodedAnnotation,
@@ -356,7 +377,7 @@ impl Deref for Annotation {
 }
 
 /// Annotations directory.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AnnotationsDirectory {
     class_annotations: Box<[Annotation]>,
     field_annotations: Box<[FieldAnnotations]>,
@@ -408,7 +429,7 @@ impl AnnotationsDirectory {
 }
 
 /// Field annotations.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FieldAnnotations {
     field_id: u32,
     annotations: Box<[Annotation]>,
@@ -435,7 +456,7 @@ impl FieldAnnotations {
 }
 
 /// Method annotations.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MethodAnnotations {
     method_id: u32,
     annotations: Box<[Annotation]>,
@@ -462,7 +483,7 @@ impl MethodAnnotations {
 }
 
 /// Parameter annotations.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ParameterAnnotations {
     method_id: u32,
     annotations: Box<[Annotation]>,
@@ -580,12 +601,12 @@ impl Display for AccessFlags {
             out.push_str("native ");
         }
 
-        if self.contains(Self::ACC_INTERFACE) {
-            out.push_str("interface ");
-        }
-
         if self.contains(Self::ACC_ABSTRACT) {
             out.push_str("abstract ");
+        }
+
+        if self.contains(Self::ACC_INTERFACE) {
+            out.push_str("@interface ");
         }
 
         if self.contains(Self::ACC_STRICT) {
@@ -596,9 +617,9 @@ impl Display for AccessFlags {
             out.push_str("synthetic ");
         }
 
-        if self.contains(Self::ACC_ANNOTATION) {
-            out.push_str("annotation ");
-        }
+        // if self.contains(Self::ACC_ANNOTATION) {
+        //     out.push_str("annotation ");
+        // }
 
         if self.contains(Self::ACC_ENUM) {
             out.push_str("enum ");
@@ -705,6 +726,15 @@ mod test {
     use super::AccessFlags;
 
     #[test]
+    fn it_can_display_access() {
+        let access = AccessFlags::ACC_PUBLIC;
+
+        let display = format!("{}", access);
+
+        assert_eq!("public", display);
+    }
+
+    #[test]
     fn it_can_display_mixed_access_bitflags() {
         let access = AccessFlags::ACC_PUBLIC | AccessFlags::ACC_DECLARED_SYNCHRONIZED;
 
@@ -721,5 +751,17 @@ mod test {
         let display = format!("{}", access);
 
         assert_eq!("protected static abstract", display);
+    }
+
+    #[test]
+    fn it_can_display_mixed_access_bitflags_public_interface_abstract_annotation() {
+        let access = AccessFlags::ACC_PUBLIC
+            | AccessFlags::ACC_INTERFACE
+            | AccessFlags::ACC_ABSTRACT
+            | AccessFlags::ACC_ANNOTATION;
+
+        let display = format!("{}", access);
+
+        assert_eq!("public abstract interface", display);
     }
 }

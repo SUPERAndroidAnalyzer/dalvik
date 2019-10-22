@@ -18,7 +18,7 @@
 #![warn(clippy::pedantic)]
 // Allowing these for now.
 #![allow(
-    clippy::stutter,
+    clippy::module_name_repetitions,
     clippy::similar_names,
     clippy::cast_possible_truncation,
     clippy::cast_possible_wrap
@@ -42,14 +42,18 @@ mod read;
 mod sizes;
 
 pub use crate::header::Header;
-use crate::{read::DexReader, sizes::HEADER_SIZE};
+use crate::{
+    read::DexReader,
+    sizes::HEADER_SIZE,
+    types::{AccessFlags, Type},
+};
 
 /// Dex file representation.
 #[derive(Debug)]
 pub struct Dex {
     header: Header,
     strings: Vec<String>,
-    types: Vec<String>,
+    types: Vec<Class>,
 }
 
 impl Dex {
@@ -82,6 +86,11 @@ impl Dex {
         Ok(dex_reader.into())
     }
 
+    /// Gets the list of types in the Dalvik information structure.
+    pub fn types(&self) -> &[Class] {
+        &self.types
+    }
+
     // /// Ads the file in the given path to the current Dex data structure.
     // pub fn add_file<P: AsRef<Path>>(path: P) -> Result<(), Error> {
     //     unimplemented!() // TODO
@@ -101,7 +110,124 @@ impl Dex {
 }
 
 impl From<DexReader> for Dex {
-    fn from(_reader: DexReader) -> Self {
-        unimplemented!()
+    fn from(reader: DexReader) -> Self {
+        let types = reader
+            .classes
+            .iter()
+            .map(|class| {
+                Class {
+                    name: match reader
+                        .types
+                        .get(class.class_index() as usize)
+                        .expect("class name not found")
+                    {
+                        Type::FullyQualifiedName(s) => s.clone(),
+                        _ => unreachable!("class name should be a fully qualified name"),
+                    },
+                    access_flags: class.access_flags(),
+                    superclass: if let Some(i) = class.superclass_index() {
+                        match reader.types.get(i as usize).expect("superclass not found") {
+                            Type::FullyQualifiedName(s) => Some(s.clone()),
+                            _ => unreachable!("superclass name should be a fully qualified name"),
+                        }
+                    } else {
+                        None
+                    },
+                    interfaces: class
+                        .interfaces()
+                        .iter()
+                        .map(|t| match t {
+                            Type::FullyQualifiedName(s) => s.clone(),
+                            _ => unreachable!("it should be a class name"),
+                        })
+                        .collect(),
+                    source_file: if let Some(i) = class.source_file_index() {
+                        Some(
+                            reader
+                                .strings
+                                .get(i as usize)
+                                .expect("source file not found")
+                                .clone(),
+                        )
+                    } else {
+                        None
+                    },
+                    // annotations: Option<AnnotationsDirectory>,
+                    // static_fields: Vec<Field>,
+                    // instance_fields: Vec<Field>,
+                    // direct_methods: Vec<Method>,
+                    // virtual_methods: Vec<Method>,
+                    // static_values: Option<Box<[Value]>>,
+                }
+            })
+            .collect();
+        //eprintln!("{:#X?}", types);
+        // unimplemented!();
+        Self {
+            header: reader.header,
+            strings: reader.strings,
+            types,
+        }
     }
+}
+
+/// Java class representation.
+#[derive(Debug, Clone)]
+pub struct Class {
+    name: String,
+    access_flags: AccessFlags,
+    superclass: Option<String>,
+    interfaces: Box<[String]>,
+    source_file: Option<String>,
+    // annotations: Option<AnnotationsDirectory>,
+    // static_fields: Vec<Field>,
+    // instance_fields: Vec<Field>,
+    // direct_methods: Vec<Method>,
+    // virtual_methods: Vec<Method>,
+    // static_values: Option<Box<[Value]>>,
+}
+
+impl Class {
+    /// Gets the name of the class.
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    /// Gets the access flags of the class.
+    pub fn access_flags(&self) -> AccessFlags {
+        self.access_flags
+    }
+
+    /// Gets the superclass of the class, if any.
+    pub fn superclass(&self) -> Option<&String> {
+        self.superclass.as_ref()
+    }
+
+    /// Gets the list of interfaces implemented by the class.
+    pub fn interfaces(&self) -> &[String] {
+        &self.interfaces
+    }
+
+    /// Gets the name of the source file where the class was implemented.
+    pub fn source_file(&self) -> Option<&String> {
+        self.source_file.as_ref()
+    }
+}
+
+/// Class field structure.
+#[derive(Debug, Clone)]
+pub struct Field {
+    access_flags: AccessFlags,
+    field_type: String,
+    name: String,
+}
+
+/// Class method structure.
+#[derive(Debug, Clone)]
+pub struct Method {
+    access_flags: AccessFlags,
+    name: String,
+    return_type: String,
+    parameters: Box<[String]>,
+    // TODO: code
 }
