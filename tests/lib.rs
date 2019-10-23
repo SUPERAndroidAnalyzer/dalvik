@@ -2,7 +2,9 @@
 
 extern crate dalvik;
 
-use std::fs;
+use std::{fs, path::Path};
+
+use dalvik::types::AccessFlags;
 
 #[test]
 fn it_header_read() {
@@ -43,16 +45,97 @@ fn it_header_read() {
     assert_eq!(0x79ff8, header.get_data_offset());
 }
 
-// #[test]
-// fn it_header_verify() {
-//     let header = dalvik::Header::from_file("test.dex").unwrap();
-//     assert!(header.verify_file("text.dex"));
-// }
+#[test]
+fn it_header_verify() {
+    let header = dalvik::Header::from_file("test.dex").unwrap();
+    assert!(header.verify_file("text.dex"));
+}
 
 #[test]
-#[should_panic]
+// #[should_panic]
 fn it_file_read() {
-    dalvik::Dex::from_file("test.dex").unwrap();
+    let dex = dalvik::Dex::from_file("test.dex").unwrap();
+    for (i, t) in dex.types().iter().enumerate() {
+        let path = Path::new(t.name());
+        let mut name = path
+            .file_name()
+            .expect("no class name :(")
+            .to_string_lossy()
+            .into_owned();
+        name.pop();
+
+        let file_str = if let Some(source) = t.source_file() {
+            format!("// file: {}\n\n", path.with_file_name(source).display())
+        } else {
+            String::new()
+        };
+
+        let mut imports = Vec::new();
+        let superclass_str = if let Some(superclass) = t.superclass() {
+            let mut superclass_full_path = superclass.clone();
+            superclass_full_path.pop();
+
+            let superclass_obj_str = Path::new(&superclass_full_path)
+                .file_name()
+                .expect("no superclass name :(")
+                .to_string_lossy()
+                .into_owned();
+
+            if superclass_obj_str == "Object" {
+                String::new()
+            } else {
+                imports.push(superclass_full_path.replace('/', "."));
+                format!(" extends {}", superclass_obj_str)
+            }
+        } else {
+            String::new()
+        };
+
+        let mut interfaces_str = if t.interfaces().is_empty() {
+            String::new()
+        } else {
+            String::from(" implements ")
+        };
+        let mut interfaces = Vec::with_capacity(t.interfaces().len());
+        for interface in t.interfaces() {
+            let mut interface_full_path = interface.clone();
+            interface_full_path.pop();
+
+            imports.push(interface_full_path.replace('/', "."));
+            interfaces.push(
+                Path::new(&interface_full_path)
+                    .file_name()
+                    .expect("no interface name :(")
+                    .to_string_lossy()
+                    .into_owned(),
+            );
+        }
+        interfaces_str.push_str(&interfaces.join(", "));
+        let mut imports_str = imports
+            .into_iter()
+            .map(|import| format!("import {};\n", import))
+            .collect::<String>();
+        imports_str.push('\n');
+
+        eprintln!(
+            "{}{}{}{} {}{}{} {{\n\t// TODO\n}}",
+            file_str,
+            imports_str,
+            t.access_flags(),
+            if t.access_flags().contains(AccessFlags::ACC_INTERFACE) {
+                ""
+            } else {
+                " class"
+            },
+            name,
+            superclass_str,
+            interfaces_str
+        );
+        if i == 5 {
+            break;
+        }
+    }
+    panic!();
 }
 
 // #[test]

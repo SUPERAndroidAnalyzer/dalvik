@@ -10,7 +10,7 @@ use super::{
 };
 use crate::{
     error,
-    read::{read_sleb128, read_uleb128, read_uleb128p1},
+    read::{sleb128, uleb128, uleb128p1},
 };
 
 /// Data structure representing the `proto_id_item` type.
@@ -602,7 +602,7 @@ impl Array {
     where
         R: Read,
     {
-        let (size, _) = read_uleb128(reader).context("could not read array size")?;
+        let (size, _) = uleb128(reader).context("could not read array size")?;
         let mut array = Vec::with_capacity(size as usize);
         for _ in 0..size {
             let value = Value::from_reader(reader).context("could not read value")?;
@@ -621,11 +621,11 @@ impl EncodedAnnotation {
     where
         R: Read,
     {
-        let (type_id, _) = read_uleb128(reader).context("could not read type ID")?;
-        let (size, _) = read_uleb128(reader).context("could not read size")?;
+        let (type_id, _) = uleb128(reader).context("could not read type ID")?;
+        let (size, _) = uleb128(reader).context("could not read size")?;
         let mut elements = Vec::with_capacity(size as usize);
         for _ in 0..size {
-            let (name, _) = read_uleb128(reader).context("could not read element's name_id")?;
+            let (name, _) = uleb128(reader).context("could not read element's name_id")?;
             let value = Value::from_reader(reader).context("could not read element's value")?;
             elements.push(AnnotationElement { name, value });
         }
@@ -809,13 +809,13 @@ impl AnnotationsDirectoryOffsets {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Field {
     field_id: u32,
     access_flags: AccessFlags,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Method {
     method_id: u32,
     access_flags: AccessFlags,
@@ -838,13 +838,13 @@ impl ClassData {
         R: Read,
     {
         let (static_fields_size, _) =
-            read_uleb128(reader).context("could not read static_fields_size field")?;
+            uleb128(reader).context("could not read static_fields_size field")?;
         let (instance_fields_size, _) =
-            read_uleb128(reader).context("could not read instance_fields_size field")?;
+            uleb128(reader).context("could not read instance_fields_size field")?;
         let (direct_methods_size, _) =
-            read_uleb128(reader).context("could not read direct_methods_size field")?;
+            uleb128(reader).context("could not read direct_methods_size field")?;
         let (virtual_methods_size, _) =
-            read_uleb128(reader).context("could not read virtual_methods_size field")?;
+            uleb128(reader).context("could not read virtual_methods_size field")?;
 
         let mut static_fields = Vec::with_capacity(static_fields_size as usize);
         Self::read_fields(reader, static_fields_size, &mut static_fields)
@@ -880,9 +880,8 @@ impl ClassData {
     {
         if field_count > 0 {
             // First field's ID is given directly.
-            let (field_id, _) = read_uleb128(reader).context("could not read field ID")?;
-            let (access_flags, _) =
-                read_uleb128(reader).context("could not read field access flags")?;
+            let (field_id, _) = uleb128(reader).context("could not read field ID")?;
+            let (access_flags, _) = uleb128(reader).context("could not read field access flags")?;
 
             field_vec.push(Field {
                 field_id,
@@ -892,9 +891,9 @@ impl ClassData {
 
             let mut last_field_id = field_id;
             for _ in 1..field_count {
-                let (field_id_diff, _) = read_uleb128(reader).context("could not read field ID")?;
+                let (field_id_diff, _) = uleb128(reader).context("could not read field ID")?;
                 let (access_flags, _) =
-                    read_uleb128(reader).context("could not read field access flags")?;
+                    uleb128(reader).context("could not read field access flags")?;
 
                 // Field IDs other than the first one are given by difference.
                 last_field_id += field_id_diff;
@@ -919,11 +918,10 @@ impl ClassData {
     {
         if method_count > 0 {
             // First method's ID is given directly.
-            let (method_id, _) = read_uleb128(reader).context("could not read method ID")?;
+            let (method_id, _) = uleb128(reader).context("could not read method ID")?;
             let (access_flags, _) =
-                read_uleb128(reader).context("could not read method access flags")?;
-            let (code_offset, _) =
-                read_uleb128(reader).context("could not read method code offset")?;
+                uleb128(reader).context("could not read method access flags")?;
+            let (code_offset, _) = uleb128(reader).context("could not read method code offset")?;
 
             let code_offset = if code_offset == 0 {
                 None
@@ -940,12 +938,11 @@ impl ClassData {
 
             let mut last_method_id = method_id;
             for _ in 1..method_count {
-                let (method_id_diff, _) =
-                    read_uleb128(reader).context("could not read method ID")?;
+                let (method_id_diff, _) = uleb128(reader).context("could not read method ID")?;
                 let (access_flags, _) =
-                    read_uleb128(reader).context("could not read method access flags")?;
+                    uleb128(reader).context("could not read method access flags")?;
                 let (code_offset, _) =
-                    read_uleb128(reader).context("could not read method code offset")?;
+                    uleb128(reader).context("could not read method code offset")?;
 
                 let code_offset = if code_offset == 0 {
                     None
@@ -982,16 +979,15 @@ impl DebugInfo {
     where
         R: Read,
     {
-        let (line_start, mut read) =
-            read_uleb128(reader).context("could not read line_start field")?;
+        let (line_start, mut read) = uleb128(reader).context("could not read line_start field")?;
         let (parameters_size, read_p) =
-            read_uleb128(reader).context("could not read parameters_size field")?;
+            uleb128(reader).context("could not read parameters_size field")?;
         read += read_p;
 
         let mut parameter_names = Vec::with_capacity(parameters_size as usize);
         for _ in 0..parameters_size {
             let (name_index, read_i) =
-                read_uleb128p1(reader).context("could not read parameter name index")?;
+                uleb128p1(reader).context("could not read parameter name index")?;
             read += read_i;
             parameter_names.push(name_index.into());
         }
@@ -1100,25 +1096,25 @@ impl DebugInstruction {
         let instruction = match opcode[0] {
             0x00_u8 => DebugInstruction::EndSequence,
             0x01_u8 => {
-                let (addr_diff, read_ad) = read_uleb128(reader)
+                let (addr_diff, read_ad) = uleb128(reader)
                     .context("could not read `addr_diff` for the DBG_ADVANCE_PC instruction")?;
                 read += read_ad;
                 DebugInstruction::AdvancePc { addr_diff }
             }
             0x02_u8 => {
-                let (line_diff, read_ld) = read_sleb128(reader).context({
+                let (line_diff, read_ld) = sleb128(reader).context({
                     "could not read `line_diff` for the DBG_ADVANCE_LINE instruction"
                 })?;
                 read += read_ld;
                 DebugInstruction::AdvanceLine { line_diff }
             }
             0x03_u8 => {
-                let (register_num, read_rn) = read_uleb128(reader).context({
+                let (register_num, read_rn) = uleb128(reader).context({
                     "could not read `register_num` for the DBG_START_LOCAL instruction"
                 })?;
-                let (name_id, read_ni) = read_uleb128p1(reader)
+                let (name_id, read_ni) = uleb128p1(reader)
                     .context("could not read `name_id` for the DBG_START_LOCAL instruction")?;
-                let (type_id, read_ti) = read_uleb128p1(reader)
+                let (type_id, read_ti) = uleb128p1(reader)
                     .context("could not read `type_id` for the DBG_START_LOCAL instruction")?;
                 read += read_rn + read_ni + read_ti;
 
@@ -1129,16 +1125,16 @@ impl DebugInstruction {
                 }
             }
             0x04_u8 => {
-                let (register_num, read_rn) = read_uleb128(reader).context({
+                let (register_num, read_rn) = uleb128(reader).context({
                     "could not read `register_num` for the DBG_START_LOCAL_EXTENDED instruction"
                 })?;
-                let (name_id, read_ni) = read_uleb128p1(reader).context({
+                let (name_id, read_ni) = uleb128p1(reader).context({
                     "could not read `name_id` for the DBG_START_LOCAL_EXTENDED instruction"
                 })?;
-                let (type_id, read_ti) = read_uleb128p1(reader).context({
+                let (type_id, read_ti) = uleb128p1(reader).context({
                     "could not read `type_id` for the DBG_START_LOCAL_EXTENDED instruction"
                 })?;
-                let (sig_id, read_si) = read_uleb128p1(reader).context({
+                let (sig_id, read_si) = uleb128p1(reader).context({
                     "could not read `sig_id` for the DBG_START_LOCAL_EXTENDED instruction"
                 })?;
                 read += read_rn + read_ni + read_ti + read_si;
@@ -1151,13 +1147,13 @@ impl DebugInstruction {
                 }
             }
             0x05_u8 => {
-                let (register_num, read_rn) = read_uleb128(reader)
+                let (register_num, read_rn) = uleb128(reader)
                     .context("could not read `register_num` for the DBG_END_LOCAL instruction")?;
                 read += read_rn;
                 DebugInstruction::EndLocal { register_num }
             }
             0x06_u8 => {
-                let (register_num, read_rn) = read_uleb128(reader).context(
+                let (register_num, read_rn) = uleb128(reader).context(
                     "could not read `register_num` for the DBG_RESTART_LOCAL instruction",
                 )?;
                 read += read_rn;
@@ -1166,13 +1162,12 @@ impl DebugInstruction {
             0x07_u8 => DebugInstruction::SetPrologueEnd,
             0x08_u8 => DebugInstruction::SetEpilogueBegin,
             0x09_u8 => {
-                let (name_id, read_ni) = read_uleb128(reader)
+                let (name_id, read_ni) = uleb128(reader)
                     .context("could not read `name_id` for the DBG_SET_FILE instruction")?;
                 read += read_ni;
                 DebugInstruction::SetFile { name_id }
             }
             opcode @ 0x0a_u8...0xff_u8 => DebugInstruction::SpecialOpcode { opcode },
-            _ => unreachable!(),
         };
 
         Ok((instruction, read))
@@ -1237,7 +1232,7 @@ impl CodeItem {
         let mut handlers = Vec::new();
         if tries_size > 0 {
             let (handlers_size, _) =
-                read_uleb128(reader).context("could not read catch handlers size")?;
+                uleb128(reader).context("could not read catch handlers size")?;
 
             handlers.reserve_exact(handlers_size as usize);
             for _ in 0..handlers_size {
@@ -1306,8 +1301,7 @@ impl CatchHandler {
     where
         R: Read,
     {
-        let (size, mut read) =
-            read_sleb128(reader).context("could not read the catch handler size")?;
+        let (size, mut read) = sleb128(reader).context("could not read the catch handler size")?;
 
         let abs_size = size.abs() as usize;
         let mut handlers = Vec::with_capacity(abs_size);
@@ -1320,7 +1314,7 @@ impl CatchHandler {
 
         let catch_all_addr = if size < 1 {
             let (addr, read_ca) =
-                read_uleb128(reader).context("could not read the catch all address")?;
+                uleb128(reader).context("could not read the catch all address")?;
             read += read_ca;
             Some(addr)
         } else {
@@ -1349,8 +1343,8 @@ impl HandlerInfo {
     where
         R: Read,
     {
-        let (type_id, read_t) = read_uleb128(reader).context("could not read type ID")?;
-        let (addr, read_a) = read_uleb128(reader).context("could not read address")?;
+        let (type_id, read_t) = uleb128(reader).context("could not read type ID")?;
+        let (addr, read_a) = uleb128(reader).context("could not read address")?;
 
         Ok((Self { type_id, addr }, read_t + read_a))
     }
