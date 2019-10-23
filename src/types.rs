@@ -52,16 +52,16 @@ impl FromStr for Type {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut chars = s.chars();
         match chars.next() {
-            Some('V') => Ok(Type::Void),
-            Some('Z') => Ok(Type::Boolean),
-            Some('B') => Ok(Type::Byte),
-            Some('S') => Ok(Type::Short),
-            Some('C') => Ok(Type::Char),
-            Some('I') => Ok(Type::Int),
-            Some('J') => Ok(Type::Long),
-            Some('F') => Ok(Type::Float),
-            Some('D') => Ok(Type::Double),
-            Some('L') => Ok(Type::FullyQualifiedName(chars.collect())),
+            Some('V') => Ok(Self::Void),
+            Some('Z') => Ok(Self::Boolean),
+            Some('B') => Ok(Self::Byte),
+            Some('S') => Ok(Self::Short),
+            Some('C') => Ok(Self::Char),
+            Some('I') => Ok(Self::Int),
+            Some('J') => Ok(Self::Long),
+            Some('F') => Ok(Self::Float),
+            Some('D') => Ok(Self::Double),
+            Some('L') => Ok(Self::FullyQualifiedName(chars.collect())),
             Some('[') => {
                 let mut dimensions = 1;
                 loop {
@@ -71,7 +71,7 @@ impl FromStr for Type {
                             let mut type_str = String::with_capacity(s.len() - dimensions as usize);
                             type_str.push(t);
                             type_str.push_str(chars.as_str());
-                            return Ok(Type::Array {
+                            return Ok(Self::Array {
                                 dimensions,
                                 array_type: Box::new(type_str.parse()?),
                             });
@@ -94,17 +94,17 @@ impl FromStr for Type {
 impl Display for Type {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            Type::Void => write!(f, "void"),
-            Type::Boolean => write!(f, "boolean"),
-            Type::Byte => write!(f, "byte"),
-            Type::Short => write!(f, "short"),
-            Type::Char => write!(f, "char"),
-            Type::Int => write!(f, "int"),
-            Type::Long => write!(f, "long"),
-            Type::Float => write!(f, "float"),
-            Type::Double => write!(f, "double"),
-            Type::FullyQualifiedName(name) => write!(f, "{}", name),
-            Type::Array {
+            Self::Void => write!(f, "void"),
+            Self::Boolean => write!(f, "boolean"),
+            Self::Byte => write!(f, "byte"),
+            Self::Short => write!(f, "short"),
+            Self::Char => write!(f, "char"),
+            Self::Int => write!(f, "int"),
+            Self::Long => write!(f, "long"),
+            Self::Float => write!(f, "float"),
+            Self::Double => write!(f, "double"),
+            Self::FullyQualifiedName(name) => write!(f, "{}", name),
+            Self::Array {
                 dimensions,
                 array_type,
             } => write!(f, "{}[{}]", array_type, dimensions),
@@ -129,16 +129,16 @@ enum ShortyReturnType {
 impl ShortyReturnType {
     fn from_char(c: char) -> Result<Self, error::Parse> {
         match c {
-            'V' => Ok(ShortyReturnType::Void),
-            'Z' => Ok(ShortyReturnType::Boolean),
-            'B' => Ok(ShortyReturnType::Byte),
-            'S' => Ok(ShortyReturnType::Short),
-            'C' => Ok(ShortyReturnType::Char),
-            'I' => Ok(ShortyReturnType::Int),
-            'J' => Ok(ShortyReturnType::Long),
-            'F' => Ok(ShortyReturnType::Float),
-            'D' => Ok(ShortyReturnType::Double),
-            'L' => Ok(ShortyReturnType::Reference),
+            'V' => Ok(Self::Void),
+            'Z' => Ok(Self::Boolean),
+            'B' => Ok(Self::Byte),
+            'S' => Ok(Self::Short),
+            'C' => Ok(Self::Char),
+            'I' => Ok(Self::Int),
+            'J' => Ok(Self::Long),
+            'F' => Ok(Self::Float),
+            'D' => Ok(Self::Double),
+            'L' => Ok(Self::Reference),
             _ => Err(error::Parse::InvalidShortyType { shorty_type: c }),
         }
     }
@@ -147,16 +147,16 @@ impl ShortyReturnType {
 impl From<Type> for ShortyReturnType {
     fn from(t: Type) -> Self {
         match t {
-            Type::Void => ShortyReturnType::Void,
-            Type::Boolean => ShortyReturnType::Boolean,
-            Type::Byte => ShortyReturnType::Byte,
-            Type::Short => ShortyReturnType::Short,
-            Type::Char => ShortyReturnType::Char,
-            Type::Int => ShortyReturnType::Int,
-            Type::Long => ShortyReturnType::Long,
-            Type::Float => ShortyReturnType::Float,
-            Type::Double => ShortyReturnType::Double,
-            Type::FullyQualifiedName(_) | Type::Array { .. } => ShortyReturnType::Reference,
+            Type::Void => Self::Void,
+            Type::Boolean => Self::Boolean,
+            Type::Byte => Self::Byte,
+            Type::Short => Self::Short,
+            Type::Char => Self::Char,
+            Type::Int => Self::Int,
+            Type::Long => Self::Long,
+            Type::Float => Self::Float,
+            Type::Double => Self::Double,
+            Type::FullyQualifiedName(_) | Type::Array { .. } => Self::Reference,
         }
     }
 }
@@ -164,15 +164,15 @@ impl From<Type> for ShortyReturnType {
 impl From<ShortyFieldType> for ShortyReturnType {
     fn from(ft: ShortyFieldType) -> Self {
         match ft {
-            ShortyFieldType::Boolean => ShortyReturnType::Boolean,
-            ShortyFieldType::Byte => ShortyReturnType::Byte,
-            ShortyFieldType::Short => ShortyReturnType::Short,
-            ShortyFieldType::Char => ShortyReturnType::Char,
-            ShortyFieldType::Int => ShortyReturnType::Int,
-            ShortyFieldType::Long => ShortyReturnType::Long,
-            ShortyFieldType::Float => ShortyReturnType::Float,
-            ShortyFieldType::Double => ShortyReturnType::Double,
-            ShortyFieldType::Reference => ShortyReturnType::Reference,
+            ShortyFieldType::Boolean => Self::Boolean,
+            ShortyFieldType::Byte => Self::Byte,
+            ShortyFieldType::Short => Self::Short,
+            ShortyFieldType::Char => Self::Char,
+            ShortyFieldType::Int => Self::Int,
+            ShortyFieldType::Long => Self::Long,
+            ShortyFieldType::Float => Self::Float,
+            ShortyFieldType::Double => Self::Double,
+            ShortyFieldType::Reference => Self::Reference,
         }
     }
 }
@@ -193,15 +193,15 @@ enum ShortyFieldType {
 impl ShortyFieldType {
     fn from_char(c: char) -> Result<Self, error::Parse> {
         match c {
-            'Z' => Ok(ShortyFieldType::Boolean),
-            'B' => Ok(ShortyFieldType::Byte),
-            'S' => Ok(ShortyFieldType::Short),
-            'C' => Ok(ShortyFieldType::Char),
-            'I' => Ok(ShortyFieldType::Int),
-            'J' => Ok(ShortyFieldType::Long),
-            'F' => Ok(ShortyFieldType::Float),
-            'D' => Ok(ShortyFieldType::Double),
-            'L' => Ok(ShortyFieldType::Reference),
+            'Z' => Ok(Self::Boolean),
+            'B' => Ok(Self::Byte),
+            'S' => Ok(Self::Short),
+            'C' => Ok(Self::Char),
+            'I' => Ok(Self::Int),
+            'J' => Ok(Self::Long),
+            'F' => Ok(Self::Float),
+            'D' => Ok(Self::Double),
+            'L' => Ok(Self::Reference),
             _ => Err(error::Parse::InvalidShortyType { shorty_type: c }),
         }
     }

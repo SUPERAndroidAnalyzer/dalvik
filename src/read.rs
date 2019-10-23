@@ -589,9 +589,9 @@ impl DexReader {
     // }
 }
 
-/// Reads a uleb128 from a reader.
+/// Reads a `uleb128` from a reader.
 ///
-/// Returns the u32 represented by the uleb128 and the number of bytes read.
+/// Returns the `u32` represented by the `uleb128` and the number of bytes read.
 pub fn uleb128<R>(reader: &mut R) -> Result<(u32, u32), Error>
 where
     R: Read,
@@ -602,7 +602,7 @@ where
         let byte = byte.context(format_err!("could not read byte {}", i))?;
         let payload = u32::from(byte & 0b0111_1111);
         match i {
-            0...4 => result |= payload << (i * 7),
+            0..=4 => result |= payload << (i * 7),
             _ => return Err(error::Parse::InvalidLeb128.into()),
         }
 
@@ -614,7 +614,7 @@ where
     Ok((result, read as u32))
 }
 
-/// U32p1 definition.
+/// `U32p1` definition.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum U32p1 {
     MinusOne,
@@ -623,7 +623,7 @@ pub enum U32p1 {
 
 impl Into<Option<u32>> for U32p1 {
     fn into(self) -> Option<u32> {
-        if let U32p1::U32(n) = self {
+        if let Self::U32(n) = self {
             Some(n)
         } else {
             None
@@ -631,9 +631,9 @@ impl Into<Option<u32>> for U32p1 {
     }
 }
 
-/// Reads a uleb128p1 from a reader.
+/// Reads a `uleb128p1` from a reader.
 ///
-/// Returns the u32 represented by the uleb128p1 and the number of bytes read.
+/// Returns the `u32` represented by the `uleb128p1` and the number of bytes read.
 pub fn uleb128p1<R>(reader: &mut R) -> Result<(U32p1, u32), Error>
 where
     R: Read,
@@ -647,9 +647,9 @@ where
     Ok((res, read))
 }
 
-/// Reads a sleb128 from a reader.
+/// Reads a `sleb128` from a reader.
 ///
-/// Returns the i32 represented by the sleb128 and the number of bytes read.
+/// Returns the `i32` represented by the `sleb128` and the number of bytes read.
 pub fn sleb128<R>(reader: &mut R) -> Result<(i32, u32), Error>
 where
     R: Read,

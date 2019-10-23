@@ -89,12 +89,12 @@ pub enum CompareType {
 impl From<u8> for CompareType {
     fn from(opcode: u8) -> Self {
         match opcode {
-            0x2D => CompareType::LittleThanFloat,
-            0x2E => CompareType::GreaterThanFloat,
-            0x2F => CompareType::LittleThanDouble,
-            0x30 => CompareType::GreaterThanDouble,
-            0x31 => CompareType::Long,
-            _ => CompareType::Unknown,
+            0x2D => Self::LittleThanFloat,
+            0x2E => Self::GreaterThanFloat,
+            0x2F => Self::LittleThanDouble,
+            0x30 => Self::GreaterThanDouble,
+            0x31 => Self::Long,
+            _ => Self::Unknown,
         }
     }
 }
@@ -102,12 +102,12 @@ impl From<u8> for CompareType {
 impl ToString for CompareType {
     fn to_string(&self) -> String {
         match self {
-            CompareType::LittleThanFloat => "cmpl-float".to_string(),
-            CompareType::GreaterThanFloat => "cmpg-float".to_string(),
-            CompareType::LittleThanDouble => "cmpl-double".to_string(),
-            CompareType::GreaterThanDouble => "cmpg-double".to_string(),
-            CompareType::Long => "cmp-long".to_string(),
-            CompareType::Unknown => "unknown".to_string(),
+            Self::LittleThanFloat => "cmpl-float".to_string(),
+            Self::GreaterThanFloat => "cmpg-float".to_string(),
+            Self::LittleThanDouble => "cmpl-double".to_string(),
+            Self::GreaterThanDouble => "cmpg-double".to_string(),
+            Self::Long => "cmp-long".to_string(),
+            Self::Unknown => "unknown".to_string(),
         }
     }
 }
@@ -127,13 +127,13 @@ pub enum TestType {
 impl From<u8> for TestType {
     fn from(opcode: u8) -> Self {
         match opcode {
-            0x32 | 0x38 => TestType::Equal,
-            0x33 | 0x39 => TestType::NonEqual,
-            0x34 | 0x3A => TestType::LittleThan,
-            0x35 | 0x3B => TestType::GreaterThanOrEqual,
-            0x36 | 0x3C => TestType::GreaterThan,
-            0x37 | 0x3D => TestType::LittleThanOrEqual,
-            _ => TestType::Unknown,
+            0x32 | 0x38 => Self::Equal,
+            0x33 | 0x39 => Self::NonEqual,
+            0x34 | 0x3A => Self::LittleThan,
+            0x35 | 0x3B => Self::GreaterThanOrEqual,
+            0x36 | 0x3C => Self::GreaterThan,
+            0x37 | 0x3D => Self::LittleThanOrEqual,
+            _ => Self::Unknown,
         }
     }
 }
@@ -141,13 +141,13 @@ impl From<u8> for TestType {
 impl ToString for TestType {
     fn to_string(&self) -> String {
         match self {
-            TestType::Equal => "if-eq".to_string(),
-            TestType::NonEqual => "if-ne".to_string(),
-            TestType::LittleThan => "if-lt".to_string(),
-            TestType::GreaterThanOrEqual => "if-ge".to_string(),
-            TestType::GreaterThan => "if-gt".to_string(),
-            TestType::LittleThanOrEqual => "if-le".to_string(),
-            TestType::Unknown => "unknown".to_string(),
+            Self::Equal => "if-eq".to_string(),
+            Self::NonEqual => "if-ne".to_string(),
+            Self::LittleThan => "if-lt".to_string(),
+            Self::GreaterThanOrEqual => "if-ge".to_string(),
+            Self::GreaterThan => "if-gt".to_string(),
+            Self::LittleThanOrEqual => "if-le".to_string(),
+            Self::Unknown => "unknown".to_string(),
         }
     }
 }
@@ -175,21 +175,21 @@ pub enum ArrayOperation {
 impl From<u8> for ArrayOperation {
     fn from(opcode: u8) -> Self {
         match opcode {
-            0x44 | 0x52 | 0x60 => ArrayOperation::Get,
-            0x45 | 0x53 | 0x61 => ArrayOperation::GetWide,
-            0x46 | 0x54 | 0x62 => ArrayOperation::GetObject,
-            0x47 | 0x55 | 0x63 => ArrayOperation::GetBoolean,
-            0x48 | 0x56 | 0x64 => ArrayOperation::GetByte,
-            0x49 | 0x57 | 0x65 => ArrayOperation::GetChar,
-            0x4A | 0x58 | 0x66 => ArrayOperation::GetShort,
-            0x4B | 0x59 | 0x67 => ArrayOperation::Put,
-            0x4C | 0x5A | 0x68 => ArrayOperation::PutWide,
-            0x4D | 0x5B | 0x69 => ArrayOperation::PutObject,
-            0x4E | 0x5C | 0x6A => ArrayOperation::PutBoolean,
-            0x4F | 0x5D | 0x6B => ArrayOperation::PutByte,
-            0x50 | 0x5E | 0x6C => ArrayOperation::PutChar,
-            0x51 | 0x5F | 0x6D => ArrayOperation::PutShort,
-            _ => ArrayOperation::Unknown,
+            0x44 | 0x52 | 0x60 => Self::Get,
+            0x45 | 0x53 | 0x61 => Self::GetWide,
+            0x46 | 0x54 | 0x62 => Self::GetObject,
+            0x47 | 0x55 | 0x63 => Self::GetBoolean,
+            0x48 | 0x56 | 0x64 => Self::GetByte,
+            0x49 | 0x57 | 0x65 => Self::GetChar,
+            0x4A | 0x58 | 0x66 => Self::GetShort,
+            0x4B | 0x59 | 0x67 => Self::Put,
+            0x4C | 0x5A | 0x68 => Self::PutWide,
+            0x4D | 0x5B | 0x69 => Self::PutObject,
+            0x4E | 0x5C | 0x6A => Self::PutBoolean,
+            0x4F | 0x5D | 0x6B => Self::PutByte,
+            0x50 | 0x5E | 0x6C => Self::PutChar,
+            0x51 | 0x5F | 0x6D => Self::PutShort,
+            _ => Self::Unknown,
         }
     }
 }
@@ -197,21 +197,21 @@ impl From<u8> for ArrayOperation {
 impl ToString for ArrayOperation {
     fn to_string(&self) -> String {
         match self {
-            ArrayOperation::Get => "get".to_string(),
-            ArrayOperation::GetWide => "get-wide".to_string(),
-            ArrayOperation::GetObject => "get-object".to_string(),
-            ArrayOperation::GetBoolean => "get-boolean".to_string(),
-            ArrayOperation::GetByte => "get-byte".to_string(),
-            ArrayOperation::GetChar => "get-char".to_string(),
-            ArrayOperation::GetShort => "get-short".to_string(),
-            ArrayOperation::Put => "put".to_string(),
-            ArrayOperation::PutWide => "put-wide".to_string(),
-            ArrayOperation::PutObject => "put-object".to_string(),
-            ArrayOperation::PutBoolean => "put-boolean".to_string(),
-            ArrayOperation::PutByte => "put-byte".to_string(),
-            ArrayOperation::PutChar => "put-char".to_string(),
-            ArrayOperation::PutShort => "put-short".to_string(),
-            ArrayOperation::Unknown => "unknown".to_string(),
+            Self::Get => "get".to_string(),
+            Self::GetWide => "get-wide".to_string(),
+            Self::GetObject => "get-object".to_string(),
+            Self::GetBoolean => "get-boolean".to_string(),
+            Self::GetByte => "get-byte".to_string(),
+            Self::GetChar => "get-char".to_string(),
+            Self::GetShort => "get-short".to_string(),
+            Self::Put => "put".to_string(),
+            Self::PutWide => "put-wide".to_string(),
+            Self::PutObject => "put-object".to_string(),
+            Self::PutBoolean => "put-boolean".to_string(),
+            Self::PutByte => "put-byte".to_string(),
+            Self::PutChar => "put-char".to_string(),
+            Self::PutShort => "put-short".to_string(),
+            Self::Unknown => "unknown".to_string(),
         }
     }
 }
@@ -230,12 +230,12 @@ pub enum InvokeKind {
 impl From<u8> for InvokeKind {
     fn from(opcode: u8) -> Self {
         match opcode {
-            0x6e | 0x74 => InvokeKind::Virtual,
-            0x6f | 0x75 => InvokeKind::Super,
-            0x70 | 0x76 => InvokeKind::Direct,
-            0x71 | 0x77 => InvokeKind::Static,
-            0x72 | 0x78 => InvokeKind::Interface,
-            _ => InvokeKind::Unknown,
+            0x6e | 0x74 => Self::Virtual,
+            0x6f | 0x75 => Self::Super,
+            0x70 | 0x76 => Self::Direct,
+            0x71 | 0x77 => Self::Static,
+            0x72 | 0x78 => Self::Interface,
+            _ => Self::Unknown,
         }
     }
 }
@@ -243,12 +243,12 @@ impl From<u8> for InvokeKind {
 impl ToString for InvokeKind {
     fn to_string(&self) -> String {
         match self {
-            InvokeKind::Virtual => "invoke-virtual".to_string(),
-            InvokeKind::Super => "invoke-super".to_string(),
-            InvokeKind::Direct => "invoke-direct".to_string(),
-            InvokeKind::Static => "invoke-static".to_string(),
-            InvokeKind::Interface => "invoke-interface".to_string(),
-            InvokeKind::Unknown => "unknown".to_string(),
+            Self::Virtual => "invoke-virtual".to_string(),
+            Self::Super => "invoke-super".to_string(),
+            Self::Direct => "invoke-direct".to_string(),
+            Self::Static => "invoke-static".to_string(),
+            Self::Interface => "invoke-interface".to_string(),
+            Self::Unknown => "unknown".to_string(),
         }
     }
 }
@@ -283,28 +283,28 @@ pub enum UnaryOperation {
 impl From<u8> for UnaryOperation {
     fn from(opcode: u8) -> Self {
         match opcode {
-            0x7b => UnaryOperation::NegateInt,
-            0x7c => UnaryOperation::NotInt,
-            0x7d => UnaryOperation::NegateLong,
-            0x7e => UnaryOperation::NotLong,
-            0x7f => UnaryOperation::NegateFloat,
-            0x80 => UnaryOperation::NegateDouble,
-            0x81 => UnaryOperation::IntToLong,
-            0x82 => UnaryOperation::IntToFloat,
-            0x83 => UnaryOperation::IntToDouble,
-            0x84 => UnaryOperation::LongToInt,
-            0x85 => UnaryOperation::LongToFloat,
-            0x86 => UnaryOperation::LongToDouble,
-            0x87 => UnaryOperation::FloatToInt,
-            0x88 => UnaryOperation::FloatToLong,
-            0x89 => UnaryOperation::FloatToDouble,
-            0x8a => UnaryOperation::DoubleToInt,
-            0x8b => UnaryOperation::DoubleToLong,
-            0x8c => UnaryOperation::DoubleToFloat,
-            0x8d => UnaryOperation::IntToByte,
-            0x8e => UnaryOperation::IntToChar,
-            0x8f => UnaryOperation::IntToShort,
-            _ => UnaryOperation::Unknown,
+            0x7b => Self::NegateInt,
+            0x7c => Self::NotInt,
+            0x7d => Self::NegateLong,
+            0x7e => Self::NotLong,
+            0x7f => Self::NegateFloat,
+            0x80 => Self::NegateDouble,
+            0x81 => Self::IntToLong,
+            0x82 => Self::IntToFloat,
+            0x83 => Self::IntToDouble,
+            0x84 => Self::LongToInt,
+            0x85 => Self::LongToFloat,
+            0x86 => Self::LongToDouble,
+            0x87 => Self::FloatToInt,
+            0x88 => Self::FloatToLong,
+            0x89 => Self::FloatToDouble,
+            0x8a => Self::DoubleToInt,
+            0x8b => Self::DoubleToLong,
+            0x8c => Self::DoubleToFloat,
+            0x8d => Self::IntToByte,
+            0x8e => Self::IntToChar,
+            0x8f => Self::IntToShort,
+            _ => Self::Unknown,
         }
     }
 }
@@ -312,28 +312,28 @@ impl From<u8> for UnaryOperation {
 impl ToString for UnaryOperation {
     fn to_string(&self) -> String {
         match self {
-            UnaryOperation::NegateInt => "neg-int".to_string(),
-            UnaryOperation::NotInt => "not-int".to_string(),
-            UnaryOperation::NegateLong => "neg-long".to_string(),
-            UnaryOperation::NotLong => "not-long".to_string(),
-            UnaryOperation::NegateFloat => "neg-float".to_string(),
-            UnaryOperation::NegateDouble => "neg-double".to_string(),
-            UnaryOperation::IntToLong => "int-to-long".to_string(),
-            UnaryOperation::IntToFloat => "int-to-float".to_string(),
-            UnaryOperation::IntToDouble => "int-to-double".to_string(),
-            UnaryOperation::LongToInt => "long-to-int".to_string(),
-            UnaryOperation::LongToFloat => "long-to-float".to_string(),
-            UnaryOperation::LongToDouble => "long-to-double".to_string(),
-            UnaryOperation::FloatToInt => "float-to-int".to_string(),
-            UnaryOperation::FloatToLong => "float-to-long".to_string(),
-            UnaryOperation::FloatToDouble => "float-to-double".to_string(),
-            UnaryOperation::DoubleToInt => "double-to-int".to_string(),
-            UnaryOperation::DoubleToLong => "double-to-long".to_string(),
-            UnaryOperation::DoubleToFloat => "double-to-float".to_string(),
-            UnaryOperation::IntToByte => "int-to-byte".to_string(),
-            UnaryOperation::IntToChar => "int-to-char".to_string(),
-            UnaryOperation::IntToShort => "int-to-short".to_string(),
-            UnaryOperation::Unknown => "unknown".to_string(),
+            Self::NegateInt => "neg-int".to_string(),
+            Self::NotInt => "not-int".to_string(),
+            Self::NegateLong => "neg-long".to_string(),
+            Self::NotLong => "not-long".to_string(),
+            Self::NegateFloat => "neg-float".to_string(),
+            Self::NegateDouble => "neg-double".to_string(),
+            Self::IntToLong => "int-to-long".to_string(),
+            Self::IntToFloat => "int-to-float".to_string(),
+            Self::IntToDouble => "int-to-double".to_string(),
+            Self::LongToInt => "long-to-int".to_string(),
+            Self::LongToFloat => "long-to-float".to_string(),
+            Self::LongToDouble => "long-to-double".to_string(),
+            Self::FloatToInt => "float-to-int".to_string(),
+            Self::FloatToLong => "float-to-long".to_string(),
+            Self::FloatToDouble => "float-to-double".to_string(),
+            Self::DoubleToInt => "double-to-int".to_string(),
+            Self::DoubleToLong => "double-to-long".to_string(),
+            Self::DoubleToFloat => "double-to-float".to_string(),
+            Self::IntToByte => "int-to-byte".to_string(),
+            Self::IntToChar => "int-to-char".to_string(),
+            Self::IntToShort => "int-to-short".to_string(),
+            Self::Unknown => "unknown".to_string(),
         }
     }
 }
@@ -379,39 +379,39 @@ pub enum BinaryOperation {
 impl From<u8> for BinaryOperation {
     fn from(opcode: u8) -> Self {
         match opcode {
-            0x90 | 0xb0 | 0xd0 | 0xd8 => BinaryOperation::AddInt,
-            0x91 | 0xb1 | 0xd1 | 0xd9 => BinaryOperation::SubInt,
-            0x92 | 0xb2 | 0xd2 | 0xda => BinaryOperation::MulInt,
-            0x93 | 0xb3 | 0xd3 | 0xdb => BinaryOperation::DivInt,
-            0x94 | 0xb4 | 0xd4 | 0xdc => BinaryOperation::RemInt,
-            0x95 | 0xb5 | 0xd5 | 0xdd => BinaryOperation::AndInt,
-            0x96 | 0xb6 | 0xd6 | 0xde => BinaryOperation::OrInt,
-            0x97 | 0xb7 | 0xd7 | 0xdf => BinaryOperation::XorInt,
-            0x98 | 0xb8 | 0xe0 => BinaryOperation::ShlInt,
-            0x99 | 0xb9 | 0xe1 => BinaryOperation::ShrInt,
-            0x9a | 0xba | 0xe2 => BinaryOperation::UshrInt,
-            0x9b | 0xbb => BinaryOperation::AddLong,
-            0x9c | 0xbc => BinaryOperation::SubLong,
-            0x9d | 0xbd => BinaryOperation::MulLong,
-            0x9e | 0xbe => BinaryOperation::DivLong,
-            0x9f | 0xbf => BinaryOperation::RemLong,
-            0xa0 | 0xc0 => BinaryOperation::AndLong,
-            0xa1 | 0xc1 => BinaryOperation::OrLong,
-            0xa2 | 0xc2 => BinaryOperation::XorLong,
-            0xa3 | 0xc3 => BinaryOperation::ShlLong,
-            0xa4 | 0xc4 => BinaryOperation::ShrLong,
-            0xa5 | 0xc5 => BinaryOperation::UshrLong,
-            0xa6 | 0xc6 => BinaryOperation::AddFloat,
-            0xa7 | 0xc7 => BinaryOperation::SubFloat,
-            0xa8 | 0xc8 => BinaryOperation::MulFloat,
-            0xa9 | 0xc9 => BinaryOperation::DivFloat,
-            0xaa | 0xca => BinaryOperation::RemFloat,
-            0xab | 0xcb => BinaryOperation::AddDouble,
-            0xac | 0xcc => BinaryOperation::SubDouble,
-            0xad | 0xcd => BinaryOperation::MulDouble,
-            0xae | 0xce => BinaryOperation::DivDouble,
-            0xaf | 0xcf => BinaryOperation::RemDouble,
-            _ => BinaryOperation::Unknown,
+            0x90 | 0xb0 | 0xd0 | 0xd8 => Self::AddInt,
+            0x91 | 0xb1 | 0xd1 | 0xd9 => Self::SubInt,
+            0x92 | 0xb2 | 0xd2 | 0xda => Self::MulInt,
+            0x93 | 0xb3 | 0xd3 | 0xdb => Self::DivInt,
+            0x94 | 0xb4 | 0xd4 | 0xdc => Self::RemInt,
+            0x95 | 0xb5 | 0xd5 | 0xdd => Self::AndInt,
+            0x96 | 0xb6 | 0xd6 | 0xde => Self::OrInt,
+            0x97 | 0xb7 | 0xd7 | 0xdf => Self::XorInt,
+            0x98 | 0xb8 | 0xe0 => Self::ShlInt,
+            0x99 | 0xb9 | 0xe1 => Self::ShrInt,
+            0x9a | 0xba | 0xe2 => Self::UshrInt,
+            0x9b | 0xbb => Self::AddLong,
+            0x9c | 0xbc => Self::SubLong,
+            0x9d | 0xbd => Self::MulLong,
+            0x9e | 0xbe => Self::DivLong,
+            0x9f | 0xbf => Self::RemLong,
+            0xa0 | 0xc0 => Self::AndLong,
+            0xa1 | 0xc1 => Self::OrLong,
+            0xa2 | 0xc2 => Self::XorLong,
+            0xa3 | 0xc3 => Self::ShlLong,
+            0xa4 | 0xc4 => Self::ShrLong,
+            0xa5 | 0xc5 => Self::UshrLong,
+            0xa6 | 0xc6 => Self::AddFloat,
+            0xa7 | 0xc7 => Self::SubFloat,
+            0xa8 | 0xc8 => Self::MulFloat,
+            0xa9 | 0xc9 => Self::DivFloat,
+            0xaa | 0xca => Self::RemFloat,
+            0xab | 0xcb => Self::AddDouble,
+            0xac | 0xcc => Self::SubDouble,
+            0xad | 0xcd => Self::MulDouble,
+            0xae | 0xce => Self::DivDouble,
+            0xaf | 0xcf => Self::RemDouble,
+            _ => Self::Unknown,
         }
     }
 }
@@ -419,39 +419,39 @@ impl From<u8> for BinaryOperation {
 impl ToString for BinaryOperation {
     fn to_string(&self) -> String {
         match self {
-            BinaryOperation::AddInt => "add-int".to_string(),
-            BinaryOperation::SubInt => "sub-int".to_string(),
-            BinaryOperation::MulInt => "mul-int".to_string(),
-            BinaryOperation::DivInt => "div-int".to_string(),
-            BinaryOperation::RemInt => "rem-int".to_string(),
-            BinaryOperation::AndInt => "and-int".to_string(),
-            BinaryOperation::OrInt => "or-int".to_string(),
-            BinaryOperation::XorInt => "xor-int".to_string(),
-            BinaryOperation::ShlInt => "shl-int".to_string(),
-            BinaryOperation::ShrInt => "shr-int".to_string(),
-            BinaryOperation::UshrInt => "ushr-int".to_string(),
-            BinaryOperation::AddLong => "add-long".to_string(),
-            BinaryOperation::SubLong => "sub-long".to_string(),
-            BinaryOperation::MulLong => "mul-long".to_string(),
-            BinaryOperation::DivLong => "div-long".to_string(),
-            BinaryOperation::RemLong => "rem-long".to_string(),
-            BinaryOperation::AndLong => "and-long".to_string(),
-            BinaryOperation::OrLong => "or-long".to_string(),
-            BinaryOperation::XorLong => "xor-long".to_string(),
-            BinaryOperation::ShlLong => "shl-long".to_string(),
-            BinaryOperation::ShrLong => "shr-long".to_string(),
-            BinaryOperation::UshrLong => "ushr-long".to_string(),
-            BinaryOperation::AddFloat => "add-float".to_string(),
-            BinaryOperation::SubFloat => "sub-float".to_string(),
-            BinaryOperation::MulFloat => "mul-float".to_string(),
-            BinaryOperation::DivFloat => "div-float".to_string(),
-            BinaryOperation::RemFloat => "rem-float".to_string(),
-            BinaryOperation::AddDouble => "add-double".to_string(),
-            BinaryOperation::SubDouble => "sub-double".to_string(),
-            BinaryOperation::MulDouble => "mul-double".to_string(),
-            BinaryOperation::DivDouble => "div-double".to_string(),
-            BinaryOperation::RemDouble => "rem-double".to_string(),
-            BinaryOperation::Unknown => "unknown".to_string(),
+            Self::AddInt => "add-int".to_string(),
+            Self::SubInt => "sub-int".to_string(),
+            Self::MulInt => "mul-int".to_string(),
+            Self::DivInt => "div-int".to_string(),
+            Self::RemInt => "rem-int".to_string(),
+            Self::AndInt => "and-int".to_string(),
+            Self::OrInt => "or-int".to_string(),
+            Self::XorInt => "xor-int".to_string(),
+            Self::ShlInt => "shl-int".to_string(),
+            Self::ShrInt => "shr-int".to_string(),
+            Self::UshrInt => "ushr-int".to_string(),
+            Self::AddLong => "add-long".to_string(),
+            Self::SubLong => "sub-long".to_string(),
+            Self::MulLong => "mul-long".to_string(),
+            Self::DivLong => "div-long".to_string(),
+            Self::RemLong => "rem-long".to_string(),
+            Self::AndLong => "and-long".to_string(),
+            Self::OrLong => "or-long".to_string(),
+            Self::XorLong => "xor-long".to_string(),
+            Self::ShlLong => "shl-long".to_string(),
+            Self::ShrLong => "shr-long".to_string(),
+            Self::UshrLong => "ushr-long".to_string(),
+            Self::AddFloat => "add-float".to_string(),
+            Self::SubFloat => "sub-float".to_string(),
+            Self::MulFloat => "mul-float".to_string(),
+            Self::DivFloat => "div-float".to_string(),
+            Self::RemFloat => "rem-float".to_string(),
+            Self::AddDouble => "add-double".to_string(),
+            Self::SubDouble => "sub-double".to_string(),
+            Self::MulDouble => "mul-double".to_string(),
+            Self::DivDouble => "div-double".to_string(),
+            Self::RemDouble => "rem-double".to_string(),
+            Self::Unknown => "unknown".to_string(),
         }
     }
 }
@@ -474,69 +474,61 @@ pub type CallSiteReference = u32;
 impl ToString for ByteCode {
     fn to_string(&self) -> String {
         match self {
-            ByteCode::Nop => "nop".to_string(),
-            ByteCode::Move(dest, source) => format!("move v{}, v{}", dest, source),
-            ByteCode::MoveFrom16(dest, source) => format!("move/from16 v{}, v{}", dest, source),
-            ByteCode::Move16(dest, source) => format!("move/16 v{}, v{}", dest, source),
-            ByteCode::MoveWide(dest, source) => format!("move-wide v{}, v{}", dest, source),
-            ByteCode::MoveWideFrom16(dest, source) => {
+            Self::Nop => "nop".to_string(),
+            Self::Move(dest, source) => format!("move v{}, v{}", dest, source),
+            Self::MoveFrom16(dest, source) => format!("move/from16 v{}, v{}", dest, source),
+            Self::Move16(dest, source) => format!("move/16 v{}, v{}", dest, source),
+            Self::MoveWide(dest, source) => format!("move-wide v{}, v{}", dest, source),
+            Self::MoveWideFrom16(dest, source) => {
                 format!("move-wide/from16 v{}, v{}", dest, source)
             }
-            ByteCode::MoveWide16(dest, source) => format!("move-wide/16 v{}, v{}", dest, source),
-            ByteCode::MoveObject(dest, source) => format!("move-object v{}, v{}", dest, source),
-            ByteCode::MoveObjectFrom16(dest, source) => {
+            Self::MoveWide16(dest, source) => format!("move-wide/16 v{}, v{}", dest, source),
+            Self::MoveObject(dest, source) => format!("move-object v{}, v{}", dest, source),
+            Self::MoveObjectFrom16(dest, source) => {
                 format!("move-object/from16 v{}, v{}", dest, source)
             }
-            ByteCode::MoveObject16(dest, source) => {
-                format!("move-object/16 v{}, v{}", dest, source)
-            }
-            ByteCode::MoveResult(dest) => format!("move-result v{}", dest),
-            ByteCode::MoveResultWide(dest) => format!("move-result-wide v{}", dest),
-            ByteCode::MoveResultObject(dest) => format!("move-result-object v{}", dest),
-            ByteCode::MoveException(dest) => format!("move-exception v{}", dest),
-            ByteCode::ReturnVoid => "return-void".to_string(),
-            ByteCode::Return(dest) => format!("return v{}", dest),
-            ByteCode::ReturnWide(dest) => format!("return-wide v{}", dest),
-            ByteCode::ReturnObject(dest) => format!("return-object v{}", dest),
-            ByteCode::Const4(dest, literal) => format!("const/4 v{}, #{}", dest, literal),
-            ByteCode::Const16(dest, literal) => format!("const/16 v{}, #{}", dest, literal),
-            ByteCode::Const(dest, literal) => format!("const v{}, #{}", dest, literal),
-            ByteCode::ConstHigh16(dest, literal) => format!("const/high16 v{}, #{}", dest, literal),
-            ByteCode::ConstWide16(dest, literal) => {
-                format!("const-wide/16 v{}, #{}", dest, literal)
-            }
-            ByteCode::ConstWide32(dest, literal) => {
-                format!("const-wide/32 v{}, #{}", dest, literal)
-            }
-            ByteCode::ConstWide(dest, literal) => format!("const-wide v{}, #{}", dest, literal),
-            ByteCode::ConstWideHigh16(dest, literal) => {
+            Self::MoveObject16(dest, source) => format!("move-object/16 v{}, v{}", dest, source),
+            Self::MoveResult(dest) => format!("move-result v{}", dest),
+            Self::MoveResultWide(dest) => format!("move-result-wide v{}", dest),
+            Self::MoveResultObject(dest) => format!("move-result-object v{}", dest),
+            Self::MoveException(dest) => format!("move-exception v{}", dest),
+            Self::ReturnVoid => "return-void".to_string(),
+            Self::Return(dest) => format!("return v{}", dest),
+            Self::ReturnWide(dest) => format!("return-wide v{}", dest),
+            Self::ReturnObject(dest) => format!("return-object v{}", dest),
+            Self::Const4(dest, literal) => format!("const/4 v{}, #{}", dest, literal),
+            Self::Const16(dest, literal) => format!("const/16 v{}, #{}", dest, literal),
+            Self::Const(dest, literal) => format!("const v{}, #{}", dest, literal),
+            Self::ConstHigh16(dest, literal) => format!("const/high16 v{}, #{}", dest, literal),
+            Self::ConstWide16(dest, literal) => format!("const-wide/16 v{}, #{}", dest, literal),
+            Self::ConstWide32(dest, literal) => format!("const-wide/32 v{}, #{}", dest, literal),
+            Self::ConstWide(dest, literal) => format!("const-wide v{}, #{}", dest, literal),
+            Self::ConstWideHigh16(dest, literal) => {
                 format!("const-wide/high16 v{}, #{}", dest, literal)
             }
-            ByteCode::ConstString(dest, reference) => {
+            Self::ConstString(dest, reference) => {
                 format!("const-string v{}, string@{}", dest, reference)
             }
-            ByteCode::ConstStringJumbo(dest, reference) => {
+            Self::ConstStringJumbo(dest, reference) => {
                 format!("const-string/jumbo v{}, string@{}", dest, reference)
             }
-            ByteCode::ConstClass(dest, reference) => {
+            Self::ConstClass(dest, reference) => {
                 format!("const-class v{}, class@{}", dest, reference)
             }
-            ByteCode::MonitorEnter(reg) => format!("monitor-enter v{}", reg),
-            ByteCode::MonitorExit(reg) => format!("monitor-exit v{}", reg),
-            ByteCode::CheckCast(reg, reference) => {
-                format!("check-cast v{}, type@{}", reg, reference)
-            }
-            ByteCode::InstanceOf(dest, src, reference) => {
+            Self::MonitorEnter(reg) => format!("monitor-enter v{}", reg),
+            Self::MonitorExit(reg) => format!("monitor-exit v{}", reg),
+            Self::CheckCast(reg, reference) => format!("check-cast v{}, type@{}", reg, reference),
+            Self::InstanceOf(dest, src, reference) => {
                 format!("instance-of v{}, v{}, type@{}", dest, src, reference)
             }
-            ByteCode::ArrayLength(dest, src) => format!("array-length v{}, v{}", dest, src),
-            ByteCode::NewInstance(dest, reference) => {
+            Self::ArrayLength(dest, src) => format!("array-length v{}, v{}", dest, src),
+            Self::NewInstance(dest, reference) => {
                 format!("new-instance v{}, type@{}", dest, reference)
             }
-            ByteCode::NewArray(dest, src, reference) => {
+            Self::NewArray(dest, src, reference) => {
                 format!("new-array v{}, v{}, type@{}", dest, src, reference)
             }
-            ByteCode::FilledNewArray(ref registers, reference) => {
+            Self::FilledNewArray(ref registers, reference) => {
                 let str_register: Vec<String> =
                     registers.iter().map(|r| format!("v{}", r)).collect();
                 format!(
@@ -545,7 +537,7 @@ impl ToString for ByteCode {
                     reference
                 )
             }
-            ByteCode::FilledNewArrayRange(first_reg, amount, reference) => {
+            Self::FilledNewArrayRange(first_reg, amount, reference) => {
                 let str_register: Vec<String> = (*first_reg..=(*first_reg + u16::from(*amount)))
                     .map(|r| format!("v{}", r))
                     .collect();
@@ -555,36 +547,34 @@ impl ToString for ByteCode {
                     reference
                 )
             }
-            ByteCode::FillArrayData(reg, offset) => format!("fill-array-data v{}, {}", reg, offset),
-            ByteCode::Throw(reg) => format!("throw v{}", reg),
-            ByteCode::Goto(offset) => format!("goto {}", offset),
-            ByteCode::Goto16(offset) => format!("goto/16 {}", offset),
-            ByteCode::Goto32(offset) => format!("goto/32 {}", offset),
-            ByteCode::PackedSwitch(reg, offset) => format!("packed-switch v{}, {}", reg, offset),
-            ByteCode::SparseSwitch(reg, offset) => format!("sparse-switch v{}, {}", reg, offset),
-            ByteCode::Compare(ref ct, dest, op1, op2) => {
+            Self::FillArrayData(reg, offset) => format!("fill-array-data v{}, {}", reg, offset),
+            Self::Throw(reg) => format!("throw v{}", reg),
+            Self::Goto(offset) => format!("goto {}", offset),
+            Self::Goto16(offset) => format!("goto/16 {}", offset),
+            Self::Goto32(offset) => format!("goto/32 {}", offset),
+            Self::PackedSwitch(reg, offset) => format!("packed-switch v{}, {}", reg, offset),
+            Self::SparseSwitch(reg, offset) => format!("sparse-switch v{}, {}", reg, offset),
+            Self::Compare(ref ct, dest, op1, op2) => {
                 format!("{} v{}, v{}, v{}", ct.to_string(), dest, op1, op2)
             }
-            ByteCode::If(ref tt, dest, src, offset) => {
+            Self::If(ref tt, dest, src, offset) => {
                 format!("{} v{}, v{}, {}", tt.to_string(), dest, src, offset)
             }
-            ByteCode::If0(ref tt, dest, offset) => {
-                format!("{}z v{}, {}", tt.to_string(), dest, offset)
-            }
-            ByteCode::Array(ref array_op, dest, op1, op2) => {
+            Self::If0(ref tt, dest, offset) => format!("{}z v{}, {}", tt.to_string(), dest, offset),
+            Self::Array(ref array_op, dest, op1, op2) => {
                 format!("a{} v{}, v{}, v{}", array_op.to_string(), dest, op1, op2)
             }
-            ByteCode::Instance(ref array_op, dest, op1, field) => format!(
+            Self::Instance(ref array_op, dest, op1, field) => format!(
                 "i{} v{}, v{}, field@{}",
                 array_op.to_string(),
                 dest,
                 op1,
                 field
             ),
-            ByteCode::Static(ref array_op, dest, field) => {
+            Self::Static(ref array_op, dest, field) => {
                 format!("s{} v{}, field@{}", array_op.to_string(), dest, field)
             }
-            ByteCode::Invoke(ref invoke_kind, ref registers, method) => {
+            Self::Invoke(ref invoke_kind, ref registers, method) => {
                 let str_register: Vec<String> =
                     registers.iter().map(|r| format!("v{}", r)).collect();
                 format!(
@@ -594,7 +584,7 @@ impl ToString for ByteCode {
                     method
                 )
             }
-            ByteCode::InvokeRange(ref invoke_kind, first_reg, amount, reference) => {
+            Self::InvokeRange(ref invoke_kind, first_reg, amount, reference) => {
                 let str_register: Vec<String> = (*first_reg..(*first_reg + u16::from(*amount)))
                     .map(|r| format!("v{}", r))
                     .collect();
@@ -605,16 +595,16 @@ impl ToString for ByteCode {
                     reference
                 )
             }
-            ByteCode::Unary(ref operation, dest, src) => {
+            Self::Unary(ref operation, dest, src) => {
                 format!("{} v{}, v{}", operation.to_string(), dest, src)
             }
-            ByteCode::Binary(ref operation, dest, op1, op2) => {
+            Self::Binary(ref operation, dest, op1, op2) => {
                 format!("{} v{}, v{}, v{}", operation.to_string(), dest, op1, op2)
             }
-            ByteCode::Binary2Addr(ref operation, src1, src2) => {
+            Self::Binary2Addr(ref operation, src1, src2) => {
                 format!("{}/2addr v{}, v{}", operation.to_string(), src1, src2)
             }
-            ByteCode::BinaryLit16(ref operation, dest, src, literal) => match operation {
+            Self::BinaryLit16(ref operation, dest, src, literal) => match operation {
                 BinaryOperation::SubInt => format!("rsub-int v{}, v{}, #{}", dest, src, literal),
                 _ => format!(
                     "{}/lit16 v{}, v{}, #{}",
@@ -624,14 +614,14 @@ impl ToString for ByteCode {
                     literal
                 ),
             },
-            ByteCode::BinaryLit8(ref operation, dest, src, literal) => format!(
+            Self::BinaryLit8(ref operation, dest, src, literal) => format!(
                 "{}/lit8 v{}, v{}, #{}",
                 operation.to_string(),
                 dest,
                 src,
                 literal
             ),
-            ByteCode::InvokePolymorphic(ref registers, method, proto) => {
+            Self::InvokePolymorphic(ref registers, method, proto) => {
                 let str_register: Vec<String> =
                     registers.iter().map(|r| format!("v{}", r)).collect();
                 format!(
@@ -641,7 +631,7 @@ impl ToString for ByteCode {
                     proto
                 )
             }
-            ByteCode::InvokePolymorphicRange(first_reg, amount, method, proto) => {
+            Self::InvokePolymorphicRange(first_reg, amount, method, proto) => {
                 let str_register: Vec<String> = (*first_reg..(*first_reg + u16::from(*amount)))
                     .map(|r| format!("v{}", r))
                     .collect();
@@ -652,7 +642,7 @@ impl ToString for ByteCode {
                     proto
                 )
             }
-            ByteCode::InvokeCustom(ref registers, call_site) => {
+            Self::InvokeCustom(ref registers, call_site) => {
                 let str_register: Vec<String> =
                     registers.iter().map(|r| format!("v{}", r)).collect();
                 format!(
@@ -661,7 +651,7 @@ impl ToString for ByteCode {
                     call_site
                 )
             }
-            ByteCode::InvokeCustomRange(first_reg, amount, call_site) => {
+            Self::InvokeCustomRange(first_reg, amount, call_site) => {
                 let str_register: Vec<String> = (*first_reg..(*first_reg + u16::from(*amount)))
                     .map(|r| format!("v{}", r))
                     .collect();
@@ -1045,23 +1035,23 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
                 .format31t()
                 .ok()
                 .map(|(reg, offset)| ByteCode::SparseSwitch(reg, offset)),
-            Ok(a @ 0x2D...0x31) => self
+            Ok(a @ 0x2D..=0x31) => self
                 .format23x()
                 .ok()
                 .map(|(dest, op1, op2)| ByteCode::Compare(CompareType::from(a), dest, op1, op2)),
-            Ok(a @ 0x32...0x37) => self
+            Ok(a @ 0x32..=0x37) => self
                 .format22t()
                 .ok()
                 .map(|(dest, src, offset)| ByteCode::If(TestType::from(a), dest, src, offset)),
-            Ok(a @ 0x38...0x3D) => self
+            Ok(a @ 0x38..=0x3D) => self
                 .format21t()
                 .ok()
                 .map(|(dest, offset)| ByteCode::If0(TestType::from(a), dest, offset)),
-            Ok(a @ 0x44...0x51) => self
+            Ok(a @ 0x44..=0x51) => self
                 .format23x()
                 .ok()
                 .map(|(dest, op1, op2)| ByteCode::Array(ArrayOperation::from(a), dest, op1, op2)),
-            Ok(a @ 0x52...0x5f) => self.format22c().ok().map(|(dest, op1, reference)| {
+            Ok(a @ 0x52..=0x5f) => self.format22c().ok().map(|(dest, op1, reference)| {
                 ByteCode::Instance(
                     ArrayOperation::from(a),
                     dest,
@@ -1069,21 +1059,21 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
                     FieldReference::from(reference),
                 )
             }),
-            Ok(a @ 0x60...0x6d) => self.format21c().ok().map(|(dest, reference)| {
+            Ok(a @ 0x60..=0x6d) => self.format21c().ok().map(|(dest, reference)| {
                 ByteCode::Static(
                     ArrayOperation::from(a),
                     dest,
                     FieldReference::from(reference),
                 )
             }),
-            Ok(a @ 0x6e...0x72) => self.format35c().ok().map(|(registers, reference)| {
+            Ok(a @ 0x6e..=0x72) => self.format35c().ok().map(|(registers, reference)| {
                 ByteCode::Invoke(
                     InvokeKind::from(a),
                     registers,
                     MethodReference::from(reference),
                 )
             }),
-            Ok(a @ 0x74...0x78) => self.format3rc().ok().map(|(first, amount, reference)| {
+            Ok(a @ 0x74..=0x78) => self.format3rc().ok().map(|(first, amount, reference)| {
                 ByteCode::InvokeRange(
                     InvokeKind::from(a),
                     first,
@@ -1091,20 +1081,20 @@ impl<R: Read + Debug, B: ByteOrder> Iterator for ByteCodeDecoder<R, B> {
                     FieldReference::from(reference),
                 )
             }),
-            Ok(op @ 0x7b...0x8f) => self
+            Ok(op @ 0x7b..=0x8f) => self
                 .format12x()
                 .ok()
                 .map(|(dest, src)| ByteCode::Unary(UnaryOperation::from(op), dest, src)),
-            Ok(op @ 0x90...0xaf) => self.format23x().ok().map(|(dest, src1, src2)| {
+            Ok(op @ 0x90..=0xaf) => self.format23x().ok().map(|(dest, src1, src2)| {
                 ByteCode::Binary(BinaryOperation::from(op), dest, src1, src2)
             }),
-            Ok(op @ 0xb0...0xcf) => self.format12x().ok().map(|(src_dest, src)| {
+            Ok(op @ 0xb0..=0xcf) => self.format12x().ok().map(|(src_dest, src)| {
                 ByteCode::Binary2Addr(BinaryOperation::from(op), src_dest, src)
             }),
-            Ok(op @ 0xd0...0xd7) => self.format22s().ok().map(|(dest, src, literal)| {
+            Ok(op @ 0xd0..=0xd7) => self.format22s().ok().map(|(dest, src, literal)| {
                 ByteCode::BinaryLit16(BinaryOperation::from(op), dest, src, literal)
             }),
-            Ok(op @ 0xd8...0xe2) => self.format22b().ok().map(|(dest, src, literal)| {
+            Ok(op @ 0xd8..=0xe2) => self.format22b().ok().map(|(dest, src, literal)| {
                 ByteCode::BinaryLit8(BinaryOperation::from(op), dest, src, literal)
             }),
             Ok(0xfa) => self.format45cc().ok().map(|(registers, method, proto)| {

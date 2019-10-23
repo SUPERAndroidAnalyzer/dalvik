@@ -308,9 +308,9 @@ impl Visibility {
     // TODO change it for TryFrom once it becomes available.
     fn from_u8(byte: u8) -> Result<Self, error::Parse> {
         match byte {
-            VISIBILITY_BUILD => Ok(Visibility::Build),
-            VISIBILITY_RUNTIME => Ok(Visibility::Runtime),
-            VISIBILITY_SYSTEM => Ok(Visibility::System),
+            VISIBILITY_BUILD => Ok(Self::Build),
+            VISIBILITY_RUNTIME => Ok(Self::Runtime),
+            VISIBILITY_SYSTEM => Ok(Self::System),
             b => Err(error::Parse::InvalidVisibility { visibility: b }),
         }
     }
@@ -350,9 +350,7 @@ impl Value {
         match value_type {
             VALUE_BYTE => {
                 if arg == 0 {
-                    Ok(Value::Byte(
-                        reader.read_i8().context("could not read Byte")?,
-                    ))
+                    Ok(Self::Byte(reader.read_i8().context("could not read Byte")?))
                 } else {
                     Err(error::Parse::InvalidValue {
                         error: format!("invalid arg ({}) for Byte value", arg),
@@ -361,10 +359,10 @@ impl Value {
                 }
             }
             VALUE_SHORT => match arg {
-                0 => Ok(Value::Short(i16::from(
+                0 => Ok(Self::Short(i16::from(
                     reader.read_i8().context("could not read Short")?,
                 ))),
-                1 => Ok(Value::Short(
+                1 => Ok(Self::Short(
                     reader
                         .read_i16::<LittleEndian>()
                         .context("could not read Short")?,
@@ -375,10 +373,10 @@ impl Value {
                 .into()),
             },
             VALUE_CHAR => match arg {
-                0 => Ok(Value::Char(u16::from(
+                0 => Ok(Self::Char(u16::from(
                     reader.read_u8().context("could not read Char")?,
                 ))),
-                1 => Ok(Value::Char(
+                1 => Ok(Self::Char(
                     reader
                         .read_u16::<LittleEndian>()
                         .context("could not read Char")?,
@@ -390,10 +388,10 @@ impl Value {
             },
             VALUE_INT => {
                 match arg {
-                    0 => Ok(Value::Int(i32::from(
+                    0 => Ok(Self::Int(i32::from(
                         reader.read_i8().context("could not read Int")?,
                     ))),
-                    1 => Ok(Value::Int(i32::from(
+                    1 => Ok(Self::Int(i32::from(
                         reader
                             .read_i16::<LittleEndian>()
                             .context("could not read Int")?,
@@ -404,13 +402,13 @@ impl Value {
                             .read_exact(&mut bytes)
                             .context("could not read Int")?;
                         // Reading in little endian
-                        Ok(Value::Int(
+                        Ok(Self::Int(
                             i32::from(bytes[0])
                                 | i32::from(bytes[1]) << 8
                                 | i32::from(bytes[2] as i8) << 16,
                         ))
                     }
-                    3 => Ok(Value::Int(
+                    3 => Ok(Self::Int(
                         reader
                             .read_i32::<LittleEndian>()
                             .context("could not read Int")?,
@@ -423,8 +421,8 @@ impl Value {
             }
             VALUE_LONG => {
                 match arg {
-                    0 => Ok(Value::Long(i64::from(reader.read_i8()?))),
-                    1 => Ok(Value::Long(i64::from(
+                    0 => Ok(Self::Long(i64::from(reader.read_i8()?))),
+                    1 => Ok(Self::Long(i64::from(
                         reader
                             .read_i16::<LittleEndian>()
                             .context("could not read Long")?,
@@ -435,13 +433,13 @@ impl Value {
                             .read_exact(&mut bytes)
                             .context("could not read Long")?;
                         // Reading in little endian
-                        Ok(Value::Long(
+                        Ok(Self::Long(
                             i64::from(bytes[0])
                                 | i64::from(bytes[1]) << 8
                                 | i64::from(bytes[2] as i8) << 16,
                         ))
                     }
-                    3 => Ok(Value::Long(i64::from(
+                    3 => Ok(Self::Long(i64::from(
                         reader
                             .read_i32::<LittleEndian>()
                             .context("could not read Long")?,
@@ -452,7 +450,7 @@ impl Value {
                             .read_exact(&mut bytes)
                             .context("could not read Long")?;
                         // Reading in little endian
-                        Ok(Value::Long(
+                        Ok(Self::Long(
                             i64::from(bytes[0])
                                 | i64::from(bytes[1]) << 8
                                 | i64::from(bytes[2]) << 16
@@ -466,7 +464,7 @@ impl Value {
                             .read_exact(&mut bytes)
                             .context("could not read Long")?;
                         // Reading in little endian
-                        Ok(Value::Long(
+                        Ok(Self::Long(
                             i64::from(bytes[0])
                                 | i64::from(bytes[1]) << 8
                                 | i64::from(bytes[2]) << 16
@@ -481,7 +479,7 @@ impl Value {
                             .read_exact(&mut bytes)
                             .context("could not read Long")?;
                         // Reading in little endian
-                        Ok(Value::Long(
+                        Ok(Self::Long(
                             i64::from(bytes[0])
                                 | i64::from(bytes[1]) << 8
                                 | i64::from(bytes[2]) << 16
@@ -491,7 +489,7 @@ impl Value {
                                 | i64::from(bytes[6] as i8) << 48,
                         ))
                     }
-                    7 => Ok(Value::Long(
+                    7 => Ok(Self::Long(
                         reader
                             .read_i64::<LittleEndian>()
                             .context("could not read Long")?,
@@ -500,12 +498,12 @@ impl Value {
                 }
             }
             VALUE_FLOAT => match arg {
-                c @ 0...3 => {
+                c @ 0..=3 => {
                     let mut bytes = [0_u8; 4];
                     reader
                         .read_exact(&mut bytes[..=c as usize])
                         .context("could not read Float")?;
-                    Ok(Value::Float(LittleEndian::read_f32(&bytes)))
+                    Ok(Self::Float(LittleEndian::read_f32(&bytes)))
                 }
                 a => Err(error::Parse::InvalidValue {
                     error: format!("invalid arg ({}) for Float value", a),
@@ -513,12 +511,12 @@ impl Value {
                 .into()),
             },
             VALUE_DOUBLE => match arg {
-                c @ 0...7 => {
+                c @ 0..=7 => {
                     let mut bytes = [0_u8; 8];
                     reader
                         .read_exact(&mut bytes[..=c as usize])
                         .context("could not read Double")?;
-                    Ok(Value::Double(LittleEndian::read_f64(&bytes)))
+                    Ok(Self::Double(LittleEndian::read_f64(&bytes)))
                 }
                 _ => unreachable!(),
             },
@@ -527,41 +525,41 @@ impl Value {
             VALUE_STRING => {
                 let string_index =
                     Self::read_u32(reader, arg).context("could not read String index")?;
-                Ok(Value::String(string_index))
+                Ok(Self::String(string_index))
             }
             VALUE_TYPE => {
                 let type_index =
                     Self::read_u32(reader, arg).context("could not read Type index")?;
-                Ok(Value::Type(type_index))
+                Ok(Self::Type(type_index))
             }
             VALUE_FIELD => {
                 let field_index =
                     Self::read_u32(reader, arg).context("could not read Field index")?;
-                Ok(Value::Field(field_index))
+                Ok(Self::Field(field_index))
             }
             VALUE_METHOD => {
                 let method_index =
                     Self::read_u32(reader, arg).context("could not read Method index")?;
-                Ok(Value::Method(method_index))
+                Ok(Self::Method(method_index))
             }
             VALUE_ENUM => {
                 let enum_index =
                     Self::read_u32(reader, arg).context("could not read Enum index")?;
-                Ok(Value::Enum(enum_index))
+                Ok(Self::Enum(enum_index))
             }
             VALUE_ARRAY => {
                 let array = Array::from_reader(reader).context("could not read Array")?;
-                Ok(Value::Array(array))
+                Ok(Self::Array(array))
             }
             VALUE_ANNOTATION => {
                 let annotation = EncodedAnnotation::from_reader(reader)
                     .context("could not read Annotation value")?;
-                Ok(Value::Annotation(annotation))
+                Ok(Self::Annotation(annotation))
             }
-            VALUE_NULL => Ok(Value::Null),
+            VALUE_NULL => Ok(Self::Null),
             VALUE_BOOLEAN => match arg {
-                0 => Ok(Value::Boolean(false)),
-                1 => Ok(Value::Boolean(true)),
+                0 => Ok(Self::Boolean(false)),
+                1 => Ok(Self::Boolean(true)),
                 _ => Err(error::Parse::InvalidValue {
                     error: format!("invalid arg ({}) for Boolean value", arg),
                 }
@@ -1094,19 +1092,19 @@ impl DebugInstruction {
             .context("could not read opcode")?;
         let mut read = 1;
         let instruction = match opcode[0] {
-            0x00_u8 => DebugInstruction::EndSequence,
+            0x00_u8 => Self::EndSequence,
             0x01_u8 => {
                 let (addr_diff, read_ad) = uleb128(reader)
                     .context("could not read `addr_diff` for the DBG_ADVANCE_PC instruction")?;
                 read += read_ad;
-                DebugInstruction::AdvancePc { addr_diff }
+                Self::AdvancePc { addr_diff }
             }
             0x02_u8 => {
                 let (line_diff, read_ld) = sleb128(reader).context({
                     "could not read `line_diff` for the DBG_ADVANCE_LINE instruction"
                 })?;
                 read += read_ld;
-                DebugInstruction::AdvanceLine { line_diff }
+                Self::AdvanceLine { line_diff }
             }
             0x03_u8 => {
                 let (register_num, read_rn) = uleb128(reader).context({
@@ -1118,7 +1116,7 @@ impl DebugInstruction {
                     .context("could not read `type_id` for the DBG_START_LOCAL instruction")?;
                 read += read_rn + read_ni + read_ti;
 
-                DebugInstruction::StartLocal {
+                Self::StartLocal {
                     register_num,
                     name_id: name_id.into(),
                     type_id: type_id.into(),
@@ -1139,7 +1137,7 @@ impl DebugInstruction {
                 })?;
                 read += read_rn + read_ni + read_ti + read_si;
 
-                DebugInstruction::StartLocalExtended {
+                Self::StartLocalExtended {
                     register_num,
                     name_id: name_id.into(),
                     type_id: type_id.into(),
@@ -1150,24 +1148,24 @@ impl DebugInstruction {
                 let (register_num, read_rn) = uleb128(reader)
                     .context("could not read `register_num` for the DBG_END_LOCAL instruction")?;
                 read += read_rn;
-                DebugInstruction::EndLocal { register_num }
+                Self::EndLocal { register_num }
             }
             0x06_u8 => {
                 let (register_num, read_rn) = uleb128(reader).context(
                     "could not read `register_num` for the DBG_RESTART_LOCAL instruction",
                 )?;
                 read += read_rn;
-                DebugInstruction::RestartLocal { register_num }
+                Self::RestartLocal { register_num }
             }
-            0x07_u8 => DebugInstruction::SetPrologueEnd,
-            0x08_u8 => DebugInstruction::SetEpilogueBegin,
+            0x07_u8 => Self::SetPrologueEnd,
+            0x08_u8 => Self::SetEpilogueBegin,
             0x09_u8 => {
                 let (name_id, read_ni) = uleb128(reader)
                     .context("could not read `name_id` for the DBG_SET_FILE instruction")?;
                 read += read_ni;
-                DebugInstruction::SetFile { name_id }
+                Self::SetFile { name_id }
             }
-            opcode @ 0x0a_u8...0xff_u8 => DebugInstruction::SpecialOpcode { opcode },
+            opcode @ 0x0a_u8..=0xff_u8 => Self::SpecialOpcode { opcode },
         };
 
         Ok((instruction, read))
