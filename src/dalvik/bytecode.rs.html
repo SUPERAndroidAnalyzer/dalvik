@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/bytecode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytecode.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/bytecode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytecode.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../dalvik/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1996,16 +1996,6 @@
 <span id="1996">1996</span>
 <span id="1997">1997</span>
 <span id="1998">1998</span>
-<span id="1999">1999</span>
-<span id="2000">2000</span>
-<span id="2001">2001</span>
-<span id="2002">2002</span>
-<span id="2003">2003</span>
-<span id="2004">2004</span>
-<span id="2005">2005</span>
-<span id="2006">2006</span>
-<span id="2007">2007</span>
-<span id="2008">2008</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Representation of the Dalvik bytecodes and utilities to decode them</span>
 
@@ -2098,12 +2088,12 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CompareType</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">opcode</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">opcode</span> {
-            <span class="number">0x2D</span> <span class="op">=&gt;</span> <span class="ident">CompareType</span>::<span class="ident">LittleThanFloat</span>,
-            <span class="number">0x2E</span> <span class="op">=&gt;</span> <span class="ident">CompareType</span>::<span class="ident">GreaterThanFloat</span>,
-            <span class="number">0x2F</span> <span class="op">=&gt;</span> <span class="ident">CompareType</span>::<span class="ident">LittleThanDouble</span>,
-            <span class="number">0x30</span> <span class="op">=&gt;</span> <span class="ident">CompareType</span>::<span class="ident">GreaterThanDouble</span>,
-            <span class="number">0x31</span> <span class="op">=&gt;</span> <span class="ident">CompareType</span>::<span class="ident">Long</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">CompareType</span>::<span class="ident">Unknown</span>,
+            <span class="number">0x2D</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">LittleThanFloat</span>,
+            <span class="number">0x2E</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GreaterThanFloat</span>,
+            <span class="number">0x2F</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">LittleThanDouble</span>,
+            <span class="number">0x30</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GreaterThanDouble</span>,
+            <span class="number">0x31</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Long</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Unknown</span>,
         }
     }
 }
@@ -2111,12 +2101,12 @@
 <span class="kw">impl</span> <span class="ident">ToString</span> <span class="kw">for</span> <span class="ident">CompareType</span> {
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">CompareType</span>::<span class="ident">LittleThanFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;cmpl-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">CompareType</span>::<span class="ident">GreaterThanFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;cmpg-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">CompareType</span>::<span class="ident">LittleThanDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;cmpl-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">CompareType</span>::<span class="ident">GreaterThanDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;cmpg-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">CompareType</span>::<span class="ident">Long</span> <span class="op">=&gt;</span> <span class="string">&quot;cmp-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">CompareType</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">LittleThanFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;cmpl-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GreaterThanFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;cmpg-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">LittleThanDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;cmpl-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GreaterThanDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;cmpg-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Long</span> <span class="op">=&gt;</span> <span class="string">&quot;cmp-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
         }
     }
 }
@@ -2136,13 +2126,13 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TestType</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">opcode</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">opcode</span> {
-            <span class="number">0x32</span> <span class="op">|</span> <span class="number">0x38</span> <span class="op">=&gt;</span> <span class="ident">TestType</span>::<span class="ident">Equal</span>,
-            <span class="number">0x33</span> <span class="op">|</span> <span class="number">0x39</span> <span class="op">=&gt;</span> <span class="ident">TestType</span>::<span class="ident">NonEqual</span>,
-            <span class="number">0x34</span> <span class="op">|</span> <span class="number">0x3A</span> <span class="op">=&gt;</span> <span class="ident">TestType</span>::<span class="ident">LittleThan</span>,
-            <span class="number">0x35</span> <span class="op">|</span> <span class="number">0x3B</span> <span class="op">=&gt;</span> <span class="ident">TestType</span>::<span class="ident">GreaterThanOrEqual</span>,
-            <span class="number">0x36</span> <span class="op">|</span> <span class="number">0x3C</span> <span class="op">=&gt;</span> <span class="ident">TestType</span>::<span class="ident">GreaterThan</span>,
-            <span class="number">0x37</span> <span class="op">|</span> <span class="number">0x3D</span> <span class="op">=&gt;</span> <span class="ident">TestType</span>::<span class="ident">LittleThanOrEqual</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">TestType</span>::<span class="ident">Unknown</span>,
+            <span class="number">0x32</span> <span class="op">|</span> <span class="number">0x38</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Equal</span>,
+            <span class="number">0x33</span> <span class="op">|</span> <span class="number">0x39</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">NonEqual</span>,
+            <span class="number">0x34</span> <span class="op">|</span> <span class="number">0x3A</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">LittleThan</span>,
+            <span class="number">0x35</span> <span class="op">|</span> <span class="number">0x3B</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GreaterThanOrEqual</span>,
+            <span class="number">0x36</span> <span class="op">|</span> <span class="number">0x3C</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GreaterThan</span>,
+            <span class="number">0x37</span> <span class="op">|</span> <span class="number">0x3D</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">LittleThanOrEqual</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Unknown</span>,
         }
     }
 }
@@ -2150,13 +2140,13 @@
 <span class="kw">impl</span> <span class="ident">ToString</span> <span class="kw">for</span> <span class="ident">TestType</span> {
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TestType</span>::<span class="ident">Equal</span> <span class="op">=&gt;</span> <span class="string">&quot;if-eq&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">TestType</span>::<span class="ident">NonEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;if-ne&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">TestType</span>::<span class="ident">LittleThan</span> <span class="op">=&gt;</span> <span class="string">&quot;if-lt&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">TestType</span>::<span class="ident">GreaterThanOrEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;if-ge&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">TestType</span>::<span class="ident">GreaterThan</span> <span class="op">=&gt;</span> <span class="string">&quot;if-gt&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">TestType</span>::<span class="ident">LittleThanOrEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;if-le&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">TestType</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Equal</span> <span class="op">=&gt;</span> <span class="string">&quot;if-eq&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">NonEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;if-ne&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">LittleThan</span> <span class="op">=&gt;</span> <span class="string">&quot;if-lt&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GreaterThanOrEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;if-ge&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GreaterThan</span> <span class="op">=&gt;</span> <span class="string">&quot;if-gt&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">LittleThanOrEqual</span> <span class="op">=&gt;</span> <span class="string">&quot;if-le&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
         }
     }
 }
@@ -2184,21 +2174,21 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayOperation</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">opcode</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">opcode</span> {
-            <span class="number">0x44</span> <span class="op">|</span> <span class="number">0x52</span> <span class="op">|</span> <span class="number">0x60</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">Get</span>,
-            <span class="number">0x45</span> <span class="op">|</span> <span class="number">0x53</span> <span class="op">|</span> <span class="number">0x61</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">GetWide</span>,
-            <span class="number">0x46</span> <span class="op">|</span> <span class="number">0x54</span> <span class="op">|</span> <span class="number">0x62</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">GetObject</span>,
-            <span class="number">0x47</span> <span class="op">|</span> <span class="number">0x55</span> <span class="op">|</span> <span class="number">0x63</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">GetBoolean</span>,
-            <span class="number">0x48</span> <span class="op">|</span> <span class="number">0x56</span> <span class="op">|</span> <span class="number">0x64</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">GetByte</span>,
-            <span class="number">0x49</span> <span class="op">|</span> <span class="number">0x57</span> <span class="op">|</span> <span class="number">0x65</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">GetChar</span>,
-            <span class="number">0x4A</span> <span class="op">|</span> <span class="number">0x58</span> <span class="op">|</span> <span class="number">0x66</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">GetShort</span>,
-            <span class="number">0x4B</span> <span class="op">|</span> <span class="number">0x59</span> <span class="op">|</span> <span class="number">0x67</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">Put</span>,
-            <span class="number">0x4C</span> <span class="op">|</span> <span class="number">0x5A</span> <span class="op">|</span> <span class="number">0x68</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">PutWide</span>,
-            <span class="number">0x4D</span> <span class="op">|</span> <span class="number">0x5B</span> <span class="op">|</span> <span class="number">0x69</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">PutObject</span>,
-            <span class="number">0x4E</span> <span class="op">|</span> <span class="number">0x5C</span> <span class="op">|</span> <span class="number">0x6A</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">PutBoolean</span>,
-            <span class="number">0x4F</span> <span class="op">|</span> <span class="number">0x5D</span> <span class="op">|</span> <span class="number">0x6B</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">PutByte</span>,
-            <span class="number">0x50</span> <span class="op">|</span> <span class="number">0x5E</span> <span class="op">|</span> <span class="number">0x6C</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">PutChar</span>,
-            <span class="number">0x51</span> <span class="op">|</span> <span class="number">0x5F</span> <span class="op">|</span> <span class="number">0x6D</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">PutShort</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">ArrayOperation</span>::<span class="ident">Unknown</span>,
+            <span class="number">0x44</span> <span class="op">|</span> <span class="number">0x52</span> <span class="op">|</span> <span class="number">0x60</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Get</span>,
+            <span class="number">0x45</span> <span class="op">|</span> <span class="number">0x53</span> <span class="op">|</span> <span class="number">0x61</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GetWide</span>,
+            <span class="number">0x46</span> <span class="op">|</span> <span class="number">0x54</span> <span class="op">|</span> <span class="number">0x62</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GetObject</span>,
+            <span class="number">0x47</span> <span class="op">|</span> <span class="number">0x55</span> <span class="op">|</span> <span class="number">0x63</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GetBoolean</span>,
+            <span class="number">0x48</span> <span class="op">|</span> <span class="number">0x56</span> <span class="op">|</span> <span class="number">0x64</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GetByte</span>,
+            <span class="number">0x49</span> <span class="op">|</span> <span class="number">0x57</span> <span class="op">|</span> <span class="number">0x65</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GetChar</span>,
+            <span class="number">0x4A</span> <span class="op">|</span> <span class="number">0x58</span> <span class="op">|</span> <span class="number">0x66</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">GetShort</span>,
+            <span class="number">0x4B</span> <span class="op">|</span> <span class="number">0x59</span> <span class="op">|</span> <span class="number">0x67</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Put</span>,
+            <span class="number">0x4C</span> <span class="op">|</span> <span class="number">0x5A</span> <span class="op">|</span> <span class="number">0x68</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">PutWide</span>,
+            <span class="number">0x4D</span> <span class="op">|</span> <span class="number">0x5B</span> <span class="op">|</span> <span class="number">0x69</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">PutObject</span>,
+            <span class="number">0x4E</span> <span class="op">|</span> <span class="number">0x5C</span> <span class="op">|</span> <span class="number">0x6A</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">PutBoolean</span>,
+            <span class="number">0x4F</span> <span class="op">|</span> <span class="number">0x5D</span> <span class="op">|</span> <span class="number">0x6B</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">PutByte</span>,
+            <span class="number">0x50</span> <span class="op">|</span> <span class="number">0x5E</span> <span class="op">|</span> <span class="number">0x6C</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">PutChar</span>,
+            <span class="number">0x51</span> <span class="op">|</span> <span class="number">0x5F</span> <span class="op">|</span> <span class="number">0x6D</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">PutShort</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Unknown</span>,
         }
     }
 }
@@ -2206,21 +2196,21 @@
 <span class="kw">impl</span> <span class="ident">ToString</span> <span class="kw">for</span> <span class="ident">ArrayOperation</span> {
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ArrayOperation</span>::<span class="ident">Get</span> <span class="op">=&gt;</span> <span class="string">&quot;get&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">GetWide</span> <span class="op">=&gt;</span> <span class="string">&quot;get-wide&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">GetObject</span> <span class="op">=&gt;</span> <span class="string">&quot;get-object&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">GetBoolean</span> <span class="op">=&gt;</span> <span class="string">&quot;get-boolean&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">GetByte</span> <span class="op">=&gt;</span> <span class="string">&quot;get-byte&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">GetChar</span> <span class="op">=&gt;</span> <span class="string">&quot;get-char&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">GetShort</span> <span class="op">=&gt;</span> <span class="string">&quot;get-short&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">Put</span> <span class="op">=&gt;</span> <span class="string">&quot;put&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">PutWide</span> <span class="op">=&gt;</span> <span class="string">&quot;put-wide&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">PutObject</span> <span class="op">=&gt;</span> <span class="string">&quot;put-object&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">PutBoolean</span> <span class="op">=&gt;</span> <span class="string">&quot;put-boolean&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">PutByte</span> <span class="op">=&gt;</span> <span class="string">&quot;put-byte&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">PutChar</span> <span class="op">=&gt;</span> <span class="string">&quot;put-char&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">PutShort</span> <span class="op">=&gt;</span> <span class="string">&quot;put-short&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ArrayOperation</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Get</span> <span class="op">=&gt;</span> <span class="string">&quot;get&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GetWide</span> <span class="op">=&gt;</span> <span class="string">&quot;get-wide&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GetObject</span> <span class="op">=&gt;</span> <span class="string">&quot;get-object&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GetBoolean</span> <span class="op">=&gt;</span> <span class="string">&quot;get-boolean&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GetByte</span> <span class="op">=&gt;</span> <span class="string">&quot;get-byte&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GetChar</span> <span class="op">=&gt;</span> <span class="string">&quot;get-char&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">GetShort</span> <span class="op">=&gt;</span> <span class="string">&quot;get-short&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Put</span> <span class="op">=&gt;</span> <span class="string">&quot;put&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">PutWide</span> <span class="op">=&gt;</span> <span class="string">&quot;put-wide&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">PutObject</span> <span class="op">=&gt;</span> <span class="string">&quot;put-object&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">PutBoolean</span> <span class="op">=&gt;</span> <span class="string">&quot;put-boolean&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">PutByte</span> <span class="op">=&gt;</span> <span class="string">&quot;put-byte&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">PutChar</span> <span class="op">=&gt;</span> <span class="string">&quot;put-char&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">PutShort</span> <span class="op">=&gt;</span> <span class="string">&quot;put-short&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
         }
     }
 }
@@ -2239,12 +2229,12 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">InvokeKind</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">opcode</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">opcode</span> {
-            <span class="number">0x6e</span> <span class="op">|</span> <span class="number">0x74</span> <span class="op">=&gt;</span> <span class="ident">InvokeKind</span>::<span class="ident">Virtual</span>,
-            <span class="number">0x6f</span> <span class="op">|</span> <span class="number">0x75</span> <span class="op">=&gt;</span> <span class="ident">InvokeKind</span>::<span class="ident">Super</span>,
-            <span class="number">0x70</span> <span class="op">|</span> <span class="number">0x76</span> <span class="op">=&gt;</span> <span class="ident">InvokeKind</span>::<span class="ident">Direct</span>,
-            <span class="number">0x71</span> <span class="op">|</span> <span class="number">0x77</span> <span class="op">=&gt;</span> <span class="ident">InvokeKind</span>::<span class="ident">Static</span>,
-            <span class="number">0x72</span> <span class="op">|</span> <span class="number">0x78</span> <span class="op">=&gt;</span> <span class="ident">InvokeKind</span>::<span class="ident">Interface</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">InvokeKind</span>::<span class="ident">Unknown</span>,
+            <span class="number">0x6e</span> <span class="op">|</span> <span class="number">0x74</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Virtual</span>,
+            <span class="number">0x6f</span> <span class="op">|</span> <span class="number">0x75</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Super</span>,
+            <span class="number">0x70</span> <span class="op">|</span> <span class="number">0x76</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Direct</span>,
+            <span class="number">0x71</span> <span class="op">|</span> <span class="number">0x77</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Static</span>,
+            <span class="number">0x72</span> <span class="op">|</span> <span class="number">0x78</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Interface</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Unknown</span>,
         }
     }
 }
@@ -2252,12 +2242,12 @@
 <span class="kw">impl</span> <span class="ident">ToString</span> <span class="kw">for</span> <span class="ident">InvokeKind</span> {
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">InvokeKind</span>::<span class="ident">Virtual</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-virtual&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">InvokeKind</span>::<span class="ident">Super</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-super&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">InvokeKind</span>::<span class="ident">Direct</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-direct&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">InvokeKind</span>::<span class="ident">Static</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-static&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">InvokeKind</span>::<span class="ident">Interface</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-interface&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">InvokeKind</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Virtual</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-virtual&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Super</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-super&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Direct</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-direct&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Static</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-static&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Interface</span> <span class="op">=&gt;</span> <span class="string">&quot;invoke-interface&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
         }
     }
 }
@@ -2292,28 +2282,28 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnaryOperation</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">opcode</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">opcode</span> {
-            <span class="number">0x7b</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">NegateInt</span>,
-            <span class="number">0x7c</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">NotInt</span>,
-            <span class="number">0x7d</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">NegateLong</span>,
-            <span class="number">0x7e</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">NotLong</span>,
-            <span class="number">0x7f</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">NegateFloat</span>,
-            <span class="number">0x80</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">NegateDouble</span>,
-            <span class="number">0x81</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">IntToLong</span>,
-            <span class="number">0x82</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">IntToFloat</span>,
-            <span class="number">0x83</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">IntToDouble</span>,
-            <span class="number">0x84</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">LongToInt</span>,
-            <span class="number">0x85</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">LongToFloat</span>,
-            <span class="number">0x86</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">LongToDouble</span>,
-            <span class="number">0x87</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">FloatToInt</span>,
-            <span class="number">0x88</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">FloatToLong</span>,
-            <span class="number">0x89</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">FloatToDouble</span>,
-            <span class="number">0x8a</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">DoubleToInt</span>,
-            <span class="number">0x8b</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">DoubleToLong</span>,
-            <span class="number">0x8c</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">DoubleToFloat</span>,
-            <span class="number">0x8d</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">IntToByte</span>,
-            <span class="number">0x8e</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">IntToChar</span>,
-            <span class="number">0x8f</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">IntToShort</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">UnaryOperation</span>::<span class="ident">Unknown</span>,
+            <span class="number">0x7b</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">NegateInt</span>,
+            <span class="number">0x7c</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">NotInt</span>,
+            <span class="number">0x7d</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">NegateLong</span>,
+            <span class="number">0x7e</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">NotLong</span>,
+            <span class="number">0x7f</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">NegateFloat</span>,
+            <span class="number">0x80</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">NegateDouble</span>,
+            <span class="number">0x81</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">IntToLong</span>,
+            <span class="number">0x82</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">IntToFloat</span>,
+            <span class="number">0x83</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">IntToDouble</span>,
+            <span class="number">0x84</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">LongToInt</span>,
+            <span class="number">0x85</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">LongToFloat</span>,
+            <span class="number">0x86</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">LongToDouble</span>,
+            <span class="number">0x87</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">FloatToInt</span>,
+            <span class="number">0x88</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">FloatToLong</span>,
+            <span class="number">0x89</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">FloatToDouble</span>,
+            <span class="number">0x8a</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">DoubleToInt</span>,
+            <span class="number">0x8b</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">DoubleToLong</span>,
+            <span class="number">0x8c</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">DoubleToFloat</span>,
+            <span class="number">0x8d</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">IntToByte</span>,
+            <span class="number">0x8e</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">IntToChar</span>,
+            <span class="number">0x8f</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">IntToShort</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Unknown</span>,
         }
     }
 }
@@ -2321,28 +2311,28 @@
 <span class="kw">impl</span> <span class="ident">ToString</span> <span class="kw">for</span> <span class="ident">UnaryOperation</span> {
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">UnaryOperation</span>::<span class="ident">NegateInt</span> <span class="op">=&gt;</span> <span class="string">&quot;neg-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">NotInt</span> <span class="op">=&gt;</span> <span class="string">&quot;not-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">NegateLong</span> <span class="op">=&gt;</span> <span class="string">&quot;neg-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">NotLong</span> <span class="op">=&gt;</span> <span class="string">&quot;not-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">NegateFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;neg-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">NegateDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;neg-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">IntToLong</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">IntToFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">IntToDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">LongToInt</span> <span class="op">=&gt;</span> <span class="string">&quot;long-to-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">LongToFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;long-to-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">LongToDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;long-to-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">FloatToInt</span> <span class="op">=&gt;</span> <span class="string">&quot;float-to-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">FloatToLong</span> <span class="op">=&gt;</span> <span class="string">&quot;float-to-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">FloatToDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;float-to-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">DoubleToInt</span> <span class="op">=&gt;</span> <span class="string">&quot;double-to-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">DoubleToLong</span> <span class="op">=&gt;</span> <span class="string">&quot;double-to-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">DoubleToFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;double-to-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">IntToByte</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-byte&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">IntToChar</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-char&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">IntToShort</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-short&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">UnaryOperation</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">NegateInt</span> <span class="op">=&gt;</span> <span class="string">&quot;neg-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">NotInt</span> <span class="op">=&gt;</span> <span class="string">&quot;not-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">NegateLong</span> <span class="op">=&gt;</span> <span class="string">&quot;neg-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">NotLong</span> <span class="op">=&gt;</span> <span class="string">&quot;not-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">NegateFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;neg-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">NegateDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;neg-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">IntToLong</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">IntToFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">IntToDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">LongToInt</span> <span class="op">=&gt;</span> <span class="string">&quot;long-to-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">LongToFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;long-to-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">LongToDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;long-to-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">FloatToInt</span> <span class="op">=&gt;</span> <span class="string">&quot;float-to-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">FloatToLong</span> <span class="op">=&gt;</span> <span class="string">&quot;float-to-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">FloatToDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;float-to-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">DoubleToInt</span> <span class="op">=&gt;</span> <span class="string">&quot;double-to-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">DoubleToLong</span> <span class="op">=&gt;</span> <span class="string">&quot;double-to-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">DoubleToFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;double-to-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">IntToByte</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-byte&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">IntToChar</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-char&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">IntToShort</span> <span class="op">=&gt;</span> <span class="string">&quot;int-to-short&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
         }
     }
 }
@@ -2388,39 +2378,39 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BinaryOperation</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">opcode</span>: <span class="ident">u8</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">opcode</span> {
-            <span class="number">0x90</span> <span class="op">|</span> <span class="number">0xb0</span> <span class="op">|</span> <span class="number">0xd0</span> <span class="op">|</span> <span class="number">0xd8</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">AddInt</span>,
-            <span class="number">0x91</span> <span class="op">|</span> <span class="number">0xb1</span> <span class="op">|</span> <span class="number">0xd1</span> <span class="op">|</span> <span class="number">0xd9</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">SubInt</span>,
-            <span class="number">0x92</span> <span class="op">|</span> <span class="number">0xb2</span> <span class="op">|</span> <span class="number">0xd2</span> <span class="op">|</span> <span class="number">0xda</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">MulInt</span>,
-            <span class="number">0x93</span> <span class="op">|</span> <span class="number">0xb3</span> <span class="op">|</span> <span class="number">0xd3</span> <span class="op">|</span> <span class="number">0xdb</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">DivInt</span>,
-            <span class="number">0x94</span> <span class="op">|</span> <span class="number">0xb4</span> <span class="op">|</span> <span class="number">0xd4</span> <span class="op">|</span> <span class="number">0xdc</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">RemInt</span>,
-            <span class="number">0x95</span> <span class="op">|</span> <span class="number">0xb5</span> <span class="op">|</span> <span class="number">0xd5</span> <span class="op">|</span> <span class="number">0xdd</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">AndInt</span>,
-            <span class="number">0x96</span> <span class="op">|</span> <span class="number">0xb6</span> <span class="op">|</span> <span class="number">0xd6</span> <span class="op">|</span> <span class="number">0xde</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">OrInt</span>,
-            <span class="number">0x97</span> <span class="op">|</span> <span class="number">0xb7</span> <span class="op">|</span> <span class="number">0xd7</span> <span class="op">|</span> <span class="number">0xdf</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">XorInt</span>,
-            <span class="number">0x98</span> <span class="op">|</span> <span class="number">0xb8</span> <span class="op">|</span> <span class="number">0xe0</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">ShlInt</span>,
-            <span class="number">0x99</span> <span class="op">|</span> <span class="number">0xb9</span> <span class="op">|</span> <span class="number">0xe1</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">ShrInt</span>,
-            <span class="number">0x9a</span> <span class="op">|</span> <span class="number">0xba</span> <span class="op">|</span> <span class="number">0xe2</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">UshrInt</span>,
-            <span class="number">0x9b</span> <span class="op">|</span> <span class="number">0xbb</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">AddLong</span>,
-            <span class="number">0x9c</span> <span class="op">|</span> <span class="number">0xbc</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">SubLong</span>,
-            <span class="number">0x9d</span> <span class="op">|</span> <span class="number">0xbd</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">MulLong</span>,
-            <span class="number">0x9e</span> <span class="op">|</span> <span class="number">0xbe</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">DivLong</span>,
-            <span class="number">0x9f</span> <span class="op">|</span> <span class="number">0xbf</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">RemLong</span>,
-            <span class="number">0xa0</span> <span class="op">|</span> <span class="number">0xc0</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">AndLong</span>,
-            <span class="number">0xa1</span> <span class="op">|</span> <span class="number">0xc1</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">OrLong</span>,
-            <span class="number">0xa2</span> <span class="op">|</span> <span class="number">0xc2</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">XorLong</span>,
-            <span class="number">0xa3</span> <span class="op">|</span> <span class="number">0xc3</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">ShlLong</span>,
-            <span class="number">0xa4</span> <span class="op">|</span> <span class="number">0xc4</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">ShrLong</span>,
-            <span class="number">0xa5</span> <span class="op">|</span> <span class="number">0xc5</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">UshrLong</span>,
-            <span class="number">0xa6</span> <span class="op">|</span> <span class="number">0xc6</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">AddFloat</span>,
-            <span class="number">0xa7</span> <span class="op">|</span> <span class="number">0xc7</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">SubFloat</span>,
-            <span class="number">0xa8</span> <span class="op">|</span> <span class="number">0xc8</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">MulFloat</span>,
-            <span class="number">0xa9</span> <span class="op">|</span> <span class="number">0xc9</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">DivFloat</span>,
-            <span class="number">0xaa</span> <span class="op">|</span> <span class="number">0xca</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">RemFloat</span>,
-            <span class="number">0xab</span> <span class="op">|</span> <span class="number">0xcb</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">AddDouble</span>,
-            <span class="number">0xac</span> <span class="op">|</span> <span class="number">0xcc</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">SubDouble</span>,
-            <span class="number">0xad</span> <span class="op">|</span> <span class="number">0xcd</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">MulDouble</span>,
-            <span class="number">0xae</span> <span class="op">|</span> <span class="number">0xce</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">DivDouble</span>,
-            <span class="number">0xaf</span> <span class="op">|</span> <span class="number">0xcf</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">RemDouble</span>,
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">BinaryOperation</span>::<span class="ident">Unknown</span>,
+            <span class="number">0x90</span> <span class="op">|</span> <span class="number">0xb0</span> <span class="op">|</span> <span class="number">0xd0</span> <span class="op">|</span> <span class="number">0xd8</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">AddInt</span>,
+            <span class="number">0x91</span> <span class="op">|</span> <span class="number">0xb1</span> <span class="op">|</span> <span class="number">0xd1</span> <span class="op">|</span> <span class="number">0xd9</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">SubInt</span>,
+            <span class="number">0x92</span> <span class="op">|</span> <span class="number">0xb2</span> <span class="op">|</span> <span class="number">0xd2</span> <span class="op">|</span> <span class="number">0xda</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">MulInt</span>,
+            <span class="number">0x93</span> <span class="op">|</span> <span class="number">0xb3</span> <span class="op">|</span> <span class="number">0xd3</span> <span class="op">|</span> <span class="number">0xdb</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">DivInt</span>,
+            <span class="number">0x94</span> <span class="op">|</span> <span class="number">0xb4</span> <span class="op">|</span> <span class="number">0xd4</span> <span class="op">|</span> <span class="number">0xdc</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">RemInt</span>,
+            <span class="number">0x95</span> <span class="op">|</span> <span class="number">0xb5</span> <span class="op">|</span> <span class="number">0xd5</span> <span class="op">|</span> <span class="number">0xdd</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">AndInt</span>,
+            <span class="number">0x96</span> <span class="op">|</span> <span class="number">0xb6</span> <span class="op">|</span> <span class="number">0xd6</span> <span class="op">|</span> <span class="number">0xde</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">OrInt</span>,
+            <span class="number">0x97</span> <span class="op">|</span> <span class="number">0xb7</span> <span class="op">|</span> <span class="number">0xd7</span> <span class="op">|</span> <span class="number">0xdf</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">XorInt</span>,
+            <span class="number">0x98</span> <span class="op">|</span> <span class="number">0xb8</span> <span class="op">|</span> <span class="number">0xe0</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">ShlInt</span>,
+            <span class="number">0x99</span> <span class="op">|</span> <span class="number">0xb9</span> <span class="op">|</span> <span class="number">0xe1</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">ShrInt</span>,
+            <span class="number">0x9a</span> <span class="op">|</span> <span class="number">0xba</span> <span class="op">|</span> <span class="number">0xe2</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">UshrInt</span>,
+            <span class="number">0x9b</span> <span class="op">|</span> <span class="number">0xbb</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">AddLong</span>,
+            <span class="number">0x9c</span> <span class="op">|</span> <span class="number">0xbc</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">SubLong</span>,
+            <span class="number">0x9d</span> <span class="op">|</span> <span class="number">0xbd</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">MulLong</span>,
+            <span class="number">0x9e</span> <span class="op">|</span> <span class="number">0xbe</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">DivLong</span>,
+            <span class="number">0x9f</span> <span class="op">|</span> <span class="number">0xbf</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">RemLong</span>,
+            <span class="number">0xa0</span> <span class="op">|</span> <span class="number">0xc0</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">AndLong</span>,
+            <span class="number">0xa1</span> <span class="op">|</span> <span class="number">0xc1</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">OrLong</span>,
+            <span class="number">0xa2</span> <span class="op">|</span> <span class="number">0xc2</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">XorLong</span>,
+            <span class="number">0xa3</span> <span class="op">|</span> <span class="number">0xc3</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">ShlLong</span>,
+            <span class="number">0xa4</span> <span class="op">|</span> <span class="number">0xc4</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">ShrLong</span>,
+            <span class="number">0xa5</span> <span class="op">|</span> <span class="number">0xc5</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">UshrLong</span>,
+            <span class="number">0xa6</span> <span class="op">|</span> <span class="number">0xc6</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">AddFloat</span>,
+            <span class="number">0xa7</span> <span class="op">|</span> <span class="number">0xc7</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">SubFloat</span>,
+            <span class="number">0xa8</span> <span class="op">|</span> <span class="number">0xc8</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">MulFloat</span>,
+            <span class="number">0xa9</span> <span class="op">|</span> <span class="number">0xc9</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">DivFloat</span>,
+            <span class="number">0xaa</span> <span class="op">|</span> <span class="number">0xca</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">RemFloat</span>,
+            <span class="number">0xab</span> <span class="op">|</span> <span class="number">0xcb</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">AddDouble</span>,
+            <span class="number">0xac</span> <span class="op">|</span> <span class="number">0xcc</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">SubDouble</span>,
+            <span class="number">0xad</span> <span class="op">|</span> <span class="number">0xcd</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">MulDouble</span>,
+            <span class="number">0xae</span> <span class="op">|</span> <span class="number">0xce</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">DivDouble</span>,
+            <span class="number">0xaf</span> <span class="op">|</span> <span class="number">0xcf</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">RemDouble</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">Self</span>::<span class="ident">Unknown</span>,
         }
     }
 }
@@ -2428,39 +2418,39 @@
 <span class="kw">impl</span> <span class="ident">ToString</span> <span class="kw">for</span> <span class="ident">BinaryOperation</span> {
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">BinaryOperation</span>::<span class="ident">AddInt</span> <span class="op">=&gt;</span> <span class="string">&quot;add-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">SubInt</span> <span class="op">=&gt;</span> <span class="string">&quot;sub-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">MulInt</span> <span class="op">=&gt;</span> <span class="string">&quot;mul-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">DivInt</span> <span class="op">=&gt;</span> <span class="string">&quot;div-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">RemInt</span> <span class="op">=&gt;</span> <span class="string">&quot;rem-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">AndInt</span> <span class="op">=&gt;</span> <span class="string">&quot;and-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">OrInt</span> <span class="op">=&gt;</span> <span class="string">&quot;or-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">XorInt</span> <span class="op">=&gt;</span> <span class="string">&quot;xor-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">ShlInt</span> <span class="op">=&gt;</span> <span class="string">&quot;shl-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">ShrInt</span> <span class="op">=&gt;</span> <span class="string">&quot;shr-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">UshrInt</span> <span class="op">=&gt;</span> <span class="string">&quot;ushr-int&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">AddLong</span> <span class="op">=&gt;</span> <span class="string">&quot;add-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">SubLong</span> <span class="op">=&gt;</span> <span class="string">&quot;sub-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">MulLong</span> <span class="op">=&gt;</span> <span class="string">&quot;mul-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">DivLong</span> <span class="op">=&gt;</span> <span class="string">&quot;div-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">RemLong</span> <span class="op">=&gt;</span> <span class="string">&quot;rem-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">AndLong</span> <span class="op">=&gt;</span> <span class="string">&quot;and-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">OrLong</span> <span class="op">=&gt;</span> <span class="string">&quot;or-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">XorLong</span> <span class="op">=&gt;</span> <span class="string">&quot;xor-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">ShlLong</span> <span class="op">=&gt;</span> <span class="string">&quot;shl-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">ShrLong</span> <span class="op">=&gt;</span> <span class="string">&quot;shr-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">UshrLong</span> <span class="op">=&gt;</span> <span class="string">&quot;ushr-long&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">AddFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;add-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">SubFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;sub-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">MulFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;mul-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">DivFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;div-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">RemFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;rem-float&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">AddDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;add-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">SubDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;sub-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">MulDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;mul-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">DivDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;div-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">RemDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;rem-double&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">BinaryOperation</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">AddInt</span> <span class="op">=&gt;</span> <span class="string">&quot;add-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">SubInt</span> <span class="op">=&gt;</span> <span class="string">&quot;sub-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">MulInt</span> <span class="op">=&gt;</span> <span class="string">&quot;mul-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">DivInt</span> <span class="op">=&gt;</span> <span class="string">&quot;div-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">RemInt</span> <span class="op">=&gt;</span> <span class="string">&quot;rem-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">AndInt</span> <span class="op">=&gt;</span> <span class="string">&quot;and-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">OrInt</span> <span class="op">=&gt;</span> <span class="string">&quot;or-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">XorInt</span> <span class="op">=&gt;</span> <span class="string">&quot;xor-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">ShlInt</span> <span class="op">=&gt;</span> <span class="string">&quot;shl-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">ShrInt</span> <span class="op">=&gt;</span> <span class="string">&quot;shr-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">UshrInt</span> <span class="op">=&gt;</span> <span class="string">&quot;ushr-int&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">AddLong</span> <span class="op">=&gt;</span> <span class="string">&quot;add-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">SubLong</span> <span class="op">=&gt;</span> <span class="string">&quot;sub-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">MulLong</span> <span class="op">=&gt;</span> <span class="string">&quot;mul-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">DivLong</span> <span class="op">=&gt;</span> <span class="string">&quot;div-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">RemLong</span> <span class="op">=&gt;</span> <span class="string">&quot;rem-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">AndLong</span> <span class="op">=&gt;</span> <span class="string">&quot;and-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">OrLong</span> <span class="op">=&gt;</span> <span class="string">&quot;or-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">XorLong</span> <span class="op">=&gt;</span> <span class="string">&quot;xor-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">ShlLong</span> <span class="op">=&gt;</span> <span class="string">&quot;shl-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">ShrLong</span> <span class="op">=&gt;</span> <span class="string">&quot;shr-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">UshrLong</span> <span class="op">=&gt;</span> <span class="string">&quot;ushr-long&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">AddFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;add-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">SubFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;sub-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">MulFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;mul-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">DivFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;div-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">RemFloat</span> <span class="op">=&gt;</span> <span class="string">&quot;rem-float&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">AddDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;add-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">SubDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;sub-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">MulDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;mul-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">DivDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;div-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">RemDouble</span> <span class="op">=&gt;</span> <span class="string">&quot;rem-double&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Unknown</span> <span class="op">=&gt;</span> <span class="string">&quot;unknown&quot;</span>.<span class="ident">to_string</span>(),
         }
     }
 }
@@ -2483,69 +2473,61 @@
 <span class="kw">impl</span> <span class="ident">ToString</span> <span class="kw">for</span> <span class="ident">ByteCode</span> {
     <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ByteCode</span>::<span class="ident">Nop</span> <span class="op">=&gt;</span> <span class="string">&quot;nop&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ByteCode</span>::<span class="ident">Move</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">MoveFrom16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move/from16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">Move16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move/16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">MoveWide</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-wide v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">MoveWideFrom16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">Nop</span> <span class="op">=&gt;</span> <span class="string">&quot;nop&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Move</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
+            <span class="self">Self</span>::<span class="ident">MoveFrom16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move/from16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
+            <span class="self">Self</span>::<span class="ident">Move16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move/16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
+            <span class="self">Self</span>::<span class="ident">MoveWide</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-wide v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
+            <span class="self">Self</span>::<span class="ident">MoveWideFrom16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-wide/from16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">MoveWide16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-wide/16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">MoveObject</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-object v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">MoveObjectFrom16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">MoveWide16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-wide/16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
+            <span class="self">Self</span>::<span class="ident">MoveObject</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-object v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
+            <span class="self">Self</span>::<span class="ident">MoveObjectFrom16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-object/from16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">MoveObject16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-object/16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>)
-            }
-            <span class="ident">ByteCode</span>::<span class="ident">MoveResult</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-result v{}&quot;</span>, <span class="ident">dest</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">MoveResultWide</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-result-wide v{}&quot;</span>, <span class="ident">dest</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">MoveResultObject</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-result-object v{}&quot;</span>, <span class="ident">dest</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">MoveException</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-exception v{}&quot;</span>, <span class="ident">dest</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">ReturnVoid</span> <span class="op">=&gt;</span> <span class="string">&quot;return-void&quot;</span>.<span class="ident">to_string</span>(),
-            <span class="ident">ByteCode</span>::<span class="ident">Return</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;return v{}&quot;</span>, <span class="ident">dest</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">ReturnWide</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;return-wide v{}&quot;</span>, <span class="ident">dest</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">ReturnObject</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;return-object v{}&quot;</span>, <span class="ident">dest</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">Const4</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const/4 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">Const16</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const/16 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">Const</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">ConstHigh16</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const/high16 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">ConstWide16</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-wide/16 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>)
-            }
-            <span class="ident">ByteCode</span>::<span class="ident">ConstWide32</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-wide/32 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>)
-            }
-            <span class="ident">ByteCode</span>::<span class="ident">ConstWide</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-wide v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">ConstWideHigh16</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">MoveObject16</span>(<span class="ident">dest</span>, <span class="ident">source</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-object/16 v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">source</span>),
+            <span class="self">Self</span>::<span class="ident">MoveResult</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-result v{}&quot;</span>, <span class="ident">dest</span>),
+            <span class="self">Self</span>::<span class="ident">MoveResultWide</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-result-wide v{}&quot;</span>, <span class="ident">dest</span>),
+            <span class="self">Self</span>::<span class="ident">MoveResultObject</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-result-object v{}&quot;</span>, <span class="ident">dest</span>),
+            <span class="self">Self</span>::<span class="ident">MoveException</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;move-exception v{}&quot;</span>, <span class="ident">dest</span>),
+            <span class="self">Self</span>::<span class="ident">ReturnVoid</span> <span class="op">=&gt;</span> <span class="string">&quot;return-void&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="self">Self</span>::<span class="ident">Return</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;return v{}&quot;</span>, <span class="ident">dest</span>),
+            <span class="self">Self</span>::<span class="ident">ReturnWide</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;return-wide v{}&quot;</span>, <span class="ident">dest</span>),
+            <span class="self">Self</span>::<span class="ident">ReturnObject</span>(<span class="ident">dest</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;return-object v{}&quot;</span>, <span class="ident">dest</span>),
+            <span class="self">Self</span>::<span class="ident">Const4</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const/4 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
+            <span class="self">Self</span>::<span class="ident">Const16</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const/16 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
+            <span class="self">Self</span>::<span class="ident">Const</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
+            <span class="self">Self</span>::<span class="ident">ConstHigh16</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const/high16 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
+            <span class="self">Self</span>::<span class="ident">ConstWide16</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-wide/16 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
+            <span class="self">Self</span>::<span class="ident">ConstWide32</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-wide/32 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
+            <span class="self">Self</span>::<span class="ident">ConstWide</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-wide v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>),
+            <span class="self">Self</span>::<span class="ident">ConstWideHigh16</span>(<span class="ident">dest</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-wide/high16 v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">literal</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">ConstString</span>(<span class="ident">dest</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">ConstString</span>(<span class="ident">dest</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-string v{}, string@{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">reference</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">ConstStringJumbo</span>(<span class="ident">dest</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">ConstStringJumbo</span>(<span class="ident">dest</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-string/jumbo v{}, string@{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">reference</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">ConstClass</span>(<span class="ident">dest</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">ConstClass</span>(<span class="ident">dest</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;const-class v{}, class@{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">reference</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">MonitorEnter</span>(<span class="ident">reg</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;monitor-enter v{}&quot;</span>, <span class="ident">reg</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">MonitorExit</span>(<span class="ident">reg</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;monitor-exit v{}&quot;</span>, <span class="ident">reg</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">CheckCast</span>(<span class="ident">reg</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;check-cast v{}, type@{}&quot;</span>, <span class="ident">reg</span>, <span class="ident">reference</span>)
-            }
-            <span class="ident">ByteCode</span>::<span class="ident">InstanceOf</span>(<span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">MonitorEnter</span>(<span class="ident">reg</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;monitor-enter v{}&quot;</span>, <span class="ident">reg</span>),
+            <span class="self">Self</span>::<span class="ident">MonitorExit</span>(<span class="ident">reg</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;monitor-exit v{}&quot;</span>, <span class="ident">reg</span>),
+            <span class="self">Self</span>::<span class="ident">CheckCast</span>(<span class="ident">reg</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;check-cast v{}, type@{}&quot;</span>, <span class="ident">reg</span>, <span class="ident">reference</span>),
+            <span class="self">Self</span>::<span class="ident">InstanceOf</span>(<span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;instance-of v{}, v{}, type@{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">reference</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">ArrayLength</span>(<span class="ident">dest</span>, <span class="ident">src</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;array-length v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">src</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">NewInstance</span>(<span class="ident">dest</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">ArrayLength</span>(<span class="ident">dest</span>, <span class="ident">src</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;array-length v{}, v{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">src</span>),
+            <span class="self">Self</span>::<span class="ident">NewInstance</span>(<span class="ident">dest</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;new-instance v{}, type@{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">reference</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">NewArray</span>(<span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">NewArray</span>(<span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;new-array v{}, v{}, type@{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">reference</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">FilledNewArray</span>(<span class="kw-2">ref</span> <span class="ident">registers</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">FilledNewArray</span>(<span class="kw-2">ref</span> <span class="ident">registers</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">str_register</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span>
                     <span class="ident">registers</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;v{}&quot;</span>, <span class="ident">r</span>)).<span class="ident">collect</span>();
                 <span class="macro">format</span><span class="macro">!</span>(
@@ -2554,7 +2536,7 @@
                     <span class="ident">reference</span>
                 )
             }
-            <span class="ident">ByteCode</span>::<span class="ident">FilledNewArrayRange</span>(<span class="ident">first_reg</span>, <span class="ident">amount</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">FilledNewArrayRange</span>(<span class="ident">first_reg</span>, <span class="ident">amount</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">str_register</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">first_reg</span>..=(<span class="kw-2">*</span><span class="ident">first_reg</span> <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">amount</span>)))
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;v{}&quot;</span>, <span class="ident">r</span>))
                     .<span class="ident">collect</span>();
@@ -2564,36 +2546,34 @@
                     <span class="ident">reference</span>
                 )
             }
-            <span class="ident">ByteCode</span>::<span class="ident">FillArrayData</span>(<span class="ident">reg</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;fill-array-data v{}, {}&quot;</span>, <span class="ident">reg</span>, <span class="ident">offset</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">Throw</span>(<span class="ident">reg</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;throw v{}&quot;</span>, <span class="ident">reg</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">Goto</span>(<span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;goto {}&quot;</span>, <span class="ident">offset</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">Goto16</span>(<span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;goto/16 {}&quot;</span>, <span class="ident">offset</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">Goto32</span>(<span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;goto/32 {}&quot;</span>, <span class="ident">offset</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">PackedSwitch</span>(<span class="ident">reg</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;packed-switch v{}, {}&quot;</span>, <span class="ident">reg</span>, <span class="ident">offset</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">SparseSwitch</span>(<span class="ident">reg</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;sparse-switch v{}, {}&quot;</span>, <span class="ident">reg</span>, <span class="ident">offset</span>),
-            <span class="ident">ByteCode</span>::<span class="ident">Compare</span>(<span class="kw-2">ref</span> <span class="ident">ct</span>, <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">FillArrayData</span>(<span class="ident">reg</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;fill-array-data v{}, {}&quot;</span>, <span class="ident">reg</span>, <span class="ident">offset</span>),
+            <span class="self">Self</span>::<span class="ident">Throw</span>(<span class="ident">reg</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;throw v{}&quot;</span>, <span class="ident">reg</span>),
+            <span class="self">Self</span>::<span class="ident">Goto</span>(<span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;goto {}&quot;</span>, <span class="ident">offset</span>),
+            <span class="self">Self</span>::<span class="ident">Goto16</span>(<span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;goto/16 {}&quot;</span>, <span class="ident">offset</span>),
+            <span class="self">Self</span>::<span class="ident">Goto32</span>(<span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;goto/32 {}&quot;</span>, <span class="ident">offset</span>),
+            <span class="self">Self</span>::<span class="ident">PackedSwitch</span>(<span class="ident">reg</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;packed-switch v{}, {}&quot;</span>, <span class="ident">reg</span>, <span class="ident">offset</span>),
+            <span class="self">Self</span>::<span class="ident">SparseSwitch</span>(<span class="ident">reg</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;sparse-switch v{}, {}&quot;</span>, <span class="ident">reg</span>, <span class="ident">offset</span>),
+            <span class="self">Self</span>::<span class="ident">Compare</span>(<span class="kw-2">ref</span> <span class="ident">ct</span>, <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} v{}, v{}, v{}&quot;</span>, <span class="ident">ct</span>.<span class="ident">to_string</span>(), <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">If</span>(<span class="kw-2">ref</span> <span class="ident">tt</span>, <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">If</span>(<span class="kw-2">ref</span> <span class="ident">tt</span>, <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} v{}, v{}, {}&quot;</span>, <span class="ident">tt</span>.<span class="ident">to_string</span>(), <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">offset</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">If0</span>(<span class="kw-2">ref</span> <span class="ident">tt</span>, <span class="ident">dest</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}z v{}, {}&quot;</span>, <span class="ident">tt</span>.<span class="ident">to_string</span>(), <span class="ident">dest</span>, <span class="ident">offset</span>)
-            }
-            <span class="ident">ByteCode</span>::<span class="ident">Array</span>(<span class="kw-2">ref</span> <span class="ident">array_op</span>, <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">If0</span>(<span class="kw-2">ref</span> <span class="ident">tt</span>, <span class="ident">dest</span>, <span class="ident">offset</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}z v{}, {}&quot;</span>, <span class="ident">tt</span>.<span class="ident">to_string</span>(), <span class="ident">dest</span>, <span class="ident">offset</span>),
+            <span class="self">Self</span>::<span class="ident">Array</span>(<span class="kw-2">ref</span> <span class="ident">array_op</span>, <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;a{} v{}, v{}, v{}&quot;</span>, <span class="ident">array_op</span>.<span class="ident">to_string</span>(), <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">Instance</span>(<span class="kw-2">ref</span> <span class="ident">array_op</span>, <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">field</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
+            <span class="self">Self</span>::<span class="ident">Instance</span>(<span class="kw-2">ref</span> <span class="ident">array_op</span>, <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">field</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;i{} v{}, v{}, field@{}&quot;</span>,
                 <span class="ident">array_op</span>.<span class="ident">to_string</span>(),
                 <span class="ident">dest</span>,
                 <span class="ident">op1</span>,
                 <span class="ident">field</span>
             ),
-            <span class="ident">ByteCode</span>::<span class="ident">Static</span>(<span class="kw-2">ref</span> <span class="ident">array_op</span>, <span class="ident">dest</span>, <span class="ident">field</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">Static</span>(<span class="kw-2">ref</span> <span class="ident">array_op</span>, <span class="ident">dest</span>, <span class="ident">field</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;s{} v{}, field@{}&quot;</span>, <span class="ident">array_op</span>.<span class="ident">to_string</span>(), <span class="ident">dest</span>, <span class="ident">field</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">Invoke</span>(<span class="kw-2">ref</span> <span class="ident">invoke_kind</span>, <span class="kw-2">ref</span> <span class="ident">registers</span>, <span class="ident">method</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">Invoke</span>(<span class="kw-2">ref</span> <span class="ident">invoke_kind</span>, <span class="kw-2">ref</span> <span class="ident">registers</span>, <span class="ident">method</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">str_register</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span>
                     <span class="ident">registers</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;v{}&quot;</span>, <span class="ident">r</span>)).<span class="ident">collect</span>();
                 <span class="macro">format</span><span class="macro">!</span>(
@@ -2603,7 +2583,7 @@
                     <span class="ident">method</span>
                 )
             }
-            <span class="ident">ByteCode</span>::<span class="ident">InvokeRange</span>(<span class="kw-2">ref</span> <span class="ident">invoke_kind</span>, <span class="ident">first_reg</span>, <span class="ident">amount</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">InvokeRange</span>(<span class="kw-2">ref</span> <span class="ident">invoke_kind</span>, <span class="ident">first_reg</span>, <span class="ident">amount</span>, <span class="ident">reference</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">str_register</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">first_reg</span>..(<span class="kw-2">*</span><span class="ident">first_reg</span> <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">amount</span>)))
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;v{}&quot;</span>, <span class="ident">r</span>))
                     .<span class="ident">collect</span>();
@@ -2614,16 +2594,16 @@
                     <span class="ident">reference</span>
                 )
             }
-            <span class="ident">ByteCode</span>::<span class="ident">Unary</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">dest</span>, <span class="ident">src</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">Unary</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">dest</span>, <span class="ident">src</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} v{}, v{}&quot;</span>, <span class="ident">operation</span>.<span class="ident">to_string</span>(), <span class="ident">dest</span>, <span class="ident">src</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">Binary</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">Binary</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} v{}, v{}, v{}&quot;</span>, <span class="ident">operation</span>.<span class="ident">to_string</span>(), <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">Binary2Addr</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">src1</span>, <span class="ident">src2</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">Binary2Addr</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">src1</span>, <span class="ident">src2</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}/2addr v{}, v{}&quot;</span>, <span class="ident">operation</span>.<span class="ident">to_string</span>(), <span class="ident">src1</span>, <span class="ident">src2</span>)
             }
-            <span class="ident">ByteCode</span>::<span class="ident">BinaryLit16</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">operation</span> {
+            <span class="self">Self</span>::<span class="ident">BinaryLit16</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">operation</span> {
                 <span class="ident">BinaryOperation</span>::<span class="ident">SubInt</span> <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;rsub-int v{}, v{}, #{}&quot;</span>, <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>),
                 <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
                     <span class="string">&quot;{}/lit16 v{}, v{}, #{}&quot;</span>,
@@ -2633,14 +2613,14 @@
                     <span class="ident">literal</span>
                 ),
             },
-            <span class="ident">ByteCode</span>::<span class="ident">BinaryLit8</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
+            <span class="self">Self</span>::<span class="ident">BinaryLit8</span>(<span class="kw-2">ref</span> <span class="ident">operation</span>, <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;{}/lit8 v{}, v{}, #{}&quot;</span>,
                 <span class="ident">operation</span>.<span class="ident">to_string</span>(),
                 <span class="ident">dest</span>,
                 <span class="ident">src</span>,
                 <span class="ident">literal</span>
             ),
-            <span class="ident">ByteCode</span>::<span class="ident">InvokePolymorphic</span>(<span class="kw-2">ref</span> <span class="ident">registers</span>, <span class="ident">method</span>, <span class="ident">proto</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">InvokePolymorphic</span>(<span class="kw-2">ref</span> <span class="ident">registers</span>, <span class="ident">method</span>, <span class="ident">proto</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">str_register</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span>
                     <span class="ident">registers</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;v{}&quot;</span>, <span class="ident">r</span>)).<span class="ident">collect</span>();
                 <span class="macro">format</span><span class="macro">!</span>(
@@ -2650,7 +2630,7 @@
                     <span class="ident">proto</span>
                 )
             }
-            <span class="ident">ByteCode</span>::<span class="ident">InvokePolymorphicRange</span>(<span class="ident">first_reg</span>, <span class="ident">amount</span>, <span class="ident">method</span>, <span class="ident">proto</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">InvokePolymorphicRange</span>(<span class="ident">first_reg</span>, <span class="ident">amount</span>, <span class="ident">method</span>, <span class="ident">proto</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">str_register</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">first_reg</span>..(<span class="kw-2">*</span><span class="ident">first_reg</span> <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">amount</span>)))
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;v{}&quot;</span>, <span class="ident">r</span>))
                     .<span class="ident">collect</span>();
@@ -2661,7 +2641,7 @@
                     <span class="ident">proto</span>
                 )
             }
-            <span class="ident">ByteCode</span>::<span class="ident">InvokeCustom</span>(<span class="kw-2">ref</span> <span class="ident">registers</span>, <span class="ident">call_site</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">InvokeCustom</span>(<span class="kw-2">ref</span> <span class="ident">registers</span>, <span class="ident">call_site</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">str_register</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span>
                     <span class="ident">registers</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;v{}&quot;</span>, <span class="ident">r</span>)).<span class="ident">collect</span>();
                 <span class="macro">format</span><span class="macro">!</span>(
@@ -2670,7 +2650,7 @@
                     <span class="ident">call_site</span>
                 )
             }
-            <span class="ident">ByteCode</span>::<span class="ident">InvokeCustomRange</span>(<span class="ident">first_reg</span>, <span class="ident">amount</span>, <span class="ident">call_site</span>) <span class="op">=&gt;</span> {
+            <span class="self">Self</span>::<span class="ident">InvokeCustomRange</span>(<span class="ident">first_reg</span>, <span class="ident">amount</span>, <span class="ident">call_site</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">str_register</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">first_reg</span>..(<span class="kw-2">*</span><span class="ident">first_reg</span> <span class="op">+</span> <span class="ident">u16</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">amount</span>)))
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;v{}&quot;</span>, <span class="ident">r</span>))
                     .<span class="ident">collect</span>();
@@ -3054,23 +3034,23 @@
                 .<span class="ident">format31t</span>()
                 .<span class="ident">ok</span>()
                 .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">reg</span>, <span class="ident">offset</span>)<span class="op">|</span> <span class="ident">ByteCode</span>::<span class="ident">SparseSwitch</span>(<span class="ident">reg</span>, <span class="ident">offset</span>)),
-            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x2D</span>...<span class="number">0x31</span>) <span class="op">=&gt;</span> <span class="self">self</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x2D</span>..=<span class="number">0x31</span>) <span class="op">=&gt;</span> <span class="self">self</span>
                 .<span class="ident">format23x</span>()
                 .<span class="ident">ok</span>()
                 .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>)<span class="op">|</span> <span class="ident">ByteCode</span>::<span class="ident">Compare</span>(<span class="ident">CompareType</span>::<span class="ident">from</span>(<span class="ident">a</span>), <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>)),
-            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x32</span>...<span class="number">0x37</span>) <span class="op">=&gt;</span> <span class="self">self</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x32</span>..=<span class="number">0x37</span>) <span class="op">=&gt;</span> <span class="self">self</span>
                 .<span class="ident">format22t</span>()
                 .<span class="ident">ok</span>()
                 .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">offset</span>)<span class="op">|</span> <span class="ident">ByteCode</span>::<span class="ident">If</span>(<span class="ident">TestType</span>::<span class="ident">from</span>(<span class="ident">a</span>), <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">offset</span>)),
-            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x38</span>...<span class="number">0x3D</span>) <span class="op">=&gt;</span> <span class="self">self</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x38</span>..=<span class="number">0x3D</span>) <span class="op">=&gt;</span> <span class="self">self</span>
                 .<span class="ident">format21t</span>()
                 .<span class="ident">ok</span>()
                 .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">offset</span>)<span class="op">|</span> <span class="ident">ByteCode</span>::<span class="ident">If0</span>(<span class="ident">TestType</span>::<span class="ident">from</span>(<span class="ident">a</span>), <span class="ident">dest</span>, <span class="ident">offset</span>)),
-            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x44</span>...<span class="number">0x51</span>) <span class="op">=&gt;</span> <span class="self">self</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x44</span>..=<span class="number">0x51</span>) <span class="op">=&gt;</span> <span class="self">self</span>
                 .<span class="ident">format23x</span>()
                 .<span class="ident">ok</span>()
                 .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>)<span class="op">|</span> <span class="ident">ByteCode</span>::<span class="ident">Array</span>(<span class="ident">ArrayOperation</span>::<span class="ident">from</span>(<span class="ident">a</span>), <span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">op2</span>)),
-            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x52</span>...<span class="number">0x5f</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format22c</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">reference</span>)<span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x52</span>..=<span class="number">0x5f</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format22c</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">op1</span>, <span class="ident">reference</span>)<span class="op">|</span> {
                 <span class="ident">ByteCode</span>::<span class="ident">Instance</span>(
                     <span class="ident">ArrayOperation</span>::<span class="ident">from</span>(<span class="ident">a</span>),
                     <span class="ident">dest</span>,
@@ -3078,21 +3058,21 @@
                     <span class="ident">FieldReference</span>::<span class="ident">from</span>(<span class="ident">reference</span>),
                 )
             }),
-            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x60</span>...<span class="number">0x6d</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format21c</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">reference</span>)<span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x60</span>..=<span class="number">0x6d</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format21c</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">reference</span>)<span class="op">|</span> {
                 <span class="ident">ByteCode</span>::<span class="ident">Static</span>(
                     <span class="ident">ArrayOperation</span>::<span class="ident">from</span>(<span class="ident">a</span>),
                     <span class="ident">dest</span>,
                     <span class="ident">FieldReference</span>::<span class="ident">from</span>(<span class="ident">reference</span>),
                 )
             }),
-            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x6e</span>...<span class="number">0x72</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format35c</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">registers</span>, <span class="ident">reference</span>)<span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x6e</span>..=<span class="number">0x72</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format35c</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">registers</span>, <span class="ident">reference</span>)<span class="op">|</span> {
                 <span class="ident">ByteCode</span>::<span class="ident">Invoke</span>(
                     <span class="ident">InvokeKind</span>::<span class="ident">from</span>(<span class="ident">a</span>),
                     <span class="ident">registers</span>,
                     <span class="ident">MethodReference</span>::<span class="ident">from</span>(<span class="ident">reference</span>),
                 )
             }),
-            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x74</span>...<span class="number">0x78</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format3rc</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">first</span>, <span class="ident">amount</span>, <span class="ident">reference</span>)<span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">a</span> @ <span class="number">0x74</span>..=<span class="number">0x78</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format3rc</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">first</span>, <span class="ident">amount</span>, <span class="ident">reference</span>)<span class="op">|</span> {
                 <span class="ident">ByteCode</span>::<span class="ident">InvokeRange</span>(
                     <span class="ident">InvokeKind</span>::<span class="ident">from</span>(<span class="ident">a</span>),
                     <span class="ident">first</span>,
@@ -3100,20 +3080,20 @@
                     <span class="ident">FieldReference</span>::<span class="ident">from</span>(<span class="ident">reference</span>),
                 )
             }),
-            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0x7b</span>...<span class="number">0x8f</span>) <span class="op">=&gt;</span> <span class="self">self</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0x7b</span>..=<span class="number">0x8f</span>) <span class="op">=&gt;</span> <span class="self">self</span>
                 .<span class="ident">format12x</span>()
                 .<span class="ident">ok</span>()
                 .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">src</span>)<span class="op">|</span> <span class="ident">ByteCode</span>::<span class="ident">Unary</span>(<span class="ident">UnaryOperation</span>::<span class="ident">from</span>(<span class="ident">op</span>), <span class="ident">dest</span>, <span class="ident">src</span>)),
-            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0x90</span>...<span class="number">0xaf</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format23x</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">src1</span>, <span class="ident">src2</span>)<span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0x90</span>..=<span class="number">0xaf</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format23x</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">src1</span>, <span class="ident">src2</span>)<span class="op">|</span> {
                 <span class="ident">ByteCode</span>::<span class="ident">Binary</span>(<span class="ident">BinaryOperation</span>::<span class="ident">from</span>(<span class="ident">op</span>), <span class="ident">dest</span>, <span class="ident">src1</span>, <span class="ident">src2</span>)
             }),
-            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0xb0</span>...<span class="number">0xcf</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format12x</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">src_dest</span>, <span class="ident">src</span>)<span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0xb0</span>..=<span class="number">0xcf</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format12x</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">src_dest</span>, <span class="ident">src</span>)<span class="op">|</span> {
                 <span class="ident">ByteCode</span>::<span class="ident">Binary2Addr</span>(<span class="ident">BinaryOperation</span>::<span class="ident">from</span>(<span class="ident">op</span>), <span class="ident">src_dest</span>, <span class="ident">src</span>)
             }),
-            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0xd0</span>...<span class="number">0xd7</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format22s</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>)<span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0xd0</span>..=<span class="number">0xd7</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format22s</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>)<span class="op">|</span> {
                 <span class="ident">ByteCode</span>::<span class="ident">BinaryLit16</span>(<span class="ident">BinaryOperation</span>::<span class="ident">from</span>(<span class="ident">op</span>), <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>)
             }),
-            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0xd8</span>...<span class="number">0xe2</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format22b</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>)<span class="op">|</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">op</span> @ <span class="number">0xd8</span>..=<span class="number">0xe2</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format22b</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>)<span class="op">|</span> {
                 <span class="ident">ByteCode</span>::<span class="ident">BinaryLit8</span>(<span class="ident">BinaryOperation</span>::<span class="ident">from</span>(<span class="ident">op</span>), <span class="ident">dest</span>, <span class="ident">src</span>, <span class="ident">literal</span>)
             }),
             <span class="prelude-val">Ok</span>(<span class="number">0xfa</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">format45cc</span>().<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">registers</span>, <span class="ident">method</span>, <span class="ident">proto</span>)<span class="op">|</span> {
@@ -4016,4 +3996,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "dalvik";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-files.js"></script><script src="../../source-script.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "dalvik";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
