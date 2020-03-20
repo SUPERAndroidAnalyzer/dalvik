@@ -1,12 +1,11 @@
 //! Representation of the Dalvik bytecodes and utilities to decode them
 
+use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 use std::{
     fmt::Debug,
     io::{self, Read},
     marker::PhantomData,
 };
-
-use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
 
 #[derive(Debug)]
 #[allow(missing_docs)]
@@ -604,16 +603,19 @@ impl ToString for ByteCode {
             Self::Binary2Addr(ref operation, src1, src2) => {
                 format!("{}/2addr v{}, v{}", operation.to_string(), src1, src2)
             }
-            Self::BinaryLit16(ref operation, dest, src, literal) => match operation {
-                BinaryOperation::SubInt => format!("rsub-int v{}, v{}, #{}", dest, src, literal),
-                _ => format!(
-                    "{}/lit16 v{}, v{}, #{}",
-                    operation.to_string(),
-                    dest,
-                    src,
-                    literal
-                ),
-            },
+            Self::BinaryLit16(ref operation, dest, src, literal) => {
+                if let BinaryOperation::SubInt = operation {
+                    format!("rsub-int v{}, v{}, #{}", dest, src, literal)
+                } else {
+                    format!(
+                        "{}/lit16 v{}, v{}, #{}",
+                        operation.to_string(),
+                        dest,
+                        src,
+                        literal
+                    )
+                }
+            }
             Self::BinaryLit8(ref operation, dest, src, literal) => format!(
                 "{}/lit8 v{}, v{}, #{}",
                 operation.to_string(),
@@ -675,7 +677,7 @@ pub struct ByteCodeDecoder<R: Read + Debug, B: ByteOrder = LittleEndian> {
 }
 
 impl<R: Read + Debug, B: ByteOrder> ByteCodeDecoder<R, B> {
-    /// Creates a new ByteCodeDecoder given a `Read` input
+    /// Creates a new `ByteCodeDecoder` given a `Read` input
     pub fn new(cursor: R) -> Self {
         Self {
             cursor,

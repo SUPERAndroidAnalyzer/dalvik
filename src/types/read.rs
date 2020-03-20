@@ -1,10 +1,5 @@
 //! Types used for reading Dex files.
 
-use std::io::Read;
-
-use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
-use failure::{Error, ResultExt};
-
 use super::{
     AccessFlags, Annotation, AnnotationElement, Array, EncodedAnnotation, Value, Visibility,
 };
@@ -12,6 +7,9 @@ use crate::{
     error,
     read::{sleb128, uleb128, uleb128p1},
 };
+use anyhow::{Context, Result};
+use byteorder::{ByteOrder, LittleEndian, ReadBytesExt};
+use std::io::Read;
 
 /// Data structure representing the `proto_id_item` type.
 #[derive(Debug, Copy, Clone)]
@@ -23,7 +21,7 @@ pub struct PrototypeIdData {
 
 impl PrototypeIdData {
     /// Creates a new `PrototypeIdData` from a reader.
-    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self>
     where
         R: ReadBytesExt,
         B: ByteOrder,
@@ -85,7 +83,7 @@ pub struct FieldIdData {
 
 impl FieldIdData {
     /// Creates a new `FieldIdData` from a reader.
-    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self>
     where
         R: ReadBytesExt,
         B: ByteOrder,
@@ -140,7 +138,7 @@ pub struct MethodIdData {
 
 impl MethodIdData {
     /// Creates a new `MethodIdData` from a reader.
-    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self>
     where
         R: ReadBytesExt,
         B: ByteOrder,
@@ -202,7 +200,7 @@ pub struct ClassDefData {
 
 impl ClassDefData {
     /// Creates a new `ClassDefData` from a reader.
-    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self>
     where
         R: ReadBytesExt,
         B: ByteOrder,
@@ -245,7 +243,7 @@ impl ClassDefData {
         Ok(Self {
             class_index,
             access_flags: AccessFlags::from_bits(access_flags)
-                .ok_or_else(|| error::Parse::InvalidAccessFlags { access_flags })?,
+                .ok_or_else(|| error::Parse::InvalidAccessFlags(access_flags))?,
             superclass_index: some_if(superclass_index, superclass_index != NO_INDEX),
             interfaces_offset: some_if(interfaces_offset, interfaces_offset != 0),
             source_file_index: some_if(source_file_index, source_file_index != NO_INDEX),
@@ -311,7 +309,7 @@ impl Visibility {
             VISIBILITY_BUILD => Ok(Self::Build),
             VISIBILITY_RUNTIME => Ok(Self::Runtime),
             VISIBILITY_SYSTEM => Ok(Self::System),
-            b => Err(error::Parse::InvalidVisibility { visibility: b }),
+            b => Err(error::Parse::InvalidVisibility(b)),
         }
     }
 }
@@ -336,7 +334,7 @@ const VALUE_NULL: u8 = 0x1e;
 const VALUE_BOOLEAN: u8 = 0x1f;
 
 impl Value {
-    fn from_reader<R>(reader: &mut R) -> Result<Self, Error>
+    fn from_reader<R>(reader: &mut R) -> Result<Self>
     where
         R: Read + ReadBytesExt,
     {
@@ -572,7 +570,7 @@ impl Value {
         }
     }
 
-    fn read_u32<R>(reader: &mut R, arg: u8) -> Result<u32, Error>
+    fn read_u32<R>(reader: &mut R, arg: u8) -> Result<u32>
     where
         R: Read + ReadBytesExt,
     {
@@ -596,7 +594,7 @@ impl Value {
 
 impl Array {
     /// Creates an array from a reader.
-    pub fn from_reader<R>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R>(reader: &mut R) -> Result<Self>
     where
         R: Read,
     {
@@ -615,7 +613,7 @@ impl Array {
 impl EncodedAnnotation {
     /// Creates an annotation from a reader.
     #[doc(hidden)]
-    pub fn from_reader<R>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R>(reader: &mut R) -> Result<Self>
     where
         R: Read,
     {
@@ -637,7 +635,7 @@ impl EncodedAnnotation {
 impl Annotation {
     /// Creates a new annotation item from a reader.
     #[doc(hidden)]
-    pub fn from_reader<R>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R>(reader: &mut R) -> Result<Self>
     where
         R: Read,
     {
@@ -723,7 +721,7 @@ pub struct AnnotationsDirectoryOffsets {
 
 impl AnnotationsDirectoryOffsets {
     /// Creates a new annotations directory from a reader.
-    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self>
     where
         R: Read + ReadBytesExt,
         B: ByteOrder,
@@ -831,7 +829,7 @@ pub struct ClassData {
 
 impl ClassData {
     /// Creates a new class data structure from a reader.
-    pub fn from_reader<R>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R>(reader: &mut R) -> Result<Self>
     where
         R: Read,
     {
@@ -868,11 +866,7 @@ impl ClassData {
         })
     }
 
-    fn read_fields<R>(
-        reader: &mut R,
-        field_count: u32,
-        field_vec: &mut Vec<Field>,
-    ) -> Result<(), Error>
+    fn read_fields<R>(reader: &mut R, field_count: u32, field_vec: &mut Vec<Field>) -> Result<()>
     where
         R: Read,
     {
@@ -884,7 +878,7 @@ impl ClassData {
             field_vec.push(Field {
                 field_id,
                 access_flags: AccessFlags::from_bits(access_flags)
-                    .ok_or_else(|| error::Parse::InvalidAccessFlags { access_flags })?,
+                    .ok_or_else(|| error::Parse::InvalidAccessFlags(access_flags))?,
             });
 
             let mut last_field_id = field_id;
@@ -899,7 +893,7 @@ impl ClassData {
                 field_vec.push(Field {
                     field_id: last_field_id,
                     access_flags: AccessFlags::from_bits(access_flags)
-                        .ok_or_else(|| error::Parse::InvalidAccessFlags { access_flags })?,
+                        .ok_or_else(|| error::Parse::InvalidAccessFlags(access_flags))?,
                 });
             }
         }
@@ -910,7 +904,7 @@ impl ClassData {
         reader: &mut R,
         method_count: u32,
         method_vec: &mut Vec<Method>,
-    ) -> Result<(), Error>
+    ) -> Result<()>
     where
         R: Read,
     {
@@ -930,7 +924,7 @@ impl ClassData {
             method_vec.push(Method {
                 method_id,
                 access_flags: AccessFlags::from_bits(access_flags)
-                    .ok_or_else(|| error::Parse::InvalidAccessFlags { access_flags })?,
+                    .ok_or_else(|| error::Parse::InvalidAccessFlags(access_flags))?,
                 code_offset,
             });
 
@@ -954,7 +948,7 @@ impl ClassData {
                 method_vec.push(Method {
                     method_id: last_method_id,
                     access_flags: AccessFlags::from_bits(access_flags)
-                        .ok_or_else(|| error::Parse::InvalidAccessFlags { access_flags })?,
+                        .ok_or_else(|| error::Parse::InvalidAccessFlags(access_flags))?,
                     code_offset,
                 });
             }
@@ -973,7 +967,7 @@ pub struct DebugInfo {
 
 impl DebugInfo {
     /// Creates a new debug information structure from a reader.
-    pub fn from_reader<R>(reader: &mut R) -> Result<(Self, u32), Error>
+    pub fn from_reader<R>(reader: &mut R) -> Result<(Self, u32)>
     where
         R: Read,
     {
@@ -1024,7 +1018,7 @@ struct DebugBytecode {
 
 impl DebugBytecode {
     /// Reads the debug bytecode from a reader.
-    fn from_reader<R>(reader: &mut R) -> Result<(Self, u32), Error>
+    fn from_reader<R>(reader: &mut R) -> Result<(Self, u32)>
     where
         R: Read,
     {
@@ -1082,7 +1076,7 @@ enum DebugInstruction {
 }
 
 impl DebugInstruction {
-    fn from_reader<R>(reader: &mut R) -> Result<(Self, u32), Error>
+    fn from_reader<R>(reader: &mut R) -> Result<(Self, u32)>
     where
         R: Read,
     {
@@ -1186,7 +1180,7 @@ pub struct CodeItem {
 
 impl CodeItem {
     /// Reads a code item from the given reader.
-    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self, Error>
+    pub fn from_reader<R, B>(reader: &mut R) -> Result<Self>
     where
         R: Read + ReadBytesExt,
         B: ByteOrder,
@@ -1262,7 +1256,7 @@ struct TryItem {
 
 impl TryItem {
     /// Creates a try item structure from a reader.
-    fn from_reader<R, B>(reader: &mut R) -> Result<Self, Error>
+    fn from_reader<R, B>(reader: &mut R) -> Result<Self>
     where
         R: Read + ReadBytesExt,
         B: ByteOrder,
@@ -1295,7 +1289,7 @@ struct CatchHandler {
 impl CatchHandler {
     /// Reads a catch handler from a reader.
     #[allow(clippy::cast_sign_loss)]
-    fn from_reader<R>(reader: &mut R) -> Result<(Self, u32), Error>
+    fn from_reader<R>(reader: &mut R) -> Result<(Self, u32)>
     where
         R: Read,
     {
@@ -1337,7 +1331,7 @@ struct HandlerInfo {
 
 impl HandlerInfo {
     /// Creates a handler information structure from a reader object.
-    fn from_reader<R>(reader: &mut R) -> Result<(Self, u32), Error>
+    fn from_reader<R>(reader: &mut R) -> Result<(Self, u32)>
     where
         R: Read,
     {

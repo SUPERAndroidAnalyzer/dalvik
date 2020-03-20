@@ -1,10 +1,9 @@
+use dalvik::{types::AccessFlags, Dex};
 use std::{
     fs::{create_dir_all, remove_dir_all, OpenOptions},
     io::{BufWriter, Write},
     path::Path,
 };
-
-use dalvik::{types::AccessFlags, Dex};
 
 const OUT_FOLDER: &str = "target/java_out";
 

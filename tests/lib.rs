@@ -2,9 +2,8 @@
 
 extern crate dalvik;
 
-use std::{fs, path::Path};
-
 use dalvik::types::AccessFlags;
+use std::{fs, path::Path};
 
 #[test]
 fn it_header_read() {

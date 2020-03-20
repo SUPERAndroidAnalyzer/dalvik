@@ -19,12 +19,9 @@ is-it-maintained-open-issues = { repository = "SUPERAndroidAnalyzer/dalvik" }
 maintenance = { status = "experimental" }
 
 [dependencies]
-byteorder = "1.3.2"
+byteorder = "1.3.4"
 bitflags = "1.2.1"
-failure = "0.1.6"
-
-[dev-dependencies]
-matches = "0.1.8"
+anyhow = "1.0.27"
 
 [features]
 default = []

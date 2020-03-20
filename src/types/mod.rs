@@ -1,17 +1,10 @@
 //! Types module.
 
 pub mod read;
-
-use std::{
-    fmt::{self, Display, Formatter},
-    ops::Deref,
-    str::FromStr,
-};
-
-use bitflags::bitflags;
-
 use self::read::ClassData;
 use crate::error;
+use bitflags::bitflags;
+use std::{fmt, ops::Deref, str::FromStr};
 
 #[derive(Debug, Clone)]
 /// Basic built-in types.
@@ -77,22 +70,18 @@ impl FromStr for Type {
                             });
                         }
                         None => {
-                            return Err(error::Parse::InvalidTypeDescriptor {
-                                descriptor: s.to_owned(),
-                            });
+                            return Err(error::Parse::InvalidTypeDescriptor(s.to_owned()));
                         }
                     }
                 }
             }
-            _ => Err(error::Parse::InvalidTypeDescriptor {
-                descriptor: s.to_owned(),
-            }),
+            _ => Err(error::Parse::InvalidTypeDescriptor(s.to_owned())),
         }
     }
 }
 
-impl Display for Type {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Void => write!(f, "void"),
             Self::Boolean => write!(f, "boolean"),
@@ -139,7 +128,7 @@ impl ShortyReturnType {
             'F' => Ok(Self::Float),
             'D' => Ok(Self::Double),
             'L' => Ok(Self::Reference),
-            _ => Err(error::Parse::InvalidShortyType { shorty_type: c }),
+            _ => Err(error::Parse::InvalidShortyType(c)),
         }
     }
 }
@@ -202,7 +191,7 @@ impl ShortyFieldType {
             'F' => Ok(Self::Float),
             'D' => Ok(Self::Double),
             'L' => Ok(Self::Reference),
-            _ => Err(error::Parse::InvalidShortyType { shorty_type: c }),
+            _ => Err(error::Parse::InvalidShortyType(c)),
         }
     }
 }
@@ -221,9 +210,7 @@ impl FromStr for ShortyDescriptor {
         let return_type = if let Some(c) = chars.next() {
             ShortyReturnType::from_char(c)?
         } else {
-            return Err(error::Parse::InvalidShortyDescriptor {
-                descriptor: s.to_owned(),
-            });
+            return Err(error::Parse::InvalidShortyDescriptor(s.to_owned()));
         };
         let mut field_types = Vec::with_capacity(s.len() - 1);
         for c in chars {
@@ -553,8 +540,8 @@ bitflags! {
     }
 }
 
-impl Display for AccessFlags {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+impl fmt::Display for AccessFlags {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = String::new();
 
         if self.contains(Self::ACC_PUBLIC) {

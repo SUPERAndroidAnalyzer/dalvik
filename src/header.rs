@@ -1,21 +1,19 @@
 //! Module containing the Dex file header.
 
-use std::{
-    fmt, fs,
-    io::{BufReader, Read},
-    path::Path,
-    u32,
-};
-
-use byteorder::{BigEndian, ByteOrder, LittleEndian, ReadBytesExt};
-use failure::{Error, ResultExt};
-
 use crate::{
     error,
     sizes::{
         CLASS_DEF_ITEM_SIZE, FIELD_ID_ITEM_SIZE, HEADER_SIZE, METHOD_ID_ITEM_SIZE,
         PROTO_ID_ITEM_SIZE, STRING_ID_ITEM_SIZE, TYPE_ID_ITEM_SIZE,
     },
+};
+use anyhow::{Context, Result};
+use byteorder::{BigEndian, ByteOrder, LittleEndian, ReadBytesExt};
+use std::{
+    fmt, fs,
+    io::{BufReader, Read},
+    path::Path,
+    u32,
 };
 
 /// Endianness constant representing little endian file.
@@ -53,7 +51,7 @@ pub struct Header {
 
 impl Header {
     /// Obtains the header from a Dex file.
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let f = fs::File::open(path).context("could not open file")?;
         let file_size = f.metadata().context("could not read file metadata")?.len();
         if file_size < u64::from(HEADER_SIZE) || file_size > (u64::from(u32::max_value())) {
@@ -74,7 +72,7 @@ impl Header {
     }
 
     /// Obtains the header from a Dex file reader.
-    pub fn from_reader<R: Read>(mut reader: R) -> Result<Self, Error> {
+    pub fn from_reader<R: Read>(mut reader: R) -> Result<Self> {
         // Magic number
         let mut magic = [0_u8; 8];
         reader
@@ -151,7 +149,7 @@ impl Header {
         file_size: u32,
         header_size: u32,
         endian_tag: u32,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self> {
         /// Returns `Some(x)` if the boolean is `true`, `None` otherwise.
         #[inline]
         fn some_if(x: u32, b: bool) -> Option<u32> {
@@ -609,7 +607,7 @@ impl Header {
 }
 
 impl fmt::Debug for Header {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "Header {{ magic: [ {} ] (version: {}), checksum: {:#x}, SHA-1 signature: {}, \

@@ -1,45 +1,32 @@
 //! Dalvik executable file format parser.
 
-#![forbid(anonymous_parameters)]
+#![forbid(anonymous_parameters, unsafe_code)]
+#![warn(clippy::pedantic)]
 #![deny(
     clippy::all,
     variant_size_differences,
     unused_results,
     unused_qualifications,
     unused_import_braces,
-    unsafe_code,
+    unused_lifetimes,
+    //unreachable_pub,
     trivial_numeric_casts,
     trivial_casts,
     missing_docs,
-    unused_extern_crates,
+    missing_doc_code_examples,
     missing_debug_implementations,
-    missing_copy_implementations
+    missing_copy_implementations,
+    deprecated_in_future,
+    macro_use_extern_crate,
+    meta_variable_misuse,
+    non_ascii_idents,
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    future_incompatible,
+    nonstandard_style
 )]
-#![warn(clippy::pedantic)]
-// Allowing these for now.
-#![allow(
-    clippy::module_name_repetitions,
-    clippy::similar_names,
-    clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap
-)]
-
-use std::{
-    fs,
-    io::{prelude::BufRead, BufReader},
-    path::Path,
-    u32,
-};
-
-use failure::{Error, ResultExt};
-
-pub mod bytecode;
-pub mod error;
-pub mod header;
-pub mod types;
-
-mod read;
-mod sizes;
+#![warn(unused)]
+#![allow(clippy::must_use_candidate, rustdoc)]
 
 pub use crate::header::Header;
 use crate::{
@@ -47,6 +34,20 @@ use crate::{
     sizes::HEADER_SIZE,
     types::{AccessFlags, Type},
 };
+use anyhow::{Context, Result};
+use std::{
+    fs,
+    io::{prelude::BufRead, BufReader},
+    path::Path,
+    u32,
+};
+
+pub mod bytecode;
+pub mod error;
+pub mod header;
+mod read;
+mod sizes;
+pub mod types;
 
 /// Dex file representation.
 #[derive(Debug)]
@@ -58,7 +59,7 @@ pub struct Dex {
 
 impl Dex {
     /// Reads the Dex data structure from the given path.
-    pub fn from_file<P>(path: P) -> Result<Self, Error>
+    pub fn from_file<P>(path: P) -> Result<Self>
     where
         P: AsRef<Path>,
     {
@@ -74,7 +75,7 @@ impl Dex {
     }
 
     /// Loads a new Dex data structure from the given reader.
-    pub fn from_reader<R, S>(reader: R, size: S) -> Result<Self, Error>
+    pub fn from_reader<R, S>(reader: R, size: S) -> Result<Self>
     where
         R: BufRead,
         S: Into<Option<usize>>,
@@ -92,7 +93,7 @@ impl Dex {
     }
 
     // /// Ads the file in the given path to the current Dex data structure.
-    // pub fn add_file<P: AsRef<Path>>(path: P) -> Result<(), Error> {
+    // pub fn add_file<P: AsRef<Path>>(path: P) -> Result<()> {
     //     unimplemented!() // TODO
     // }
     //

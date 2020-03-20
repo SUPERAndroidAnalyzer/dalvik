@@ -1,20 +1,17 @@
 //! Errors module
 
-use std::fmt;
-
-use failure::Fail;
-
 use crate::sizes::HEADER_SIZE;
+use std::{error::Error, fmt};
 
 /// Invalid file size.
-#[derive(Debug, Fail, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct InvalidFileSize {
     /// Size of the dex file.
     pub file_size: u64,
 }
 
 impl fmt::Display for InvalidFileSize {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "invalid dex file size: file size must be between {} and {} bytes, but the size of \
@@ -26,8 +23,10 @@ impl fmt::Display for InvalidFileSize {
     }
 }
 
+impl Error for InvalidFileSize {}
+
 /// Errors coming from header parsing.
-#[derive(Debug, Fail)]
+#[derive(Debug, Clone)]
 pub enum Header {
     /// Incorrect dex magic number.
     IncorrectMagic {
@@ -63,17 +62,14 @@ pub enum Header {
 }
 
 impl fmt::Display for Header {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::Header::{
-            FileSizeMismatch, Generic, IncorrectHeaderSize, IncorrectMagic, InvalidEndianTag,
-        };
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use crate::header::{ENDIAN_CONSTANT, REVERSE_ENDIAN_CONSTANT};
 
         match self {
-            IncorrectMagic { dex_magic } => {
+            Self::IncorrectMagic { dex_magic } => {
                 write!(f, "incorrect dex magic number: {:?}", dex_magic)
             }
-            FileSizeMismatch {
+            Self::FileSizeMismatch {
                 file_size,
                 size_in_header,
             } => write!(
@@ -82,37 +78,34 @@ impl fmt::Display for Header {
                  bytes)",
                 size_in_header, file_size
             ),
-            InvalidEndianTag { endian_tag } => write!(
+            Self::InvalidEndianTag { endian_tag } => write!(
                 f,
                 "invalid dex endian tag: {:#010x}, it can only be `ENDIAN_CONSTANT` ({:#010x}) or \
                  `REVERSE_ENDIAN_CONSTANT` ({:#010x})",
                 endian_tag, ENDIAN_CONSTANT, REVERSE_ENDIAN_CONSTANT
             ),
-            IncorrectHeaderSize { header_size } => write!(
+            Self::IncorrectHeaderSize { header_size } => write!(
                 f,
                 "invalid dex header_size: {} bytes, it can only be {} bytes",
                 header_size, HEADER_SIZE
             ),
-            Generic { error } => write!(f, "error in dex header: {}", error),
+            Self::Generic { error } => write!(f, "error in dex header: {}", error),
         }
     }
 }
 
+impl Error for Header {}
+
 /// Parsing errors.
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum Parse {
     /// Invalid offset found.
-    #[fail(display = "invalid offset: {}", desc)]
     InvalidOffset {
         /// Description of the offset.
         desc: String,
     },
 
     /// Mismatched offsets found.
-    #[fail(
-        display = "mismatched `{}` offsets: expected {:#010x}, current offset {:#010x}",
-        offset_name, expected_offset, current_offset
-    )]
     OffsetMismatch {
         /// Name of the mismatched offset.
         offset_name: &'static str,
@@ -123,73 +116,36 @@ pub enum Parse {
     },
 
     /// Unknown string index.
-    #[fail(display = "there is no string with index {}", index)]
-    UnknownStringIndex {
-        /// Unknown index.
-        index: u32,
-    },
+    UnknownStringIndex(u32),
 
     /// Unknown type index.
-    #[fail(display = "there is no type with index {}", index)]
-    UnknownTypeIndex {
-        /// Unknown index.
-        index: u32,
-    },
+    UnknownTypeIndex(u32),
 
     /// Invalid type descriptor.
-    #[fail(display = "invalid type descriptor: `{}`", descriptor)]
-    InvalidTypeDescriptor {
-        /// The invalid descriptor found in the file.
-        descriptor: String,
-    },
+    InvalidTypeDescriptor(String),
 
     /// Invalid shorty type.
-    #[fail(display = "invalid shorty type: `{}`", shorty_type)]
-    InvalidShortyType {
-        /// The invalid shorty type found in the file.
-        shorty_type: char,
-    },
+    InvalidShortyType(char),
 
     /// Invalid shorty descriptor.
-    #[fail(display = "invalid shorty descriptor: `{}`", descriptor)]
-    InvalidShortyDescriptor {
-        /// The invalid descriptor found in the file.
-        descriptor: String,
-    },
+    InvalidShortyDescriptor(String),
 
     /// Invalid access flags found.
-    #[fail(display = "invalid access flags: {:#010x}", access_flags)]
-    InvalidAccessFlags {
-        /// The invalid access flags integer.
-        access_flags: u32,
-    },
+    InvalidAccessFlags(u32),
 
     /// Invalid item type found.
-    #[fail(display = "invalid item type: {:#06x}", item_type)]
-    InvalidItemType {
-        /// The invalid item type integer.
-        item_type: u16,
-    },
+    InvalidItemType(u16),
 
     /// Invalid visibility modifier.
-    #[fail(display = "invalid visibility modifier: {:#04x}", visibility)]
-    InvalidVisibility {
-        /// The invalid visibility integer.
-        visibility: u8,
-    },
+    InvalidVisibility(u8),
 
     /// Invalid value found.
-    #[fail(display = "invalid value: {}", error)]
     InvalidValue {
         /// Error string.
         error: String,
     },
 
     /// String size mismatch.
-    #[fail(
-        display = "string size mismatch: expected {} characters, found {}",
-        expected_size, actual_size
-    )]
     StringSizeMismatch {
         /// Expected string size.
         expected_size: u32,
@@ -198,13 +154,62 @@ pub enum Parse {
     },
 
     /// Invalid LEB128 number.
-    #[fail(display = "invalid leb128: an leb128 with more than 5 bytes was found")]
     InvalidLeb128,
 
     /// Generic error in dex map.
-    #[fail(display = "error in dex map: {}", error)]
     Map {
         /// Error String.
         error: String,
     },
 }
+
+impl fmt::Display for Parse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidOffset { desc } => write!(f, "invalid offset: {}", desc),
+            Self::OffsetMismatch {
+                offset_name,
+                current_offset,
+                expected_offset,
+            } => write!(
+                f,
+                "mismatched `{}` offsets: expected {:#010x}, current offset {:#010x}",
+                offset_name, expected_offset, current_offset
+            ),
+            Self::UnknownStringIndex(index) => write!(f, "there is no string with index {}", index),
+            Self::UnknownTypeIndex(index) => write!(f, "there is no type with index {}", index),
+            Self::InvalidTypeDescriptor(descriptor) => {
+                write!(f, "invalid type descriptor: `{}`", descriptor)
+            }
+            Self::InvalidShortyType(shorty_type) => {
+                write!(f, "invalid shorty type: `{}`", shorty_type)
+            }
+            Self::InvalidShortyDescriptor(descriptor) => {
+                write!(f, "invalid shorty descriptor: `{}`", descriptor)
+            }
+            Self::InvalidAccessFlags(access_flags) => {
+                write!(f, "invalid access flags: {:#010x}", access_flags)
+            }
+            Self::InvalidItemType(item_type) => write!(f, "invalid item type: {:#06x}", item_type),
+            Self::InvalidVisibility(visibility) => {
+                write!(f, "invalid visibility modifier: {:#04x}", visibility)
+            }
+            Self::InvalidValue { error } => write!(f, "invalid value: {}", error),
+            Self::StringSizeMismatch {
+                expected_size,
+                actual_size,
+            } => write!(
+                f,
+                "string size mismatch: expected {} characters, found {}",
+                expected_size, actual_size
+            ),
+            Self::InvalidLeb128 => write!(
+                f,
+                "invalid leb128: a leb128 with more than 5 bytes was found"
+            ),
+            Self::Map { error } => write!(f, "error in dex map: {}", error),
+        }
+    }
+}
+
+impl Error for Parse {}

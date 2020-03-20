@@ -1,18 +1,14 @@
 language: rust
 cache: cargo
-dist: xenial
+dist: bionic
 sudo: true
 
 addons:
   apt:
     packages:
-    - libcurl4-openssl-dev
-    - libelf-dev
-    - libdw-dev
+    - libssl-dev
+    - pkg-config
     - cmake
-    - gcc
-    - binutils-dev
-    - libiberty-dev
     - zlib1g-dev
 
 # Run builds in Linux, MacOS X and Windows
@@ -23,7 +19,7 @@ os:
 
 # Run builds for all the supported trains
 rust:
-- 1.37.0
+- 1.42.0
 - stable
 - beta
 - nightly
